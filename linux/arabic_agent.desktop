@@ -1,0 +1,15 @@
+[Desktop Entry]
+Version=1.0
+Name=Arabic Agent
+Name[ar]=وكيل الذكاء الاصطناعي العربي
+Comment=AI Assistant with Arabic Language Support and Fine-tuning Capabilities
+Comment[ar]=مساعد ذكي يدعم اللغة العربية والتدريب المتقدم للنماذج
+Exec=arabic_agent
+Icon=data/flutter_assets/assets/icons/app_icon1.png
+Terminal=false
+Type=Application
+Categories=Office;Education;Development;Science;
+Keywords=AI;Arabic;Assistant;Fine-tuning;Machine Learning;Chat;
+Keywords[ar]=ذكاء اصطناعي;عربي;مساعد;تدريب;تعلم آلة;محادثة;
+StartupNotify=true
+MimeType=text/plain;application/json;
