@@ -338,7 +338,7 @@ Tooltip(
 ## 📱 الدعم
 
 - **البريد الإلكتروني**: <alromaihi2224@gmail.com>
-- **GitHub Issues**: [رابط المشروع]
+- **GitHub Issues**:[https://github.com/Msr7799/Fine_tuning_AI.git]
 - **التوثيق**: README.md و FEATURES.md
 
 ---
