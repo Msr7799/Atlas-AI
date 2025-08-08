@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/chat_selection_provider.dart';
 import '../../data/models/message_model.dart';
+import 'chat_export_dialog.dart';
 
 class ChatDrawer extends StatelessWidget {
   const ChatDrawer({super.key});
@@ -33,25 +35,36 @@ class ChatDrawer extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Icon(
-                      Icons.chat_bubble_outline,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      size: 32,
+                    SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: Image.asset(
+                        'assets/icons/ATLAS_icon2.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.chat_bubble_outline,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 32,
+                          );
+                        },
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'سجل المحادثات',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      'Atlas AI',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ],
                 ),
               ),
             ),
           ),
-          
+
           // New Chat Button
           ListTile(
             leading: const Icon(Icons.add_circle_outline),
@@ -61,9 +74,60 @@ class ChatDrawer extends StatelessWidget {
               Navigator.pop(context);
             },
           ),
-          
+
+          // Export Chat Button
+          Consumer2<ChatProvider, ChatSelectionProvider>(
+            builder: (context, chatProvider, selectionProvider, child) {
+              return ExpansionTile(
+                leading: const Icon(Icons.download),
+                title: const Text('تصدير المحادثات'),
+                children: [
+                  // Export Selected Messages (if in selection mode)
+                  if (selectionProvider.isSelectionMode &&
+                      selectionProvider.selectedMessageIds.isNotEmpty)
+                    ListTile(
+                      leading: const Icon(Icons.check_box),
+                      title: Text(
+                        'تصدير المحدد (${selectionProvider.selectedMessageIds.length})',
+                      ),
+                      onTap: () {
+                        _showExportDialog(
+                          context,
+                          chatProvider,
+                          true,
+                          selectionProvider,
+                        );
+                        Navigator.pop(context);
+                      },
+                    ),
+
+                  // Export All Messages
+                  ListTile(
+                    leading: const Icon(Icons.download_outlined),
+                    title: const Text('تصدير جميع المحادثات'),
+                    onTap: () {
+                      _showExportDialog(context, chatProvider, false, null);
+                      Navigator.pop(context);
+                    },
+                  ),
+
+                  // Export Current Session
+                  if (chatProvider.messages.isNotEmpty)
+                    ListTile(
+                      leading: const Icon(Icons.file_download),
+                      title: const Text('تصدير الجلسة الحالية'),
+                      onTap: () {
+                        _showCurrentSessionExportDialog(context, chatProvider);
+                        Navigator.pop(context);
+                      },
+                    ),
+                ],
+              );
+            },
+          ),
+
           const Divider(),
-          
+
           // Sessions List
           Expanded(
             child: Consumer<ChatProvider>(
@@ -73,24 +137,17 @@ class ChatDrawer extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.history,
-                          size: 48,
-                          color: Colors.grey,
-                        ),
+                        Icon(Icons.history, size: 48, color: Colors.grey),
                         SizedBox(height: 16),
                         Text(
                           'لا توجد محادثات محفوظة',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                          ),
+                          style: TextStyle(color: Colors.grey, fontSize: 16),
                         ),
                       ],
                     ),
                   );
                 }
-                
+
                 return ListView.builder(
                   itemCount: chatProvider.sessions.length,
                   itemBuilder: (context, index) {
@@ -101,9 +158,9 @@ class ChatDrawer extends StatelessWidget {
               },
             ),
           ),
-          
+
           const Divider(),
-          
+
           // Settings and Theme Options
           ListTile(
             leading: Consumer<ThemeProvider>(
@@ -118,7 +175,7 @@ class ChatDrawer extends StatelessWidget {
               context.read<ThemeProvider>().toggleTheme();
             },
           ),
-          
+
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('الإعدادات'),
@@ -127,7 +184,7 @@ class ChatDrawer extends StatelessWidget {
               // Open settings dialog
             },
           ),
-          
+
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('حول التطبيق'),
@@ -136,19 +193,25 @@ class ChatDrawer extends StatelessWidget {
               _showAboutDialog(context);
             },
           ),
-          
+
           const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildSessionTile(BuildContext context, ChatSessionModel session, ChatProvider chatProvider) {
+  Widget _buildSessionTile(
+    BuildContext context,
+    ChatSessionModel session,
+    ChatProvider chatProvider,
+  ) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.primary.withOpacity(0.1),
           child: Icon(
             Icons.chat,
             color: Theme.of(context).colorScheme.primary,
@@ -157,9 +220,9 @@ class ChatDrawer extends StatelessWidget {
         ),
         title: Text(
           session.title,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -214,7 +277,7 @@ class ChatDrawer extends StatelessWidget {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date);
-    
+
     if (diff.inDays < 1) {
       if (diff.inHours < 1) {
         return '${diff.inMinutes} دقيقة';
@@ -227,12 +290,18 @@ class ChatDrawer extends StatelessWidget {
     }
   }
 
-  void _showDeleteConfirmation(BuildContext context, String sessionId, ChatProvider chatProvider) {
+  void _showDeleteConfirmation(
+    BuildContext context,
+    String sessionId,
+    ChatProvider chatProvider,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('تأكيد الحذف'),
-        content: const Text('هل أنت متأكد من حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.'),
+        content: const Text(
+          'هل أنت متأكد من حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -253,18 +322,20 @@ class ChatDrawer extends StatelessWidget {
     );
   }
 
-  void _showRenameDialog(BuildContext context, ChatSessionModel session, ChatProvider chatProvider) {
+  void _showRenameDialog(
+    BuildContext context,
+    ChatSessionModel session,
+    ChatProvider chatProvider,
+  ) {
     final controller = TextEditingController(text: session.title);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('إعادة تسمية المحادثة'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'اسم المحادثة الجديد',
-          ),
+          decoration: const InputDecoration(hintText: 'اسم المحادثة الجديد'),
           autofocus: true,
         ),
         actions: [
@@ -293,11 +364,17 @@ class ChatDrawer extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('العميل العربي الذكي'),
+            Text('Atlas AI'),
             SizedBox(height: 8),
             Text('الإصدار: 1.0.0'),
             SizedBox(height: 8),
-            Text('تطبيق ذكي للدردشة مع AI مع دعم اللغة العربية وميزات متقدمة.'),
+            Text('تطوير: Mohamed S AL-Romaihi'),
+            SizedBox(height: 8),
+            Text('مساعد ذكي يدعم اللغة العربية مع ميزات متقدمة.'),
+            SizedBox(height: 8),
+            Text('الموقع: www.atlasai.com'),
+            SizedBox(height: 8),
+            Text('البريد الإلكتروني: alromaihi2224@gmail.com'),
           ],
         ),
         actions: [
@@ -306,6 +383,68 @@ class ChatDrawer extends StatelessWidget {
             child: const Text('موافق'),
           ),
         ],
+      ),
+    );
+  }
+
+  /// عرض حوار تصدير المحادثات
+  static void _showExportDialog(
+    BuildContext context,
+    ChatProvider chatProvider,
+    bool exportSelected,
+    ChatSelectionProvider? selectionProvider,
+  ) {
+    List<MessageModel> messagesToExport;
+    String dialogTitle;
+
+    if (exportSelected && selectionProvider != null) {
+      // تصدير الرسائل المحددة
+      messagesToExport = chatProvider.messages
+          .where((msg) => selectionProvider.selectedMessageIds.contains(msg.id))
+          .toList();
+      dialogTitle = 'تصدير الرسائل المحددة (${messagesToExport.length})';
+    } else {
+      // تصدير جميع الرسائل
+      messagesToExport = chatProvider.messages;
+      dialogTitle = 'تصدير جميع المحادثات';
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: ChatExportDialog(
+            messages: messagesToExport,
+            chatTitle: dialogTitle,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// عرض حوار تصدير الجلسة الحالية
+  static void _showCurrentSessionExportDialog(
+    BuildContext context,
+    ChatProvider chatProvider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: ChatExportDialog(
+            messages: chatProvider.messages,
+            chatTitle:
+                'الجلسة الحالية - ${DateTime.now().toString().split(' ')[0]}',
+          ),
+        ),
       ),
     );
   }

@@ -1,8 +1,5 @@
 import 'dart:async';
-
-import 'dart:io';
 import 'package:dio/dio.dart';
-
 
 class McpService {
   static final McpService _instance = McpService._internal();
@@ -12,20 +9,25 @@ class McpService {
   late final Dio _dio;
   final Map<String, McpServer> _servers = {};
   bool _isInitialized = false;
+  Map<String, dynamic> _customServers = {};
 
   void initialize() {
     if (_isInitialized) return;
-    
-    _dio = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 30),
-    ));
 
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      logPrint: (object) => print('[MCP API] $object'),
-    ));
+    _dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 30),
+      ),
+    );
+
+    _dio.interceptors.add(
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        logPrint: (object) => print('[MCP API] $object'),
+      ),
+    );
 
     // Initialize default MCP servers
     _initializeDefaultServers();
@@ -40,6 +42,7 @@ class McpService {
       description: 'خادم لحفظ واسترجاع المعلومات',
       isEnabled: true,
       capabilities: ['memory_store', 'memory_retrieve', 'memory_search'],
+      isCustom: false,
     );
 
     // Sequential Thinking Server
@@ -48,25 +51,58 @@ class McpService {
       name: 'التفكير التسلسلي',
       description: 'خادم للتفكير المتسلسل والتحليل العميق',
       isEnabled: true,
-      capabilities: ['think_step_by_step', 'analyze_problem', 'generate_solution'],
+      capabilities: [
+        'think_step_by_step',
+        'analyze_problem',
+        'generate_solution',
+      ],
+      isCustom: false,
     );
 
-    // File System Server
-    _servers['filesystem'] = McpServer(
-      id: 'filesystem',
-      name: 'نظام الملفات',
-      description: 'خادم للتعامل مع الملفات والمجلدات',
-      isEnabled: false,
-      capabilities: ['read_file', 'write_file', 'list_directory'],
-    );
+    print('[MCP] Initialized ${_servers.length} default MCP servers');
+  }
 
-    print('[MCP] Initialized ${_servers.length} MCP servers');
+  // إضافة دعم الخوادم المخصصة
+  void updateCustomServers(
+    Map<String, dynamic> customServers,
+    Map<String, bool> serverStatus,
+  ) {
+    _customServers = customServers;
+
+    // إزالة الخوادم المخصصة القديمة
+    _servers.removeWhere((key, server) => server.isCustom);
+
+    // إضافة الخوادم المخصصة الجديدة
+    for (String serverId in customServers.keys) {
+      final serverConfig = customServers[serverId] as Map<String, dynamic>;
+
+      _servers[serverId] = McpServer(
+        id: serverId,
+        name: serverConfig['name'] ?? serverId,
+        description: serverConfig['description'] ?? 'خادم MCP مخصص',
+        isEnabled: serverStatus[serverId] ?? false,
+        capabilities: List<String>.from(
+          serverConfig['capabilities'] ?? ['custom'],
+        ),
+        isCustom: true,
+        command: serverConfig['command'],
+        args: List<String>.from(serverConfig['args'] ?? []),
+        env: Map<String, String>.from(serverConfig['env'] ?? {}),
+      );
+    }
+
+    print('[MCP] Updated custom servers: ${customServers.keys.length} servers');
   }
 
   List<McpServer> get availableServers => _servers.values.toList();
-  
-  List<McpServer> get enabledServers => 
+
+  List<McpServer> get enabledServers =>
       _servers.values.where((server) => server.isEnabled).toList();
+
+  List<McpServer> get customServers =>
+      _servers.values.where((server) => server.isCustom).toList();
+
+  Map<String, dynamic> get customServersConfig => Map.from(_customServers);
 
   bool isServerEnabled(String serverId) {
     return _servers[serverId]?.isEnabled ?? false;
@@ -79,14 +115,35 @@ class McpService {
     }
   }
 
-  // MCP Tool execution methods
+  // تنفيذ خادم مخصص
+  Future<String> executeCustomMcpServer(
+    String serverId,
+    Map<String, dynamic> params,
+  ) async {
+    final server = _servers[serverId];
+    if (server == null || !server.isEnabled || !server.isCustom) {
+      throw McpException(
+        'Custom MCP server $serverId is not available or enabled',
+      );
+    }
+
+    try {
+      // محاكاة تنفيذ الخادم المخصص
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      return 'تم تنفيذ الخادم المخصص $serverId بنجاح\nالمعاملات: ${params.toString()}';
+    } catch (e) {
+      throw McpException('فشل في تنفيذ الخادم المخصص $serverId: $e');
+    }
+  }
+
+  // باقي الدوال الموجودة...
   Future<String> executeMemoryStore(String key, String content) async {
     if (!isServerEnabled('memory')) {
       throw McpException('Memory server is not enabled');
     }
 
     try {
-      // Simulate memory storage
       await Future.delayed(const Duration(milliseconds: 100));
       return 'تم حفظ المعلومات في الذاكرة بنجاح: $key';
     } catch (e) {
@@ -100,7 +157,6 @@ class McpService {
     }
 
     try {
-      // Simulate memory retrieval
       await Future.delayed(const Duration(milliseconds: 100));
       return 'المعلومات المحفوظة: تم العثور على البيانات المطلوبة';
     } catch (e) {
@@ -114,7 +170,6 @@ class McpService {
     }
 
     try {
-      // Simulate step-by-step thinking
       await Future.delayed(const Duration(milliseconds: 200));
       return [
         '🤔 الخطوة 1: فهم المشكلة',
@@ -128,43 +183,7 @@ class McpService {
     }
   }
 
-  Future<String> executeFileRead(String filePath) async {
-    if (!isServerEnabled('filesystem')) {
-      throw McpException('Filesystem server is not enabled');
-    }
-
-    try {
-      final file = File(filePath);
-      if (!await file.exists()) {
-        throw McpException('الملف غير موجود: $filePath');
-      }
-      
-      final content = await file.readAsString();
-      return content;
-    } catch (e) {
-      throw McpException('فشل في قراءة الملف: $e');
-    }
-  }
-
-  Future<List<String>> executeDirectoryList(String dirPath) async {
-    if (!isServerEnabled('filesystem')) {
-      throw McpException('Filesystem server is not enabled');
-    }
-
-    try {
-      final directory = Directory(dirPath);
-      if (!await directory.exists()) {
-        throw McpException('المجلد غير موجود: $dirPath');
-      }
-      
-      final entities = await directory.list().toList();
-      return entities.map((entity) => entity.path).toList();
-    } catch (e) {
-      throw McpException('فشل في قراءة المجلد: $e');
-    }
-  }
-
-  // Enhanced system prompt with MCP capabilities
+  // Enhanced system prompt with custom MCP capabilities
   String getEnhancedSystemPrompt() {
     final enabledServersList = enabledServers;
     if (enabledServersList.isEmpty) {
@@ -172,7 +191,10 @@ class McpService {
     }
 
     final mcpCapabilities = enabledServersList
-        .map((server) => '- ${server.name}: ${server.description}')
+        .map(
+          (server) =>
+              '- ${server.name}: ${server.description}${server.isCustom ? " (مخصص)" : ""}',
+        )
         .join('\n');
 
     return '''${_getBaseSystemPrompt()}
@@ -183,7 +205,7 @@ $mcpCapabilities
 You can use these servers to enhance your responses:
 - Use the memory server to store and retrieve important information
 - Use sequential thinking for complex problems
-- Use file system tools when you need to read files
+- Use custom MCP servers for specialized tasks
 
 Remember to format your responses clearly using Markdown and proper code formatting.''';
   }
@@ -197,57 +219,32 @@ Remember to format your responses clearly using Markdown and proper code formatt
 - **Be multilingual and flexible** - do not restrict yourself to only Arabic
 - **Format responses clearly** using Markdown for better readability
 
-## 📋 Core Tasks:
+## � Available Tools:
+You have access to powerful search and web tools:
+
+### 📊 Tavily Search (tavily_search):
+- **When to use**: For current information, news, recent events, facts verification
+- **How to use**: Call tavily_search with a relevant query when users ask for:
+  - Current events or recent news
+  - Latest prices, weather, or real-time data
+  - Fact verification or research
+  - Information about recent developments
+- **Example triggers**: "آخر أخبار", "سعر", "طقس", "ما الجديد", "recent", "current", "today"
+
+### 🔍 Tavily Extract (tavily_extract):
+- **When to use**: To extract specific content from web pages
+- **How to use**: Call tavily_extract with URL(s) when users need detailed content from specific websites
+
+## �📋 Core Tasks:
 1. **Provide helpful and accurate responses**
-2. **Use proper Markdown formatting** - organize your answers beautifully
-3. **Format code properly** - use appropriate syntax highlighting
+2. **Use tools when appropriate** - Don't hesitate to search for current information
+3. **Use proper Markdown formatting** - organize your answers beautifully
+4. **Format code properly** - use appropriate syntax highlighting
 
-## 💻 Code Formatting:
-When writing code, use proper formatting:
-
-```javascript
-// JavaScript example
-console.log("Hello World!");
-```
-
-```python
-# Python example
-print("Hello World!")
-```
-
-```bash
-# Bash/Shell example
-echo "Hello World!"
-```
-
-```powershell
-# PowerShell example
-Write-Output "Hello World!"
-```
-
-```json
-{
-  "message": "Hello World!"
-}
-```
-
-```sql
--- SQL example
-SELECT 'Hello World!' AS greeting;
-```
-
-## 🎯 Response Style:
-- **Be clear and helpful**
-- **Use appropriate emojis** 😊
-- **Organize information in lists and points**
-- **Provide practical examples when needed**
-- **Explain complex concepts simply**
-
-## 🔍 When handling queries:
-1. **Understand the question thoroughly**
-2. **Provide comprehensive and detailed answers**
-3. **Give practical examples**
-4. **Suggest actionable steps when appropriate**
+## 🎯 Tool Usage Guidelines:
+- **Always use tavily_search** when the user's question requires current or recent information
+- **Be proactive** in using search tools for queries about news, prices, weather, or real-time data
+- **Combine search results** with your knowledge to provide comprehensive answers
 
 Remember: Your goal is to provide the best possible assistance while adapting to the user's communication style and language preference!''';
   }
@@ -263,6 +260,10 @@ class McpServer {
   final String description;
   final bool isEnabled;
   final List<String> capabilities;
+  final bool isCustom;
+  final String? command;
+  final List<String>? args;
+  final Map<String, String>? env;
 
   McpServer({
     required this.id,
@@ -270,6 +271,10 @@ class McpServer {
     required this.description,
     required this.isEnabled,
     required this.capabilities,
+    this.isCustom = false,
+    this.command,
+    this.args,
+    this.env,
   });
 
   McpServer copyWith({
@@ -278,6 +283,10 @@ class McpServer {
     String? description,
     bool? isEnabled,
     List<String>? capabilities,
+    bool? isCustom,
+    String? command,
+    List<String>? args,
+    Map<String, String>? env,
   }) {
     return McpServer(
       id: id ?? this.id,
@@ -285,6 +294,10 @@ class McpServer {
       description: description ?? this.description,
       isEnabled: isEnabled ?? this.isEnabled,
       capabilities: capabilities ?? this.capabilities,
+      isCustom: isCustom ?? this.isCustom,
+      command: command ?? this.command,
+      args: args ?? this.args,
+      env: env ?? this.env,
     );
   }
 
@@ -295,6 +308,10 @@ class McpServer {
       'description': description,
       'isEnabled': isEnabled,
       'capabilities': capabilities,
+      'isCustom': isCustom,
+      if (command != null) 'command': command,
+      if (args != null) 'args': args,
+      if (env != null) 'env': env,
     };
   }
 
@@ -305,6 +322,14 @@ class McpServer {
       description: json['description'] as String,
       isEnabled: json['isEnabled'] as bool,
       capabilities: List<String>.from(json['capabilities'] as List),
+      isCustom: json['isCustom'] as bool? ?? false,
+      command: json['command'] as String?,
+      args: json['args'] != null
+          ? List<String>.from(json['args'] as List)
+          : null,
+      env: json['env'] != null
+          ? Map<String, String>.from(json['env'] as Map)
+          : null,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/services/prompt_enhancer_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/responsive_helper.dart';
 
 class PromptEnhancementDialog extends StatefulWidget {
   final PromptEnhancementResult result;
@@ -55,56 +56,73 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            height: MediaQuery.of(context).size.height * 0.8,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).colorScheme.surface,
-                  Theme.of(context).colorScheme.surface.withOpacity(0.95),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: ResponsiveHelper.getResponsiveConstraints(
+              context,
+              mobile: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.95,
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
               ),
+              tablet: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.8,
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              desktop: const BoxConstraints(maxWidth: 1000, maxHeight: 700),
             ),
-            child: Column(
-              children: [
-                // Header
-                _buildHeader(),
-
-                // Confidence Score
-                _buildConfidenceScore(),
-
-                // Tab Bar
-                _buildTabBar(),
-
-                // Tab Content
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildComparisonTab(),
-                      _buildAnalysisTab(),
-                      _buildCustomEditTab(),
-                    ],
-                  ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.surface,
+                    Theme.of(context).colorScheme.surface.withOpacity(0.95),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
+              ),
+              child: Column(
+                children: [
+                  // Header
+                  _buildHeader(),
 
-                // Action Buttons
-                _buildActionButtons(),
-              ],
+                  // Confidence Score
+                  _buildConfidenceScore(),
+
+                  // Tab Bar
+                  _buildTabBar(),
+
+                  // Tab Content
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildComparisonTab(),
+                        _buildAnalysisTab(),
+                        _buildCustomEditTab(),
+                      ],
+                    ),
+                  ),
+
+                  // Action Buttons
+                  _buildActionButtons(),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ); // إغلاق WillPopScope
+    );
   }
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.all(16),
+        tablet: const EdgeInsets.all(20),
+        desktop: const EdgeInsets.all(24),
+      ),
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
@@ -119,8 +137,24 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
       ),
       child: Row(
         children: [
-          Icon(Icons.auto_fix_high, color: Colors.white, size: 28),
-          const SizedBox(width: 12),
+          Icon(
+            Icons.auto_fix_high,
+            color: Colors.white,
+            size: ResponsiveHelper.getResponsiveIconSize(
+              context,
+              mobile: 24,
+              tablet: 28,
+              desktop: 32,
+            ),
+          ),
+          SizedBox(
+            width: ResponsiveHelper.getResponsiveWidth(
+              context,
+              mobile: 8,
+              tablet: 12,
+              desktop: 16,
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +162,12 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 Text(
                   'محسن البرومبت الذكي',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      mobile: 18,
+                      tablet: 20,
+                      desktop: 22,
+                    ),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -136,7 +175,12 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 Text(
                   'تم تحسين البرومبت باستخدام Llama3 8B',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
                     color: Colors.white.withOpacity(0.9),
                   ),
                 ),
@@ -145,7 +189,11 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
           ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, color: Colors.white),
+            icon: Icon(
+              Icons.close,
+              color: Colors.white,
+              size: ResponsiveHelper.getResponsiveIconSize(context),
+            ),
           ),
         ],
       ),
@@ -154,8 +202,18 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
 
   Widget _buildConfidenceScore() {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: ResponsiveHelper.getResponsiveMargin(
+        context,
+        mobile: const EdgeInsets.all(12),
+        tablet: const EdgeInsets.all(16),
+        desktop: const EdgeInsets.all(20),
+      ),
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
@@ -165,16 +223,40 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
       ),
       child: Row(
         children: [
-          Icon(Icons.psychology, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 12),
+          Icon(
+            Icons.psychology,
+            color: Theme.of(context).colorScheme.primary,
+            size: ResponsiveHelper.getResponsiveIconSize(context),
+          ),
+          SizedBox(
+            width: ResponsiveHelper.getResponsiveWidth(
+              context,
+              mobile: 8,
+              tablet: 12,
+              desktop: 16,
+            ),
+          ),
           Text(
             'درجة الثقة في التحسين:',
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: Theme.of(context).colorScheme.onSurface,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                context,
+                mobile: 13,
+                tablet: 14,
+                desktop: 16,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(
+            width: ResponsiveHelper.getResponsiveWidth(
+              context,
+              mobile: 6,
+              tablet: 8,
+              desktop: 10,
+            ),
+          ),
           Expanded(
             child: LinearProgressIndicator(
               value: widget.result.confidenceScore,
@@ -184,12 +266,25 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(
+            width: ResponsiveHelper.getResponsiveWidth(
+              context,
+              mobile: 6,
+              tablet: 8,
+              desktop: 10,
+            ),
+          ),
           Text(
             '${(widget.result.confidenceScore * 100).toInt()}%',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: _getConfidenceColor(widget.result.confidenceScore),
+              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                context,
+                mobile: 13,
+                tablet: 14,
+                desktop: 16,
+              ),
             ),
           ),
         ],
@@ -205,9 +300,16 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
 
   Widget _buildTabBar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: ResponsiveHelper.getResponsiveMargin(
+        context,
+        mobile: const EdgeInsets.symmetric(horizontal: 12),
+        tablet: const EdgeInsets.symmetric(horizontal: 16),
+        desktop: const EdgeInsets.symmetric(horizontal: 20),
+      ),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TabBar(
@@ -220,10 +322,59 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
         unselectedLabelColor: Theme.of(
           context,
         ).colorScheme.onSurface.withOpacity(0.7),
-        tabs: const [
-          Tab(icon: Icon(Icons.compare), text: 'مقارنة'),
-          Tab(icon: Icon(Icons.analytics), text: 'تحليل'),
-          Tab(icon: Icon(Icons.edit), text: 'تعديل'),
+        labelStyle: TextStyle(
+          fontSize: ResponsiveHelper.getResponsiveFontSize(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: ResponsiveHelper.getResponsiveFontSize(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
+        tabs: [
+          Tab(
+            icon: Icon(
+              Icons.compare,
+              size: ResponsiveHelper.getResponsiveIconSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 24,
+              ),
+            ),
+            text: 'مقارنة',
+          ),
+          Tab(
+            icon: Icon(
+              Icons.analytics,
+              size: ResponsiveHelper.getResponsiveIconSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 24,
+              ),
+            ),
+            text: 'تحليل',
+          ),
+          Tab(
+            icon: Icon(
+              Icons.edit,
+              size: ResponsiveHelper.getResponsiveIconSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 24,
+              ),
+            ),
+            text: 'تعديل',
+          ),
         ],
       ),
     );
@@ -231,30 +382,71 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
 
   Widget _buildComparisonTab() {
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          // Original Prompt
-          Expanded(
-            child: _buildPromptCard(
-              title: 'البرومبت الأصلي',
-              content: widget.result.originalPrompt,
-              icon: Icons.edit_note,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Enhanced Prompt
-          Expanded(
-            child: _buildPromptCard(
-              title: 'البرومبت المحسن',
-              content: widget.result.enhancedPrompt,
-              icon: Icons.auto_fix_high,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ],
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.all(12),
+        tablet: const EdgeInsets.all(16),
+        desktop: const EdgeInsets.all(20),
       ),
+      child: ResponsiveHelper.isMobile(context)
+          ? Column(
+              children: [
+                Expanded(
+                  child: _buildPromptCard(
+                    title: 'البرومبت الأصلي',
+                    content: widget.result.originalPrompt,
+                    icon: Icons.edit_note,
+                    color: Colors.grey,
+                  ),
+                ),
+                SizedBox(
+                  height: ResponsiveHelper.getResponsiveHeight(
+                    context,
+                    mobile: 12,
+                    tablet: 16,
+                    desktop: 20,
+                  ),
+                ),
+                Expanded(
+                  child: _buildPromptCard(
+                    title: 'البرومبت المحسن',
+                    content: widget.result.enhancedPrompt,
+                    icon: Icons.auto_fix_high,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                // Original Prompt
+                Expanded(
+                  child: _buildPromptCard(
+                    title: 'البرومبت الأصلي',
+                    content: widget.result.originalPrompt,
+                    icon: Icons.edit_note,
+                    color: Colors.grey,
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveHelper.getResponsiveWidth(
+                    context,
+                    mobile: 12,
+                    tablet: 16,
+                    desktop: 20,
+                  ),
+                ),
+                // Enhanced Prompt
+                Expanded(
+                  child: _buildPromptCard(
+                    title: 'البرومبت المحسن',
+                    content: widget.result.enhancedPrompt,
+                    icon: Icons.auto_fix_high,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -275,7 +467,12 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: ResponsiveHelper.getResponsivePadding(
+              context,
+              mobile: const EdgeInsets.all(8),
+              tablet: const EdgeInsets.all(12),
+              desktop: const EdgeInsets.all(16),
+            ),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: const BorderRadius.only(
@@ -285,11 +482,36 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
             ),
             child: Row(
               children: [
-                Icon(icon, color: color, size: 20),
-                const SizedBox(width: 8),
+                Icon(
+                  icon,
+                  color: color,
+                  size: ResponsiveHelper.getResponsiveIconSize(
+                    context,
+                    mobile: 16,
+                    tablet: 20,
+                    desktop: 24,
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveHelper.getResponsiveWidth(
+                    context,
+                    mobile: 6,
+                    tablet: 8,
+                    desktop: 10,
+                  ),
+                ),
                 Text(
                   title,
-                  style: TextStyle(fontWeight: FontWeight.bold, color: color),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      mobile: 13,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -297,11 +519,21 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(12),
+              padding: ResponsiveHelper.getResponsivePadding(
+                context,
+                mobile: const EdgeInsets.all(8),
+                tablet: const EdgeInsets.all(12),
+                desktop: const EdgeInsets.all(16),
+              ),
               child: SelectableText(
                 content,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
                   height: 1.5,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -315,14 +547,24 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
 
   Widget _buildAnalysisTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.all(12),
+        tablet: const EdgeInsets.all(16),
+        desktop: const EdgeInsets.all(20),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Analysis
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: ResponsiveHelper.getResponsivePadding(
+              context,
+              mobile: const EdgeInsets.all(12),
+              tablet: const EdgeInsets.all(16),
+              desktop: const EdgeInsets.all(20),
+            ),
             decoration: BoxDecoration(
               color: Theme.of(
                 context,
@@ -340,23 +582,48 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                     Icon(
                       Icons.analytics,
                       color: Theme.of(context).colorScheme.primary,
+                      size: ResponsiveHelper.getResponsiveIconSize(context),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: ResponsiveHelper.getResponsiveWidth(
+                        context,
+                        mobile: 6,
+                        tablet: 8,
+                        desktop: 10,
+                      ),
+                    ),
                     Text(
                       'تحليل التحسينات',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(
+                  height: ResponsiveHelper.getResponsiveHeight(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  ),
+                ),
                 Text(
                   widget.result.analysis,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
                     height: 1.6,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -365,12 +632,24 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(
+            height: ResponsiveHelper.getResponsiveHeight(
+              context,
+              mobile: 12,
+              tablet: 16,
+              desktop: 20,
+            ),
+          ),
 
           // Improvements List
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: ResponsiveHelper.getResponsivePadding(
+              context,
+              mobile: const EdgeInsets.all(12),
+              tablet: const EdgeInsets.all(16),
+              desktop: const EdgeInsets.all(20),
+            ),
             decoration: BoxDecoration(
               color: Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
@@ -381,36 +660,83 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green),
-                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: ResponsiveHelper.getResponsiveIconSize(context),
+                    ),
+                    SizedBox(
+                      width: ResponsiveHelper.getResponsiveWidth(
+                        context,
+                        mobile: 6,
+                        tablet: 8,
+                        desktop: 10,
+                      ),
+                    ),
                     Text(
                       'التحسينات المُطبقة',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
                         fontWeight: FontWeight.bold,
                         color: Colors.green.shade700,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(
+                  height: ResponsiveHelper.getResponsiveHeight(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  ),
+                ),
                 ...widget.result.improvements.map(
                   (improvement) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.only(
+                      bottom: ResponsiveHelper.getResponsiveHeight(
+                        context,
+                        mobile: 6,
+                        tablet: 8,
+                        desktop: 10,
+                      ),
+                    ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
                           Icons.arrow_left,
                           color: Colors.green.shade600,
-                          size: 20,
+                          size: ResponsiveHelper.getResponsiveIconSize(
+                            context,
+                            mobile: 16,
+                            tablet: 20,
+                            desktop: 24,
+                          ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: ResponsiveHelper.getResponsiveWidth(
+                            context,
+                            mobile: 6,
+                            tablet: 8,
+                            desktop: 10,
+                          ),
+                        ),
                         Expanded(
                           child: Text(
                             improvement,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                                context,
+                                mobile: 12,
+                                tablet: 14,
+                                desktop: 16,
+                              ),
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
@@ -429,38 +755,79 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
 
   Widget _buildCustomEditTab() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.all(12),
+        tablet: const EdgeInsets.all(16),
+        desktop: const EdgeInsets.all(20),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 8),
+              Icon(
+                Icons.edit,
+                color: Theme.of(context).colorScheme.primary,
+                size: ResponsiveHelper.getResponsiveIconSize(context),
+              ),
+              SizedBox(
+                width: ResponsiveHelper.getResponsiveWidth(
+                  context,
+                  mobile: 6,
+                  tablet: 8,
+                  desktop: 10,
+                ),
+              ),
               Text(
                 'تعديل مخصص',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 18,
+                    desktop: 20,
+                  ),
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(
+            height: ResponsiveHelper.getResponsiveHeight(
+              context,
+              mobile: 12,
+              tablet: 16,
+              desktop: 20,
+            ),
+          ),
           Expanded(
             child: TextField(
               controller: _customController,
               maxLines: null,
               expands: true,
               textAlignVertical: TextAlignVertical.top,
-              style: const TextStyle(fontSize: 14, height: 1.5),
+              style: TextStyle(
+                fontSize: ResponsiveHelper.getResponsiveFontSize(
+                  context,
+                  mobile: 12,
+                  tablet: 14,
+                  desktop: 16,
+                ),
+                height: 1.5,
+              ),
               decoration: InputDecoration(
                 hintText: 'قم بتعديل البرومبت كما تريد...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding: const EdgeInsets.all(16),
+                contentPadding: ResponsiveHelper.getResponsivePadding(
+                  context,
+                  mobile: const EdgeInsets.all(12),
+                  tablet: const EdgeInsets.all(16),
+                  desktop: const EdgeInsets.all(20),
+                ),
               ),
             ),
           ),
@@ -471,7 +838,12 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
 
   Widget _buildActionButtons() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.all(12),
+        tablet: const EdgeInsets.all(16),
+        desktop: const EdgeInsets.all(20),
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.only(
@@ -479,56 +851,174 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
           bottomRight: Radius.circular(20),
         ),
       ),
-      child: Row(
-        children: [
-          // Use Original
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () {
-                try {
-                  widget.onUseOriginal(widget.result.originalPrompt);
-                  // لا نغلق الحوار هنا - سيتم إغلاقه من الصفحة الرئيسية
-                } catch (e) {
-                  print('Error in onUseOriginal: $e');
-                  Navigator.of(context).pop();
-                }
-              },
-              icon: const Icon(Icons.undo),
-              label: const Text('استخدام الأصلي'),
-            ),
-          ),
-          const SizedBox(width: 12),
+      child: ResponsiveHelper.isMobile(context)
+          ? Column(
+              children: [
+                // Use Original
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      try {
+                        widget.onUseOriginal(widget.result.originalPrompt);
+                        // لا نغلق الحوار هنا - سيتم إغلاقه من الصفحة الرئيسية
+                      } catch (e) {
+                        print('Error in onUseOriginal: $e');
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    icon: Icon(
+                      Icons.undo,
+                      size: ResponsiveHelper.getResponsiveIconSize(context),
+                    ),
+                    label: Text(
+                      'استخدام الأصلي',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: ResponsiveHelper.getResponsiveHeight(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  ),
+                ),
+                // Use Enhanced
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      try {
+                        if (_tabController.index == 2) {
+                          widget.onUseCustom(_customController.text);
+                        } else {
+                          widget.onUseEnhanced(widget.result.enhancedPrompt);
+                        }
+                        // لا نغلق الحوار هنا - سيتم إغلاقه من الصفحة الرئيسية
+                      } catch (e) {
+                        print('Error in onUseEnhanced/Custom: $e');
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    icon: Icon(
+                      _tabController.index == 2
+                          ? Icons.edit
+                          : Icons.auto_fix_high,
+                      size: ResponsiveHelper.getResponsiveIconSize(context),
+                    ),
+                    label: Text(
+                      _tabController.index == 2
+                          ? 'استخدام المعدل'
+                          : 'استخدام المحسن',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                // Use Original
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      try {
+                        widget.onUseOriginal(widget.result.originalPrompt);
+                        // لا نغلق الحوار هنا - سيتم إغلاقه من الصفحة الرئيسية
+                      } catch (e) {
+                        print('Error in onUseOriginal: $e');
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    icon: Icon(
+                      Icons.undo,
+                      size: ResponsiveHelper.getResponsiveIconSize(context),
+                    ),
+                    label: Text(
+                      'استخدام الأصلي',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveHelper.getResponsiveWidth(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  ),
+                ),
 
-          // Use Enhanced
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                try {
-                  if (_tabController.index == 2) {
-                    widget.onUseCustom(_customController.text);
-                  } else {
-                    widget.onUseEnhanced(widget.result.enhancedPrompt);
-                  }
-                  // لا نغلق الحوار هنا - سيتم إغلاقه من الصفحة الرئيسية
-                } catch (e) {
-                  print('Error in onUseEnhanced/Custom: $e');
-                  Navigator.of(context).pop();
-                }
-              },
-              icon: Icon(
-                _tabController.index == 2 ? Icons.edit : Icons.auto_fix_high,
-              ),
-              label: Text(
-                _tabController.index == 2 ? 'استخدام المعدل' : 'استخدام المحسن',
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-              ),
+                // Use Enhanced
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      try {
+                        if (_tabController.index == 2) {
+                          widget.onUseCustom(_customController.text);
+                        } else {
+                          widget.onUseEnhanced(widget.result.enhancedPrompt);
+                        }
+                        // لا نغلق الحوار هنا - سيتم إغلاقه من الصفحة الرئيسية
+                      } catch (e) {
+                        print('Error in onUseEnhanced/Custom: $e');
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    icon: Icon(
+                      _tabController.index == 2
+                          ? Icons.edit
+                          : Icons.auto_fix_high,
+                      size: ResponsiveHelper.getResponsiveIconSize(context),
+                    ),
+                    label: Text(
+                      _tabController.index == 2
+                          ? 'استخدام المعدل'
+                          : 'استخدام المحسن',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

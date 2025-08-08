@@ -143,31 +143,39 @@ class MessageBubble extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Message content - يمكن تحديد النص منه
+                        // Message content - مع دعم الاتجاه التلقائي
                         Padding(
                           padding: const EdgeInsets.all(16),
-                          child: SelectableText.rich(
-                            TextSpan(
-                              children: _parseMessageContent(
-                                message.content,
-                                theme,
+                          child: Directionality(
+                            textDirection: _detectTextDirection(
+                              message.content,
+                            ),
+                            child: SelectableText.rich(
+                              TextSpan(
+                                children: _parseMessageContent(
+                                  message.content,
+                                  theme,
+                                ),
                               ),
-                            ),
-                            style: TextStyle(
-                              color: isUser
-                                  ? theme.colorScheme.onPrimary
-                                  : theme.colorScheme.onSurface,
-                              fontSize: 16,
-                              height: 1.4,
-                            ),
-                            // إعدادات النسخ والتحديد
-                            enableInteractiveSelection: true,
-                            showCursor: true,
-                            toolbarOptions: const ToolbarOptions(
-                              copy: true,
-                              selectAll: true,
-                              cut: false,
-                              paste: false,
+                              style: TextStyle(
+                                color: isUser
+                                    ? theme.colorScheme.onPrimary
+                                    : theme.colorScheme.onSurface,
+                                fontSize: 16,
+                                height: 1.4,
+                              ),
+                              textDirection: _detectTextDirection(
+                                message.content,
+                              ),
+                              // إعدادات النسخ والتحديد
+                              enableInteractiveSelection: true,
+                              showCursor: true,
+                              toolbarOptions: const ToolbarOptions(
+                                copy: true,
+                                selectAll: true,
+                                cut: false,
+                                paste: false,
+                              ),
                             ),
                           ),
                         ),
@@ -235,6 +243,24 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
+  // دالة لكشف اتجاه النص
+  TextDirection _detectTextDirection(String text) {
+    // Regular expression للحروف العربية
+    final arabicRegex = RegExp(
+      r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]',
+    );
+    final englishRegex = RegExp(r'[a-zA-Z]');
+
+    int arabicCount = arabicRegex.allMatches(text).length;
+    int englishCount = englishRegex.allMatches(text).length;
+
+    // إذا كانت نسبة العربية أكبر، استخدم RTL
+    if (arabicCount > englishCount) {
+      return TextDirection.rtl;
+    }
+    return TextDirection.ltr;
+  }
+
   Widget _buildAvatar(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
@@ -290,8 +316,17 @@ class MessageBubble extends StatelessWidget {
       matches.removeWhere((match) => match == null);
 
       if (matches.isEmpty) {
-        // لا توجد تنسيقات أخرى
-        spans.add(TextSpan(text: textToProcess));
+        // لا توجد تنسيقات أخرى - إضافة النص مع اتجاه مناسب
+        final text = textToProcess;
+        spans.add(
+          TextSpan(
+            text: text,
+            style: TextStyle(
+              fontFamily: _containsArabic(text) ? 'Cairo' : null,
+              height: 1.5, // تحسين المسافة بين الأسطر للنص العربي
+            ),
+          ),
+        );
         break;
       }
 
@@ -301,8 +336,15 @@ class MessageBubble extends StatelessWidget {
 
       // إضافة النص قبل التنسيق
       if (closestMatch.start > 0) {
+        final text = textToProcess.substring(0, closestMatch.start);
         spans.add(
-          TextSpan(text: textToProcess.substring(0, closestMatch.start)),
+          TextSpan(
+            text: text,
+            style: TextStyle(
+              fontFamily: _containsArabic(text) ? 'Cairo' : null,
+              height: 1.5,
+            ),
+          ),
         );
       }
 
@@ -315,6 +357,7 @@ class MessageBubble extends StatelessWidget {
               fontFamily: 'Courier',
               backgroundColor: theme.colorScheme.surfaceContainerHighest,
               color: theme.colorScheme.onSurfaceVariant,
+              height: 1.4,
             ),
           ),
         );
@@ -326,21 +369,32 @@ class MessageBubble extends StatelessWidget {
               fontFamily: 'Courier',
               backgroundColor: theme.colorScheme.surfaceContainerHighest,
               color: theme.colorScheme.onSurfaceVariant,
+              height: 1.4,
             ),
           ),
         );
       } else if (closestMatch == boldMatch) {
+        final text = closestMatch.group(1) ?? '';
         spans.add(
           TextSpan(
-            text: closestMatch.group(1) ?? '',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            text: text,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontFamily: _containsArabic(text) ? 'Cairo' : null,
+              height: 1.5,
+            ),
           ),
         );
       } else if (closestMatch == italicMatch) {
+        final text = closestMatch.group(1) ?? '';
         spans.add(
           TextSpan(
-            text: closestMatch.group(1) ?? '',
-            style: const TextStyle(fontStyle: FontStyle.italic),
+            text: text,
+            style: TextStyle(
+              fontStyle: FontStyle.italic,
+              fontFamily: _containsArabic(text) ? 'Cairo' : null,
+              height: 1.5,
+            ),
           ),
         );
       }
@@ -348,7 +402,25 @@ class MessageBubble extends StatelessWidget {
       currentIndex += closestMatch.end;
     }
 
-    return spans.isEmpty ? [TextSpan(text: content)] : spans;
+    return spans.isEmpty
+        ? [
+            TextSpan(
+              text: content,
+              style: TextStyle(
+                fontFamily: _containsArabic(content) ? 'Cairo' : null,
+                height: 1.5,
+              ),
+            ),
+          ]
+        : spans;
+  }
+
+  // دالة للتحقق من وجود نص عربي
+  bool _containsArabic(String text) {
+    final arabicRegex = RegExp(
+      r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]',
+    );
+    return arabicRegex.hasMatch(text);
   }
 
   String _formatTime(DateTime dateTime) {

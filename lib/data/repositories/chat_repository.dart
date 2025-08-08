@@ -6,7 +6,8 @@ class ChatRepository {
 
   // Session Management
   Future<String> createNewSession([String? title]) async {
-    final sessionTitle = title ?? 'محادثة جديدة ${DateTime.now().day}/${DateTime.now().month}';
+    final sessionTitle =
+        title ?? 'محادثة جديدة ${DateTime.now().day}/${DateTime.now().month}';
     return await _databaseHelper.createChatSession(sessionTitle);
   }
 
@@ -44,6 +45,11 @@ class ChatRepository {
 
   Future<void> clearInputHistory(String sessionId) async {
     await _databaseHelper.clearMessageHistory(sessionId);
+  }
+
+  // حذف جميع رسائل جلسة معينة مع الإبقاء على الجلسة نفسها
+  Future<void> clearSessionMessages(String sessionId) async {
+    await _databaseHelper.deleteMessagesForSession(sessionId);
   }
 
   // Utility Methods

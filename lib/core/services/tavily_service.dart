@@ -1,4 +1,3 @@
-
 import 'package:dio/dio.dart';
 import '../config/app_config.dart';
 
@@ -10,16 +9,20 @@ class TavilyService {
   late final Dio _dio;
 
   void initialize() {
-    _dio = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 60),
-    ));
+    _dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 60),
+      ),
+    );
 
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      logPrint: (object) => print('[TAVILY API] $object'),
-    ));
+    _dio.interceptors.add(
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        logPrint: (object) => print('[TAVILY API] $object'),
+      ),
+    );
   }
 
   Future<TavilySearchResult> search({
@@ -42,9 +45,7 @@ class TavilyService {
       final response = await _dio.post(
         'https://api.tavily.com/search',
         data: requestData,
-        options: Options(
-          headers: {'Content-Type': 'application/json'},
-        ),
+        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       return TavilySearchResult.fromJson(response.data);
@@ -54,21 +55,14 @@ class TavilyService {
     }
   }
 
-  Future<TavilyExtractResult> extract({
-    required List<String> urls,
-  }) async {
+  Future<TavilyExtractResult> extract({required List<String> urls}) async {
     try {
-      final requestData = {
-        'api_key': AppConfig.tavilyApiKey,
-        'urls': urls,
-      };
+      final requestData = {'api_key': AppConfig.tavilyApiKey, 'urls': urls};
 
       final response = await _dio.post(
         'https://api.tavily.com/extract',
         data: requestData,
-        options: Options(
-          headers: {'Content-Type': 'application/json'},
-        ),
+        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       return TavilyExtractResult.fromJson(response.data);
@@ -92,9 +86,7 @@ class TavilyService {
       final response = await _dio.post(
         'https://api.tavily.com/crawl',
         data: requestData,
-        options: Options(
-          headers: {'Content-Type': 'application/json'},
-        ),
+        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       return TavilyCrawlResult.fromJson(response.data);
@@ -102,6 +94,12 @@ class TavilyService {
       print('[TAVILY CRAWL ERROR] $e');
       throw TavilyException('Failed to crawl: $e');
     }
+  }
+
+  /// تحديث مفتاح API
+  void updateApiKey(String newApiKey) {
+    // لا حاجة لتحديث headers لأن Tavily يستخدم API key في البيانات
+    // يمكن إضافة أي منطق إضافي هنا إذا لزم الأمر
   }
 
   void dispose() {
@@ -164,10 +162,7 @@ class TavilyExtractResult {
   final List<TavilyExtractedContent> results;
   final bool success;
 
-  TavilyExtractResult({
-    required this.results,
-    required this.success,
-  });
+  TavilyExtractResult({required this.results, required this.success});
 
   factory TavilyExtractResult.fromJson(Map<String, dynamic> json) {
     return TavilyExtractResult(

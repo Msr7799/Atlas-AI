@@ -42,9 +42,9 @@ class PromptEnhancerService {
 
     _dio = Dio(
       BaseOptions(
-        baseUrl: AppConfig.groqBaseUrl,
+        baseUrl: AppConfig.gptGodBaseUrl,
         headers: {
-          'Authorization': 'Bearer ${AppConfig.groqApiKey}',
+          'Authorization': 'Bearer ${AppConfig.gptGodApiKey}',
           'Content-Type': 'application/json',
         },
         connectTimeout: const Duration(seconds: 30),
@@ -85,17 +85,17 @@ class PromptEnhancerService {
 
       final requestData = {
         'messages': enhancementRequest,
-        'model': 'llama3-8b-8192', // نموذج مدعوم حالياً في Groq
+        'model': 'gpt-3.5-turbo', // استخدام GPTGod بدلاً من Groq
         'temperature': 0.3, // قيمة منخفضة للحصول على تحسينات دقيقة
         'max_tokens': 2048,
         'top_p': 0.9,
         'stream': false,
       };
 
-      print('[PROMPT_ENHANCER] 🧠 استخدام Llama3 8B لتحسين البرومبت');
+      print('[PROMPT_ENHANCER] 🧠 استخدام GPT-3.5 لتحسين البرومبت');
 
       final response = await _dio.post(
-        AppConfig.groqChatEndpoint,
+        AppConfig.gptGodChatEndpoint,
         data: requestData,
       );
 
@@ -105,7 +105,7 @@ class PromptEnhancerService {
 
         return _parseEnhancementResult(originalPrompt, content);
       } else {
-        throw Exception('فشل في الاتصال بخدمة Groq: ${response.statusCode}');
+        throw Exception('فشل في الاتصال بخدمة GPTGod: ${response.statusCode}');
       }
     } catch (e) {
       print('[PROMPT_ENHANCER ERROR] $e');

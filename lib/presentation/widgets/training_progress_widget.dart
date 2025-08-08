@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/training_provider.dart';
+import '../../core/utils/responsive_helper.dart';
 
 class TrainingProgressWidget extends StatelessWidget {
   const TrainingProgressWidget({super.key});
@@ -10,14 +11,24 @@ class TrainingProgressWidget extends StatelessWidget {
     return Consumer<TrainingProvider>(
       builder: (context, provider, child) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: ResponsiveHelper.getResponsivePadding(
+            context,
+            mobile: const EdgeInsets.all(16),
+            tablet: const EdgeInsets.all(20),
+            desktop: const EdgeInsets.all(24),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // شريط التقدم الرئيسي
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: ResponsiveHelper.getResponsivePadding(
+                    context,
+                    mobile: const EdgeInsets.all(20),
+                    tablet: const EdgeInsets.all(24),
+                    desktop: const EdgeInsets.all(28),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -30,9 +41,21 @@ class TrainingProgressWidget extends StatelessWidget {
                             color: provider.isTraining
                                 ? Colors.orange
                                 : Colors.green,
-                            size: 28,
+                            size: ResponsiveHelper.getResponsiveIconSize(
+                              context,
+                              mobile: 28,
+                              tablet: 32,
+                              desktop: 36,
+                            ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: ResponsiveHelper.getResponsiveWidth(
+                              context,
+                              mobile: 12,
+                              tablet: 16,
+                              desktop: 20,
+                            ),
+                          ),
                           Expanded(
                             child: Text(
                               provider.isTraining
@@ -40,8 +63,14 @@ class TrainingProgressWidget extends StatelessWidget {
                                   : provider.trainingProgress >= 1.0
                                   ? '✅ تم الانتهاء من التدريب'
                                   : '⏸️ التدريب متوقف',
-                              style: const TextStyle(
-                                fontSize: 20,
+                              style: TextStyle(
+                                fontSize:
+                                    ResponsiveHelper.getResponsiveFontSize(
+                                      context,
+                                      mobile: 20,
+                                      tablet: 22,
+                                      desktop: 24,
+                                    ),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -49,7 +78,14 @@ class TrainingProgressWidget extends StatelessWidget {
                         ],
                       ),
 
-                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: ResponsiveHelper.getResponsiveHeight(
+                          context,
+                          mobile: 16,
+                          tablet: 20,
+                          desktop: 24,
+                        ),
+                      ),
 
                       // شريط التقدم
                       LinearProgressIndicator(
@@ -62,10 +98,22 @@ class TrainingProgressWidget extends StatelessWidget {
                               ? Colors.blue
                               : Colors.orange,
                         ),
-                        minHeight: 8,
+                        minHeight: ResponsiveHelper.getResponsiveHeight(
+                          context,
+                          mobile: 8,
+                          tablet: 10,
+                          desktop: 12,
+                        ),
                       ),
 
-                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: ResponsiveHelper.getResponsiveHeight(
+                          context,
+                          mobile: 12,
+                          tablet: 16,
+                          desktop: 20,
+                        ),
+                      ),
 
                       // نسبة التقدم والخطوة الحالية
                       Row(
@@ -73,8 +121,13 @@ class TrainingProgressWidget extends StatelessWidget {
                         children: [
                           Text(
                             '${(provider.trainingProgress * 100).toStringAsFixed(1)}%',
-                            style: const TextStyle(
-                              fontSize: 18,
+                            style: TextStyle(
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                                context,
+                                mobile: 18,
+                                tablet: 20,
+                                desktop: 22,
+                              ),
                               fontWeight: FontWeight.bold,
                               color: Colors.blue,
                             ),
@@ -84,7 +137,13 @@ class TrainingProgressWidget extends StatelessWidget {
                               provider.currentStep,
                               textAlign: TextAlign.end,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize:
+                                    ResponsiveHelper.getResponsiveFontSize(
+                                      context,
+                                      mobile: 14,
+                                      tablet: 16,
+                                      desktop: 18,
+                                    ),
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -102,18 +161,42 @@ class TrainingProgressWidget extends StatelessWidget {
               if (provider.isTraining || provider.trainingProgress > 0) ...[
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: ResponsiveHelper.getResponsivePadding(
+                      context,
+                      mobile: const EdgeInsets.all(16),
+                      tablet: const EdgeInsets.all(20),
+                      desktop: const EdgeInsets.all(24),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          children: const [
-                            Icon(Icons.analytics, color: Colors.blue),
-                            SizedBox(width: 8),
+                          children: [
+                            Icon(
+                              Icons.analytics,
+                              color: Colors.blue,
+                              size: ResponsiveHelper.getResponsiveIconSize(
+                                context,
+                              ),
+                            ),
+                            SizedBox(
+                              width: ResponsiveHelper.getResponsiveWidth(
+                                context,
+                                mobile: 8,
+                                tablet: 12,
+                                desktop: 16,
+                              ),
+                            ),
                             Text(
                               'إحصائيات التدريب',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize:
+                                    ResponsiveHelper.getResponsiveFontSize(
+                                      context,
+                                      mobile: 18,
+                                      tablet: 20,
+                                      desktop: 22,
+                                    ),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -123,12 +206,14 @@ class TrainingProgressWidget extends StatelessWidget {
 
                         // معلومات الحالة
                         _buildStatRow(
+                          context,
                           'الحالة',
                           provider.isTraining ? 'قيد التشغيل' : 'متوقف',
                           provider.isTraining ? Colors.green : Colors.orange,
                         ),
 
                         _buildStatRow(
+                          context,
                           'الخطوة الحالية',
                           provider.currentStep,
                           Colors.blue,
@@ -136,6 +221,7 @@ class TrainingProgressWidget extends StatelessWidget {
 
                         if (provider.errorMessage.isNotEmpty)
                           _buildStatRow(
+                            context,
                             'رسالة الخطأ',
                             provider.errorMessage,
                             Colors.red,
@@ -176,18 +262,21 @@ class TrainingProgressWidget extends StatelessWidget {
                             const SizedBox(height: 16),
 
                             _buildStatRow(
+                              context,
                               'إجمالي الخلايا',
                               '${data['json_cells'] ?? 0}',
                               Colors.blue,
                             ),
 
                             _buildStatRow(
+                              context,
                               'خلايا الكود',
                               '${data['json_code_cells'] ?? 0}',
                               Colors.green,
                             ),
 
                             _buildStatRow(
+                              context,
                               'حجم Parquet',
                               '${(data['parquet_size_mb'] ?? 0).toStringAsFixed(2)} MB',
                               Colors.orange,
@@ -234,24 +323,28 @@ class TrainingProgressWidget extends StatelessWidget {
                               const SizedBox(height: 16),
 
                               _buildStatRow(
+                                context,
                                 'وقت التدريب',
                                 '${(evaluation['total_training_time_minutes'] ?? 0).toStringAsFixed(1)} دقيقة',
                                 Colors.blue,
                               ),
 
                               _buildStatRow(
+                                context,
                                 'عينات التدريب',
                                 '${evaluation['train_dataset_size'] ?? 0}',
                                 Colors.green,
                               ),
 
                               _buildStatRow(
+                                context,
                                 'Loss النهائي',
                                 '${(evaluation['training_loss'] ?? 0).toStringAsFixed(4)}',
                                 Colors.orange,
                               ),
 
                               _buildStatRow(
+                                context,
                                 'النموذج المستخدم',
                                 evaluation['model_name'] ?? 'غير محدد',
                                 Colors.purple,
@@ -306,21 +399,48 @@ class TrainingProgressWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(String label, String value, Color color) {
+  Widget _buildStatRow(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.symmetric(vertical: 8),
+        tablet: const EdgeInsets.symmetric(vertical: 10),
+        desktop: const EdgeInsets.symmetric(vertical: 12),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 4,
-            height: 20,
+            width: ResponsiveHelper.getResponsiveWidth(
+              context,
+              mobile: 4,
+              tablet: 5,
+              desktop: 6,
+            ),
+            height: ResponsiveHelper.getResponsiveHeight(
+              context,
+              mobile: 20,
+              tablet: 24,
+              desktop: 28,
+            ),
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(
+            width: ResponsiveHelper.getResponsiveWidth(
+              context,
+              mobile: 12,
+              tablet: 16,
+              desktop: 20,
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,16 +448,33 @@ class TrainingProgressWidget extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
+                    ),
                     color: Colors.grey.shade600,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(
+                  height: ResponsiveHelper.getResponsiveHeight(
+                    context,
+                    mobile: 2,
+                    tablet: 3,
+                    desktop: 4,
+                  ),
+                ),
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 17,
+                      desktop: 18,
+                    ),
                     fontWeight: FontWeight.bold,
                   ),
                 ),

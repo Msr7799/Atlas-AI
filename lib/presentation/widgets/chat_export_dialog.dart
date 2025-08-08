@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../providers/chat_selection_provider.dart';
 import '../../data/models/message_model.dart';
+import '../../core/utils/responsive_helper.dart';
 
 class ChatExportDialog extends StatefulWidget {
   final List<MessageModel> messages;
@@ -41,23 +42,36 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
       textDirection: TextDirection.rtl,
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          constraints: const BoxConstraints(maxHeight: 600),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.surface,
-                Theme.of(context).colorScheme.surface.withOpacity(0.95),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: ResponsiveHelper.getResponsiveConstraints(
+            context,
+            mobile: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.95,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
             ),
+            tablet: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+            desktop: const BoxConstraints(maxWidth: 800, maxHeight: 800),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [_buildHeader(), _buildContent(), _buildActionButtons()],
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.surface,
+                  Theme.of(context).colorScheme.surface.withOpacity(0.95),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildHeader(),
+                _buildContent(),
+                _buildActionButtons(),
+              ],
+            ),
           ),
         ),
       ),
@@ -66,7 +80,12 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.all(16),
+        tablet: const EdgeInsets.all(20),
+        desktop: const EdgeInsets.all(24),
+      ),
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
@@ -81,8 +100,24 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
       ),
       child: Row(
         children: [
-          Icon(Icons.download, color: Colors.white, size: 28),
-          const SizedBox(width: 12),
+          Icon(
+            Icons.download,
+            color: Colors.white,
+            size: ResponsiveHelper.getResponsiveIconSize(
+              context,
+              mobile: 24,
+              tablet: 28,
+              desktop: 32,
+            ),
+          ),
+          SizedBox(
+            width: ResponsiveHelper.getResponsiveWidth(
+              context,
+              mobile: 8,
+              tablet: 12,
+              desktop: 16,
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +125,12 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                 Text(
                   'تصدير المحادثة',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      mobile: 18,
+                      tablet: 20,
+                      desktop: 22,
+                    ),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -98,7 +138,12 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                 Text(
                   'حفظ ومشاركة المحادثات',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
                     color: Colors.white.withOpacity(0.9),
                   ),
                 ),
@@ -107,7 +152,11 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
           ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, color: Colors.white),
+            icon: Icon(
+              Icons.close,
+              color: Colors.white,
+              size: ResponsiveHelper.getResponsiveIconSize(context),
+            ),
           ),
         ],
       ),
@@ -117,14 +166,33 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
   Widget _buildContent() {
     return Expanded(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: ResponsiveHelper.getResponsivePadding(
+          context,
+          mobile: const EdgeInsets.all(16),
+          tablet: const EdgeInsets.all(20),
+          desktop: const EdgeInsets.all(24),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatsCard(),
-            const SizedBox(height: 20),
+            SizedBox(
+              height: ResponsiveHelper.getResponsiveHeight(
+                context,
+                mobile: 16,
+                tablet: 20,
+                desktop: 24,
+              ),
+            ),
             _buildExportTypeSelection(),
-            const SizedBox(height: 20),
+            SizedBox(
+              height: ResponsiveHelper.getResponsiveHeight(
+                context,
+                mobile: 16,
+                tablet: 20,
+                desktop: 24,
+              ),
+            ),
             _buildFormatSelection(),
           ],
         ),
@@ -140,7 +208,12 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
             : selectionProvider.getChatStats(widget.messages);
 
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: ResponsiveHelper.getResponsivePadding(
+            context,
+            mobile: const EdgeInsets.all(12),
+            tablet: const EdgeInsets.all(16),
+            desktop: const EdgeInsets.all(20),
+          ),
           decoration: BoxDecoration(
             color: Theme.of(
               context,
@@ -158,19 +231,39 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                   Icon(
                     Icons.analytics,
                     color: Theme.of(context).colorScheme.primary,
+                    size: ResponsiveHelper.getResponsiveIconSize(context),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: ResponsiveHelper.getResponsiveWidth(
+                      context,
+                      mobile: 6,
+                      tablet: 8,
+                      desktop: 10,
+                    ),
+                  ),
                   Text(
                     'إحصائيات المحادثة',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: ResponsiveHelper.getResponsiveFontSize(
+                        context,
+                        mobile: 14,
+                        tablet: 16,
+                        desktop: 18,
+                      ),
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(
+                height: ResponsiveHelper.getResponsiveHeight(
+                  context,
+                  mobile: 8,
+                  tablet: 12,
+                  desktop: 16,
+                ),
+              ),
               _buildStatRow('إجمالي الرسائل', '${stats['total_messages']}'),
               _buildStatRow('رسائل المستخدم', '${stats['user_messages']}'),
               _buildStatRow('رسائل المساعد', '${stats['assistant_messages']}'),
@@ -192,7 +285,12 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
 
   Widget _buildStatRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.symmetric(vertical: 3),
+        tablet: const EdgeInsets.symmetric(vertical: 4),
+        desktop: const EdgeInsets.symmetric(vertical: 5),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -200,6 +298,12 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
             label,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                context,
+                mobile: 12,
+                tablet: 13,
+                desktop: 14,
+              ),
             ),
           ),
           Text(
@@ -207,6 +311,12 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: Theme.of(context).colorScheme.onSurface,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                context,
+                mobile: 12,
+                tablet: 13,
+                desktop: 14,
+              ),
             ),
           ),
         ],
@@ -221,12 +331,24 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
         Text(
           'نوع التصدير',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: ResponsiveHelper.getResponsiveFontSize(
+              context,
+              mobile: 14,
+              tablet: 16,
+              desktop: 18,
+            ),
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(
+          height: ResponsiveHelper.getResponsiveHeight(
+            context,
+            mobile: 8,
+            tablet: 12,
+            desktop: 16,
+          ),
+        ),
         Consumer<ChatSelectionProvider>(
           builder: (context, selectionProvider, child) {
             return Column(
@@ -278,12 +400,24 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
         Text(
           'تنسيق الملف',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: ResponsiveHelper.getResponsiveFontSize(
+              context,
+              mobile: 14,
+              tablet: 16,
+              desktop: 18,
+            ),
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(
+          height: ResponsiveHelper.getResponsiveHeight(
+            context,
+            mobile: 8,
+            tablet: 12,
+            desktop: 16,
+          ),
+        ),
         Column(
           children: _formats.entries.map((entry) {
             return RadioListTile<String>(
@@ -294,8 +428,28 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                   _selectedFormat = value!;
                 });
               },
-              title: Text(entry.value),
-              subtitle: Text(_getFormatDescription(entry.key)),
+              title: Text(
+                entry.value,
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: 13,
+                    tablet: 14,
+                    desktop: 15,
+                  ),
+                ),
+              ),
+              subtitle: Text(
+                _getFormatDescription(entry.key),
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: 11,
+                    tablet: 12,
+                    desktop: 13,
+                  ),
+                ),
+              ),
             );
           }).toList(),
         ),
@@ -318,7 +472,12 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
 
   Widget _buildActionButtons() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveHelper.getResponsivePadding(
+        context,
+        mobile: const EdgeInsets.all(12),
+        tablet: const EdgeInsets.all(16),
+        desktop: const EdgeInsets.all(20),
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.only(
@@ -326,53 +485,218 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
           bottomRight: Radius.circular(20),
         ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.cancel),
-              label: const Text('إلغاء'),
+      child: ResponsiveHelper.isMobile(context)
+          ? Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(
+                      Icons.cancel,
+                      size: ResponsiveHelper.getResponsiveIconSize(context),
+                    ),
+                    label: Text(
+                      'إلغاء',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: ResponsiveHelper.getResponsiveHeight(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _isExporting ? null : _handleSaveToDevice,
+                    icon: _isExporting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            Icons.save,
+                            size: ResponsiveHelper.getResponsiveIconSize(
+                              context,
+                            ),
+                          ),
+                    label: Text(
+                      _isExporting ? 'جاري الحفظ...' : 'حفظ',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: ResponsiveHelper.getResponsiveHeight(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _isExporting ? null : _handleShare,
+                    icon: _isExporting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            Icons.share,
+                            size: ResponsiveHelper.getResponsiveIconSize(
+                              context,
+                            ),
+                          ),
+                    label: Text(
+                      _isExporting ? 'جاري المشاركة...' : 'مشاركة',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(
+                      Icons.cancel,
+                      size: ResponsiveHelper.getResponsiveIconSize(context),
+                    ),
+                    label: Text(
+                      'إلغاء',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveHelper.getResponsiveWidth(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  ),
+                ),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isExporting ? null : _handleSaveToDevice,
+                    icon: _isExporting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            Icons.save,
+                            size: ResponsiveHelper.getResponsiveIconSize(
+                              context,
+                            ),
+                          ),
+                    label: Text(
+                      _isExporting ? 'جاري الحفظ...' : 'حفظ',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveHelper.getResponsiveWidth(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  ),
+                ),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isExporting ? null : _handleShare,
+                    icon: _isExporting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            Icons.share,
+                            size: ResponsiveHelper.getResponsiveIconSize(
+                              context,
+                            ),
+                          ),
+                    label: Text(
+                      _isExporting ? 'جاري المشاركة...' : 'مشاركة',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: _isExporting ? null : _handleSaveToDevice,
-              icon: _isExporting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.save),
-              label: Text(_isExporting ? 'جاري الحفظ...' : 'حفظ'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: _isExporting ? null : _handleShare,
-              icon: _isExporting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.share),
-              label: Text(_isExporting ? 'جاري المشاركة...' : 'مشاركة'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

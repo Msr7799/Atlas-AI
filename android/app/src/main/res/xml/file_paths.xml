@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- مجلد التطبيق الداخلي -->
+    <files-path name="internal_files" path="." />
+    
+    <!-- مجلد Cache الداخلي -->
+    <cache-path name="internal_cache" path="." />
+    
+    <!-- مجلد التخزين الخارجي -->
+    <external-files-path name="external_files" path="." />
+    
+    <!-- مجلد Cache الخارجي -->
+    <external-cache-path name="external_cache" path="." />
+    
+    <!-- مجلد المشاركة العامة -->
+    <external-path name="external_storage" path="." />
+    
+    <!-- مجلد Downloads -->
+    <external-files-path name="downloads" path="Download/" />
+    
+    <!-- مجلد الصور والملفات المتعددة -->
+    <external-files-path name="media" path="Pictures/" />
+    <external-files-path name="documents" path="Documents/" />
+    
+    <!-- مجلد التصدير -->
+    <external-files-path name="exports" path="AtlasAI/" />
+</paths>

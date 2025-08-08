@@ -27,12 +27,8 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'chat_history.db');
-    
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _onCreate,
-    );
+
+    return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -87,10 +83,18 @@ class DatabaseHelper {
     ''');
 
     // Create indexes for better performance
-    await db.execute('CREATE INDEX idx_messages_session_id ON messages(session_id)');
-    await db.execute('CREATE INDEX idx_messages_timestamp ON messages(timestamp)');
-    await db.execute('CREATE INDEX idx_message_history_session_id ON message_history(session_id)');
-    await db.execute('CREATE INDEX idx_message_history_created_at ON message_history(created_at)');
+    await db.execute(
+      'CREATE INDEX idx_messages_session_id ON messages(session_id)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_messages_timestamp ON messages(timestamp)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_message_history_session_id ON message_history(session_id)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_message_history_created_at ON message_history(created_at)',
+    );
   }
 
   // Chat Sessions Methods
@@ -120,8 +124,12 @@ class DatabaseHelper {
       return ChatSessionModel(
         id: maps[i]['id'] as String,
         title: maps[i]['title'] as String,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(maps[i]['created_at'] as int),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(maps[i]['updated_at'] as int),
+        createdAt: DateTime.fromMillisecondsSinceEpoch(
+          maps[i]['created_at'] as int,
+        ),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(
+          maps[i]['updated_at'] as int,
+        ),
         messages: [], // Will be loaded separately when needed
       );
     });
@@ -131,10 +139,7 @@ class DatabaseHelper {
     final db = await database;
     await db.update(
       'chat_sessions',
-      {
-        'title': title,
-        'updated_at': DateTime.now().millisecondsSinceEpoch,
-      },
+      {'title': title, 'updated_at': DateTime.now().millisecondsSinceEpoch},
       where: 'id = ?',
       whereArgs: [sessionId],
     );
@@ -142,17 +147,13 @@ class DatabaseHelper {
 
   Future<void> deleteChatSession(String sessionId) async {
     final db = await database;
-    await db.delete(
-      'chat_sessions',
-      where: 'id = ?',
-      whereArgs: [sessionId],
-    );
+    await db.delete('chat_sessions', where: 'id = ?', whereArgs: [sessionId]);
   }
 
   // Messages Methods
   Future<void> insertMessage(MessageModel message, String sessionId) async {
     final db = await database;
-    
+
     await db.insert('messages', {
       'id': message.id,
       'session_id': sessionId,
@@ -214,19 +215,29 @@ class DatabaseHelper {
             type: attachmentMap['type'] as String,
             size: attachmentMap['size'] as int,
             path: attachmentMap['path'] as String,
-            uploadedAt: DateTime.fromMillisecondsSinceEpoch(attachmentMap['uploaded_at'] as int),
+            uploadedAt: DateTime.fromMillisecondsSinceEpoch(
+              attachmentMap['uploaded_at'] as int,
+            ),
           );
         }).toList();
       }
 
-      messages.add(MessageModel(
-        id: map['id'] as String,
-        content: map['content'] as String,
-        role: MessageRole.values.firstWhere((e) => e.name == (map['role'] as String)),
-        timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp'] as int),
-        status: MessageStatus.values.firstWhere((e) => e.name == (map['status'] as String)),
-        attachments: attachments,
-      ));
+      messages.add(
+        MessageModel(
+          id: map['id'] as String,
+          content: map['content'] as String,
+          role: MessageRole.values.firstWhere(
+            (e) => e.name == (map['role'] as String),
+          ),
+          timestamp: DateTime.fromMillisecondsSinceEpoch(
+            map['timestamp'] as int,
+          ),
+          status: MessageStatus.values.firstWhere(
+            (e) => e.name == (map['status'] as String),
+          ),
+          attachments: attachments,
+        ),
+      );
     }
 
     return messages;
@@ -235,7 +246,7 @@ class DatabaseHelper {
   // Message History Methods (for input history per session)
   Future<void> addToMessageHistory(String sessionId, String inputText) async {
     final db = await database;
-    
+
     // Check if this input already exists in history for this session
     final existing = await db.query(
       'message_history',
@@ -287,6 +298,24 @@ class DatabaseHelper {
     await db.delete(
       'message_history',
       where: 'session_id = ?',
+      whereArgs: [sessionId],
+    );
+  }
+
+  // حذف جميع رسائل جلسة معينة مع الإبقاء على الجلسة نفسها
+  Future<void> deleteMessagesForSession(String sessionId) async {
+    final db = await database;
+    await db.delete(
+      'messages',
+      where: 'session_id = ?',
+      whereArgs: [sessionId],
+    );
+
+    // تحديث وقت آخر تعديل للجلسة
+    await db.update(
+      'chat_sessions',
+      {'updated_at': DateTime.now().millisecondsSinceEpoch},
+      where: 'id = ?',
       whereArgs: [sessionId],
     );
   }

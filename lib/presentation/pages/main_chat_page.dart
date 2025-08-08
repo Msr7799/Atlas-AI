@@ -5,9 +5,10 @@ import 'package:provider/provider.dart';
 // import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
-// Enhanced UI Components
-import 'package:speech_to_text/speech_to_text.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+// Enhanced UI Components - استخدام classes وهمية مؤقتاً
+// import 'package:speech_to_text/speech_to_text.dart';
+// import 'package:flutter_tts/flutter_tts.dart';
+import '../../core/utils/speech_stub.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
 // تغيير من gradient_theme إلى app_theme
@@ -25,9 +26,14 @@ import '../widgets/chat_drawer.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/debug_panel.dart';
 import '../widgets/prompt_enhancement_dialog.dart';
-import '../widgets/chat_export_dialog.dart';
+
 import 'model_training_page.dart';
+import '../../core/widgets/optimized_widgets.dart';
+import '../../core/utils/memory_manager.dart';
+import '../../core/utils/performance_monitor.dart';
 import '../../data/models/message_model.dart';
+import 'api_settings_page.dart';
+import '../../core/services/permissions_manager.dart';
 
 class MainChatPage extends StatefulWidget {
   const MainChatPage({super.key});
@@ -37,7 +43,10 @@ class MainChatPage extends StatefulWidget {
 }
 
 class _MainChatPageState extends State<MainChatPage>
-    with TickerProviderStateMixin {
+    with
+        TickerProviderStateMixin,
+        MemoryOptimizedMixin,
+        PerformanceMonitoringMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -68,10 +77,17 @@ class _MainChatPageState extends State<MainChatPage>
   late Animation<double> _waveAnimation;
 
   @override
+  @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _loadInputHistory();
+    _requestInitialPermissions();
+
+    // تسجيل Controllers في memory manager لإدارة أفضل للذاكرة
+    registerTextController('message', _messageController);
+    registerScrollController('scroll', _scrollController);
+    registerFocusNode('textField', _textFieldFocusNode);
   }
 
   void _initializeAnimations() {
@@ -93,6 +109,12 @@ class _MainChatPageState extends State<MainChatPage>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
+
+    // تسجيل AnimationControllers في memory manager
+    registerAnimationController('fade', _fadeController);
+    registerAnimationController('slide', _slideController);
+    registerAnimationController('glow', _glowController);
+    registerAnimationController('wave', _waveController);
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
@@ -157,6 +179,12 @@ class _MainChatPageState extends State<MainChatPage>
     _scrollController.dispose();
     _textFieldFocusNode.dispose();
     super.dispose();
+  }
+
+  // طلب الأذونات المطلوبة عند بدء التطبيق
+  Future<void> _requestInitialPermissions() async {
+    final permissionsManager = PermissionsManager();
+    await permissionsManager.checkAndRequestAllPermissions();
   }
 
   // Voice Input Methods
@@ -304,7 +332,7 @@ class _MainChatPageState extends State<MainChatPage>
                           color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      OptimizedWidgets.space8,
                       // معلومات النموذج
                       Expanded(
                         child: Column(
@@ -617,14 +645,7 @@ class _MainChatPageState extends State<MainChatPage>
                         ? 'تحديد الكل'
                         : 'إلغاء تحديد الكل',
                   ),
-                  // Export Selected
-                  IconButton(
-                    icon: const Icon(Icons.download),
-                    onPressed: selectionProvider.selectedMessageIds.isNotEmpty
-                        ? () => _showExportDialog()
-                        : null,
-                    tooltip: 'تصدير المحدد',
-                  ),
+                  // Export Selected - الآن في الـ Drawer
                   // Show count
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -648,17 +669,7 @@ class _MainChatPageState extends State<MainChatPage>
                 ],
               );
             } else {
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Export All Messages
-                  IconButton(
-                    icon: const Icon(Icons.download_outlined),
-                    onPressed: () => _showExportDialog(),
-                    tooltip: 'تصدير جميع المحادثات',
-                  ),
-                ],
-              );
+              return const SizedBox.shrink(); // التصدير متاح الآن في الـ Drawer
             }
           },
         ),
@@ -736,6 +747,18 @@ class _MainChatPageState extends State<MainChatPage>
             context.read<ChatProvider>().createNewSession();
           },
           tooltip: 'محادثة جديدة',
+        ),
+
+        // API Settings - إعدادات API
+        IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ApiSettingsPage()),
+            );
+          },
+          icon: const Icon(Icons.api),
+          tooltip: 'إعدادات API',
         ),
       ],
     );
@@ -1075,10 +1098,10 @@ class _MainChatPageState extends State<MainChatPage>
                             builder: (context, enhancerProvider, child) {
                               return Stack(
                                 children: [
-                                  RawKeyboardListener(
+                                  KeyboardListener(
                                     focusNode: FocusNode(),
-                                    onKey: (RawKeyEvent event) {
-                                      if (event is RawKeyDownEvent) {
+                                    onKeyEvent: (KeyEvent event) {
+                                      if (event is KeyDownEvent) {
                                         // Navigate message history with arrow keys
                                         if (event.logicalKey ==
                                             LogicalKeyboardKey.arrowUp) {
@@ -1090,7 +1113,9 @@ class _MainChatPageState extends State<MainChatPage>
                                         // Send message with Enter (not Shift+Enter)
                                         else if (event.logicalKey ==
                                                 LogicalKeyboardKey.enter &&
-                                            !event.isShiftPressed) {
+                                            !HardwareKeyboard
+                                                .instance
+                                                .isShiftPressed) {
                                           if (_messageController.text
                                               .trim()
                                               .isNotEmpty) {
@@ -1115,6 +1140,16 @@ class _MainChatPageState extends State<MainChatPage>
                                       onChanged: (value) {
                                         // Reset history navigation when user types
                                         _historyIndex = -1;
+                                      },
+                                      onSubmitted: (value) {
+                                        // Safe handling for submit action
+                                        if (value.trim().isNotEmpty) {
+                                          try {
+                                            _sendMessage(value);
+                                          } catch (e) {
+                                            print('[SUBMIT ERROR] $e');
+                                          }
+                                        }
                                       },
                                       decoration: InputDecoration(
                                         hintText: enhancerProvider.isEnhancing
@@ -1390,28 +1425,30 @@ class _MainChatPageState extends State<MainChatPage>
   }
 
   void _sendMessage(String content) {
-    if (content.trim().isEmpty) return;
+    performanceMonitor.measureSync('send_message', () {
+      if (content.trim().isEmpty) return;
 
-    // Reset history navigation
-    _historyIndex = -1;
-    _historyLoaded = false; // Force reload of history next time
+      // Reset history navigation
+      _historyIndex = -1;
+      _historyLoaded = false; // Force reload of history next time
 
-    // Send message through ChatProvider with settings (it will handle database storage)
-    context.read<ChatProvider>().sendMessage(
-      content,
-      settingsProvider: context.read<SettingsProvider>(),
-    );
-    _messageController.clear();
+      // Send message through ChatProvider with settings (it will handle database storage)
+      context.read<ChatProvider>().sendMessage(
+        content,
+        settingsProvider: context.read<SettingsProvider>(),
+      );
+      _messageController.clear();
 
-    // Auto scroll to bottom
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
+      // Auto scroll to bottom
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     });
   }
 
@@ -1490,9 +1527,11 @@ class _MainChatPageState extends State<MainChatPage>
   void _enhancePrompt() async {
     final currentText = _messageController.text.trim();
     if (currentText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال نص أولاً لتحسينه')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('يرجى إدخال نص أولاً لتحسينه')),
+        );
+      }
       return;
     }
 
@@ -1546,7 +1585,7 @@ class _MainChatPageState extends State<MainChatPage>
             },
           ),
         );
-      } else if (enhancerProvider.error != null) {
+      } else if (enhancerProvider.error != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('خطأ في تحسين النص: يرجى المحاولة مرة أخرى'),
@@ -1558,22 +1597,12 @@ class _MainChatPageState extends State<MainChatPage>
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('خطأ غير متوقع: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('خطأ غير متوقع: $e')));
+      }
     }
-  }
-
-  /// عرض حوار تصدير المحادثات
-  void _showExportDialog() {
-    final chatProvider = context.read<ChatProvider>();
-    showDialog(
-      context: context,
-      builder: (context) => ChatExportDialog(
-        messages: chatProvider.messages,
-        chatTitle: 'محادثة ${DateTime.now().toString().split(' ')[0]}',
-      ),
-    );
   }
 }
 
