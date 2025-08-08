@@ -1,5 +1,7 @@
 # Atlas AI - مساعد ذكي يدعم اللغة العربية
 
+![alt text](assets/icons/atlas.png)
+
 ## 🚀 الميزات الجديدة
 
 ### 🔑 إدارة API Keys المحسنة
@@ -150,7 +152,7 @@ Tooltip(
 
 ## 👨‍💻 المطور
 
-**Mohamed S AL-Romaihi**
+### Mohamed S AL-Romaihi
 
 - البريد الإلكتروني: <alromaihi2224@gmail.com>
 - GitHub: [رابط GitHub]
