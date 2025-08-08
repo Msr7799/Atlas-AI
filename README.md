@@ -1,6 +1,6 @@
 # Atlas AI - مساعد ذكي يدعم اللغة العربية
 
-![alt text](assets/icons/atlas.png)
+![alt text](assets/icons/atlas2.png)
 
 ## 🚀 الميزات الجديدة
 
