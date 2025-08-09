@@ -1,10 +1,11 @@
 
-# memory mcp
+# context7 mcp
 
 ```json
 
-
-{ "mcpServers": {    
+{
+  
+  "mcpServers": {    
     "context-7": {
       "command": "npx",
       "args": [
@@ -12,16 +13,36 @@
         "@upstash/context7-mcp@latest"
       ],
       "env": {}
-    },
+    }
+  }
+}
+
+
+```
+
+# filesystem mcp
+
+```json
+
+{
     "filesystem": {
       "command": "npx",
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "C:/Users/alrom/Documents/Fine_tuning_AI"
+        "your/path/to/your/project"
       ],
       "env": {}
     },
+}
+
+```
+
+# memory mcp
+
+```json
+
+{
     "memory": {
       "command": "npx",
       "args": [
@@ -29,9 +50,18 @@
         "@modelcontextprotocol/server-memory"
       ],
       "env": {
-        "MEMORY_FILE_PATH": "C:/Users/alrom/Documents/Fine_tuning_AI/Cursor_memory.json"
+        "MEMORY_FILE_PATH": "your/path/to/your/project/memory.json"
       }
     },
+
+```
+
+
+# sequential-thinking mcp
+
+```json
+
+{
     "sequential-thinking": {
       "command": "npx",
       "args": [
@@ -41,4 +71,5 @@
     }
   }
 }
+
 ```

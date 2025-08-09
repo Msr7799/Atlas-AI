@@ -1,61 +1,260 @@
-# ميزات Atlas AI الجديدة
+# Atlas AI Advanced Features
 
-## 🔑 نظام إدارة API Keys المحسن
+[![Read in Arabic](https://img.shields.io/badge/اقرأ%20بالعربية-red?style=for-the-badge&logo=readme)](FEATURES-ar.md)
 
-### المفاتيح الافتراضية المجانية
+## ✨ Complete Feature Overview
 
-- **Groq**: مفتاح افتراضي مجاني للاستخدام الفوري
-- **GPTGod**: مفتاح افتراضي مجاني مع 17 نموذج
-- **Tavily**: مفتاح افتراضي للبحث في الويب
+Atlas AI provides comprehensive AI assistance with advanced features, multiple model integrations, and robust performance optimizations. This document outlines all available features and capabilities.
 
-### نظام Fallback الذكي
+## 🔑 Enhanced API Key Management System
+
+### Free Default Keys
+
+- **Groq**: Free default key for immediate use
+- **GPTGod**: Free default key with 17 models  
+- **Tavily**: Default key for web search
+
+### Smart Fallback System
 
 ```dart
-// إذا لم يدخل المستخدم مفتاحاً، يتم استخدام المفتاح الافتراضي
+// If user doesn't enter a key, the default key is used
 final groqKey = await ApiKeyManager.getApiKey('groq');
 ```
 
-### المفاتيح المخصصة
+### Custom Keys
 
-- إمكانية إدخال مفاتيح المستخدم الخاصة
-- إلغاء المفاتيح الافتراضية عند إدخال مفتاح مخصص
-- حفظ المفاتيح محلياً على الجهاز
+- Enter your private API keys
+- Override default keys when custom key is provided
+- Secure local key storage on device
 
-## 🤖 النماذج المجانية المتاحة
+## 🤖 Available AI Models
 
-### Groq Models (10 نماذج)
+### Groq Models (10 Models)
 
 #### 1. Llama 3.1 8B
+- **Speed**: Very Fast | **Quality**: Good | **Context**: 8K tokens
+- Fast and balanced model for general conversations
 
-- **الوصف**: نموذج سريع ومتوازن للاستخدام العام
-- **السرعة**: سريع جداً
-- **الجودة**: جيد
-- **السياق**: 8K tokens
-- **المميزات**: سريع، متوازن، مناسب للاستخدام العام
-
-#### 2. Llama 3.1 70B
-
-- **الوصف**: نموذج متقدم للاستخدامات المعقدة
-- **السرعة**: سريع
-- **الجودة**: ممتاز
-- **السياق**: 8K tokens
-- **المميزات**: دقة عالية، منطق متقدم، مناسب للمهام المعقدة
+#### 2. Llama 3.1 70B  
+- **Speed**: Fast | **Quality**: Excellent | **Context**: 8K tokens
+- Advanced model for complex reasoning and analysis
 
 #### 3. Mixtral 8x7B
-
-- **الوصف**: نموذج متخصص في البرمجة والتحليل
-- **السرعة**: سريع
-- **الجودة**: ممتاز
-- **السياق**: 32K tokens
-- **المميزات**: ممتاز في البرمجة، تحليل دقيق، منطق قوي
+- **Speed**: Fast | **Quality**: Excellent | **Context**: 32K tokens
+- Specialized in programming and technical analysis
 
 #### 4. Gemma 2 9B
+- **Speed**: Very Fast | **Quality**: Very Good | **Context**: 8K tokens  
+- Google's updated model for balanced performance
 
-- **الوصف**: نموذج Google المحدث للاستخدام العام
-- **السرعة**: سريع جداً
-- **الجودة**: جيد جداً
-- **السياق**: 8K tokens
-- **المميزات**: محدث، متوازن، مناسب للاستخدام العام
+#### 5. Gemma 2 27B
+- **Speed**: Medium | **Quality**: Excellent | **Context**: 8K tokens
+- Google's advanced model for complex tasks
+
+#### 6. Llama 3.1 8B Instant
+- **Speed**: Ultra Fast | **Quality**: Good | **Context**: 8K tokens
+- Lightning-fast responses for real-time conversations
+
+#### 7. Llama 3.1 70B Versatile
+- **Speed**: Fast | **Quality**: Excellent | **Context**: 8K tokens
+- Multi-purpose model for diverse applications
+
+#### 8. Llama 3.1 405B Reasoning
+- **Speed**: Medium | **Quality**: Outstanding | **Context**: 8K tokens
+- Specialized in logical reasoning and complex problem-solving
+
+#### 9. Llama 3.1 1B Instruct
+- **Speed**: Ultra Fast | **Quality**: Good | **Context**: 8K tokens
+- Lightweight model for simple instructions
+
+#### 10. Llama 3.1 3B Instruct  
+- **Speed**: Very Fast | **Quality**: Very Good | **Context**: 8K tokens
+- Medium-sized model for advanced instructions
+
+### GPTGod Models (17 Models)
+
+#### Premium Models
+- **Claude 3 Opus**: Anthropic's flagship model (200K context)
+- **Claude 3.5 Sonnet**: Balanced performance and speed
+- **Claude 3 Haiku**: Ultra-fast for simple tasks
+- **GPT-4 Turbo**: OpenAI's latest and fastest
+- **GPT-4o**: Multimodal enhanced model
+- **GPT-4o Mini**: Lightweight GPT-4 variant
+
+#### Advanced Models
+- **Gemini Pro 1.5**: Google's advanced model (1M context)
+- **Gemini Flash 1.5**: Ultra-fast Google model
+- **Mistral Large**: Powerful model for complex tasks  
+- **Mistral Small**: Fast and efficient
+- **Codestral**: Programming specialized model
+- **Command R+**: Cohere's advanced model
+- **Command R**: Balanced general-purpose model
+
+#### Specialized Models
+- **Perplexity Llama 3.1 70B**: Enhanced with web search
+- **Perplexity Llama 3.1 8B**: Fast web-enhanced model
+- **Llama 3.1 8B (GPTGod)**: Via GPTGod platform
+- **Llama 3.1 70B (GPTGod)**: Advanced via GPTGod
+
+## 🌐 Web Search Integration
+
+### Tavily Smart Search
+- **Real-time web search**: Extract latest information from the internet
+- **Intelligent summarization**: Smart summaries of search results
+- **Trusted sources**: Search from reliable and verified sources
+- **Arabic language support**: Search and summarize in Arabic
+
+```dart
+// Using Tavily service for search
+final searchResults = await TavilyService.search(
+  query: 'latest AI news',
+  language: 'en',
+  maxResults: 10
+);
+```
+
+## 🧠 Advanced AI Capabilities
+
+### Fine-Tuning Advisor Service
+- **Data analysis**: Intelligent analysis of training data
+- **Parameter suggestions**: Recommend optimal training parameters
+- **Performance monitoring**: Real-time training progress tracking
+- **Automatic optimization**: Auto-optimize models during training
+
+### Simple Model Training Service
+```dart
+// Start simplified model training
+final trainingSession = await SimpleModelTrainingService.startTraining(
+  dataPath: 'path/to/training/data',
+  modelType: 'llama',
+  epochs: 10
+);
+```
+
+## 📱 Advanced App Features
+
+### Smart Memory Management
+- **MCP Protocol**: Model Context Protocol for enhanced memory
+- **Long-term memory**: Save conversations and context for extended periods
+- **Smart retrieval**: Retrieve relevant information from past conversations
+
+### Performance Optimizations
+- **App optimizer**: Comprehensive app performance enhancement
+- **Database optimizer**: Optimize database queries and operations
+- **Image optimizer**: Automatic image compression and optimization
+- **Network optimizer**: Optimize network requests and caching
+
+### Advanced Speech Service
+```dart
+// Voice recognition service
+final speechResult = await SpeechService.recognizeSpeech(
+  language: 'en-US',
+  timeout: 30
+);
+```
+
+## 🔧 API & Key Management
+
+### Advanced Key Management
+```dart
+// Get API key
+final groqKey = await ApiKeyManager.getApiKey('groq');
+
+// Check if using default keys
+final isUsingDefault = await ApiKeyManager.isUsingDefaultKeys();
+
+// Save custom key
+await ApiKeyManager.saveCustomKey('groq', 'your_custom_key');
+
+// Remove custom key and revert to default
+await ApiKeyManager.removeCustomKey('groq');
+```
+
+### Fallback Key System
+- **Default keys**: Free keys for immediate use
+- **Custom keys**: User's private API keys
+- **Smart switching**: Automatic key switching when needed
+- **Key protection**: Encryption and protection of API keys
+
+## 💾 Data Export & Management
+
+### Chat Export Service
+- **Multiple formats**: Export in JSON, CSV, TXT formats
+- **Custom export**: Select specific conversations and time periods
+- **Data compression**: Automatic compression of large files
+- **Data protection**: Encryption of exported data
+
+```dart
+// Export conversations
+final exportResult = await ChatExportService.exportChats(
+  format: ExportFormat.json,
+  dateRange: DateRange.lastMonth,
+  includeMedia: true
+);
+```
+
+## 🎨 Advanced User Interface
+
+### Smart Theming System
+- **Material Design 3**: Latest design standards
+- **Dynamic themes**: Color changes based on content
+- **RTL support**: Full support for right-to-left languages
+- **Advanced animations**: Smooth transitions and visual effects
+
+### Specialized Widgets
+- **Message bubbles**: Modern chat message design
+- **Debug panel**: Advanced development tools
+- **Training widgets**: Interfaces for monitoring model training
+- **Search widgets**: Advanced conversation search interface
+
+## 🔒 Security & Permissions
+
+### Permission Manager
+```dart
+// Request multiple permissions
+final permissions = await PermissionsManager.requestPermissions([
+  Permission.microphone,
+  Permission.storage,
+  Permission.camera
+]);
+```
+
+### Security Features
+- **Data encryption**: Local database encryption
+- **Memory protection**: Clear sensitive data from memory
+- **User authentication**: Multiple authentication options
+- **Activity logging**: Log sensitive operations
+
+## 🚀 Development Features
+
+### Lazy Service Initializer
+- **Smart loading**: Load services only when needed
+- **Optimized memory**: Reduce memory consumption
+- **Fast startup**: Accelerate app startup time
+
+### Prompt Enhancement Service
+```dart
+// Automatically enhance prompts
+final enhancedPrompt = await PromptEnhancerService.enhancePrompt(
+  originalPrompt: 'Explain artificial intelligence',
+  context: ConversationContext.technical,
+  language: 'en'
+);
+```
+
+## 📞 Support
+
+- **Email**: <alromaihi2224@gmail.com>
+- **GitHub Issues**: [https://github.com/Msr7799/Atlas-AI.git](https://github.com/Msr7799/Atlas-AI.git)
+- **Documentation**: README.md, FEATURES.md, README-ar.md
+
+---
+
+**Atlas AI** - Your intelligent AI assistant 🤖
+
+**Developer**: Mohamed S AL-Romaihi  
+**Email**: alromaihi2224@gmail.com  
+**GitHub**: [@Msr7799](https://github.com/Msr7799)
 
 #### 5. Gemma 2 27B
 

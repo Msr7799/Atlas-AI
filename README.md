@@ -39,7 +39,7 @@ Atlas AI is a sophisticated AI assistant application built with Flutter, featuri
 
 ### 🔧 **Advanced Capabilities**
 - **Fine-Tuning Advisor**: Intelligent model training recommendations
-- **MCP Integration**: Model Context Protocol for enhanced memory
+- **MCP Integration**: Model Context Protocol for enhanced memory [![MCP Setup](https://img.shields.io/badge/MCP%20Setup-red?style=for-the-badge&logo=gear)](mcp.md)
 - **Voice Input**: Speech-to-text functionality
 - **Chat Export**: Multiple export formats (JSON, CSV, TXT)
 - **Performance Optimization**: Advanced memory and resource management
