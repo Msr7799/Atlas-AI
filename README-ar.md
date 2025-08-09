@@ -1,13 +1,15 @@
 # Atlas AI - مساعد الذكاء الاصطناعي المتقدم
 
-![alt text](assets/icons/atlas2.png)
+![alt text](assets/icons/atlas.png)
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.8.1+-blue.svg)](https://flutter.dev/)
 [![Dart Version](https://img.shields.io/badge/Dart-3.8.1+-blue.svg)](https://dart.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Developer](https://img.shields.io/badge/Developer-Mohamed%20S%20AL--Romaihi-blue.svg)](mailto:alromaihi2224@gmail.com)
-[![GitHub ♥️](https://img.shields.io/badge/♥️%20GitHub-black?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Msr7799/Atlas-AI)
+<img src="https://img.shields.io/badge/♥️%20GitHub-gray?style=for-the-badge&logo=github&logoColor=white" style="border: 2px solid black; border-radius: 10px;" alt="GitHub">
 
-[![Read in English](https://img.shields.io/badge/Read%20in%20English-blue?style=for-the-badge&logo=readme)](README.md)
+
+[![Read in English](https://img.shields.io/badge/Read%20in%20English-%E2%9C%85-white?style=for-the-badge&logo=readme&logoColor=white)](README.md)
+
 [![Releases](https://img.shields.io/badge/Releases-green?style=for-the-badge&logo=github)](https://github.com/Msr7799/Atlas-AI/releases)
 
 ## نظرة عامة
@@ -16,7 +18,12 @@ Atlas AI هو تطبيق مساعد ذكي متطور مبني بـ Flutter، ي
 
 ## ✨ المميزات الرئيسية
 
-[![Features](https://img.shields.io/badge/Features-%E2%9C%85-red.svg?style=for-the-badge)](FEATURES.md)
+
+[![Features](https://img.shields.io/badge/Features-%E2%9C%85-white?style=for-the-badge&logo=readme&logoColor=white)](FEATURES-ar.md)
+
+
+<img src="assets/icons/app_icon.png" width="150" height="150" />
+
 ### 🤖 **تكامل نماذج ذكاء اصطناعي متعددة**
 - **نماذج Groq**: 10 نماذج مختلفة بما في ذلك Llama 3.1 و Mixtral و Gemma
 - **خدمة GPTGod**: 17 نموذج متقدم مع دعم GPT-4
@@ -36,8 +43,11 @@ Atlas AI هو تطبيق مساعد ذكي متطور مبني بـ Flutter، ي
 - **إمكانية الوصول**: دعم كامل لإمكانية الوصول
 
 ### 🔧 **القدرات المتقدمة**
+
+[![MCP Setup](https://img.shields.io/badge/MCP_Setup-%E2%9C%85-white?style=for-the-badge&logo=readme&logoColor=white)](mcp.md)
+
 - **مستشار الضبط الدقيق**: توصيات ذكية لتدريب النماذج
-- **تكامل MCP**: بروتوكول سياق النموذج للذاكرة المحسنة [![إعداد MCP](https://img.shields.io/badge/إعداد%20MCP-red?style=for-the-badge&logo=gear)](mcp.md)
+- **تكامل MCP**: بروتوكول سياق النموذج للذاكرة المحسنة [!
 - **إدخال صوتي**: وظيفة تحويل الكلام إلى نص
 - **تصدير الدردشة**: تنسيقات تصدير متعددة (JSON، CSV، TXT)
 - **تحسين الأداء**: إدارة متقدمة للذاكرة والموارد

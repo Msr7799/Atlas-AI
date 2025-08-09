@@ -1,6 +1,7 @@
 # Atlas AI Advanced Features
 
-[![Read in Arabic](https://img.shields.io/badge/اقرأ%20بالعربية-red?style=for-the-badge&logo=readme)](FEATURES-ar.md)
+![alt text](assets/icons/app_icon4.png)
+[![Read in Arabic](https://img.shields.io/badge/Read%20in%20Arabic-white?style=for-the-badge&logo=readme&logoColor=black)](FEATURES-ar.md)
 
 ## ✨ Complete Feature Overview
 

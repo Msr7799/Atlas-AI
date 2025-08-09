@@ -5,20 +5,24 @@
 [![Dart Version](https://img.shields.io/badge/Dart-3.8.1+-blue.svg)](https://dart.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Developer](https://img.shields.io/badge/Developer-Mohamed%20S%20AL--Romaihi-blue.svg)](mailto:alromaihi2224@gmail.com)
-[![GitHub ♥️](https://img.shields.io/badge/♥️%20GitHub-black?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Msr7799/Atlas-AI)
+[![GitHub ♥️](https://img.shields.io/badge/♥️%20GitHub-gray?style=flat-square&logo=github&logoColor=white)](https://github.com/Msr7799/Atlas-AI)
 
 [![Releases](https://img.shields.io/badge/Releases-green?style=for-the-badge&logo=github)](https://github.com/Msr7799/Atlas-AI/releases)
 
 ## Overview
 
-[![Read in Arabic](https://img.shields.io/badge/Read%20in%20Arabic-blue?style=for-the-badge&logo=readme)](README-ar.md)
+
+[![Read in Arabic](https://img.shields.io/badge/Read%20in%20Arabic-%E2%9C%85-white?style=for-the-badge&logo=readme&logoColor=white)](README-ar.md)
 
 
 Atlas AI is a sophisticated AI assistant application built with Flutter, featuring native Arabic language support and advanced conversational capabilities. The application integrates multiple AI models and provides a seamless, cross-platform experience with modern UI design and robust performance optimizations.
 
 ## ✨ Key Features
 
-[![Features](https://img.shields.io/badge/Features-%E2%9C%85-red.svg?style=for-the-badge)](FEATURES.md)
+[![Features](https://img.shields.io/badge/Features-%E2%9C%85-white?style=for-the-badge&logo=readme&logoColor=white)](FEATURES.md)
+
+
+<img src="assets/icons/app_icon.png" width="150" height="150" />
 
 ### 🤖 **Multi-Model AI Integration**
 - **Groq Models**: 10 different models including Llama 3.1, Mixtral, and Gemma
@@ -37,10 +41,12 @@ Atlas AI is a sophisticated AI assistant application built with Flutter, featuri
 - **Dark/Light Mode**: Dynamic theming with user preferences
 - **Cross-Platform**: Consistent experience across all platforms
 - **Accessibility**: Full accessibility support
-
 ### 🔧 **Advanced Capabilities**
 - **Fine-Tuning Advisor**: Intelligent model training recommendations
-- **MCP Integration**: Model Context Protocol for enhanced memory [![MCP Setup](https://img.shields.io/badge/MCP%20Setup-red?style=for-the-badge&logo=gear)](mcp.md)
+
+[![MCP Setup](https://img.shields.io/badge/MCP_Setup-%E2%9C%85-white?style=for-the-badge&logo=readme&logoColor=white)](mcp.md)
+
+- **MCP Integration**: Model Context Protocol for enhanced memory 
 - **Voice Input**: Speech-to-text functionality
 - **Chat Export**: Multiple export formats (JSON, CSV, TXT)
 - **Performance Optimization**: Advanced memory and resource management

@@ -1,5 +1,5 @@
 # ميزات Atlas AI الجديدة
-
+![alt text](assets/icons/app_icon4.png)
 [![Read in English](https://img.shields.io/badge/Read%20in%20English-red?style=for-the-badge&logo=readme)](FEATURES.md)
 
 ## 🔑 نظام إدارة API Keys المحسن
