@@ -5,6 +5,7 @@
 [![Dart Version](https://img.shields.io/badge/Dart-3.8.1+-blue.svg)](https://dart.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Developer](https://img.shields.io/badge/Developer-Mohamed%20S%20AL--Romaihi-blue.svg)](mailto:alromaihi2224@gmail.com)
+[![GitHub ♥️](https://img.shields.io/badge/♥️%20GitHub-black?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Msr7799/Atlas-AI)
 
 [![Releases](https://img.shields.io/badge/Releases-green?style=for-the-badge&logo=github)](https://github.com/Msr7799/Atlas-AI/releases)
 
