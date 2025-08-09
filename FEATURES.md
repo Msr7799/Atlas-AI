@@ -338,8 +338,8 @@ Tooltip(
 ## 📱 الدعم
 
 - **البريد الإلكتروني**: <alromaihi2224@gmail.com>
-- **GitHub Issues**:[https://github.com/Msr7799/Fine_tuning_AI.git]
-- **التوثيق**: README.md و FEATURES.md
+- **GitHub Issues**:[https://github.com/Msr7799/Atlas-AI.git]
+- **التوثيق**: README.md و FEATURES.md و README-ar.md
 
 ---
 

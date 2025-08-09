@@ -7,7 +7,7 @@
 [![Developer](https://img.shields.io/badge/Developer-Mohamed%20S%20AL--Romaihi-blue.svg)](mailto:alromaihi2224@gmail.com)
 
 [![Read in English](https://img.shields.io/badge/Read%20in%20English-blue?style=for-the-badge&logo=readme)](README.md)
-[![الإصدارات](https://img.shields.io/badge/الإصدارات-green?style=for-the-badge&logo=github)](https://github.com/Msr7799/Atlas-AI/releases)
+[![Releases](https://img.shields.io/badge/Releases-green?style=for-the-badge&logo=github)](https://github.com/Msr7799/Atlas-AI/releases)
 
 ## نظرة عامة
 
@@ -15,6 +15,7 @@ Atlas AI هو تطبيق مساعد ذكي متطور مبني بـ Flutter، ي
 
 ## ✨ المميزات الرئيسية
 
+[![Features](https://img.shields.io/badge/Features-%E2%9C%85-red.svg?style=for-the-badge)](FEATURES.md)
 ### 🤖 **تكامل نماذج ذكاء اصطناعي متعددة**
 - **نماذج Groq**: 10 نماذج مختلفة بما في ذلك Llama 3.1 و Mixtral و Gemma
 - **خدمة GPTGod**: 17 نموذج متقدم مع دعم GPT-4

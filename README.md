@@ -17,6 +17,8 @@ Atlas AI is a sophisticated AI assistant application built with Flutter, featuri
 
 ## ✨ Key Features
 
+[![Features](https://img.shields.io/badge/Features-%E2%9C%85-red.svg?style=for-the-badge)](FEATURES.md)
+
 ### 🤖 **Multi-Model AI Integration**
 - **Groq Models**: 10 different models including Llama 3.1, Mixtral, and Gemma
 - **GPTGod Service**: 17 advanced models with GPT-4 support
