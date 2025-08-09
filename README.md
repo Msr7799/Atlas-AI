@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Developer](https://img.shields.io/badge/Developer-Mohamed%20S%20AL--Romaihi-blue.svg)](mailto:alromaihi2224@gmail.com)
 
-[![اقرأ بالعربية](https://img.shields.io/badge/اقرأ%20بالعربية-blue?style=for-the-badge&logo=readme)](README-ar.md)
+[![Read in Arabic](https://img.shields.io/badge/Read%20in%20Arabic-blue?style=for-the-badge&logo=readme)](README-ar.md)
 [![Releases](https://img.shields.io/badge/Releases-green?style=for-the-badge&logo=github)](https://github.com/Msr7799/Atlas-AI/releases)
 
 ## Overview
