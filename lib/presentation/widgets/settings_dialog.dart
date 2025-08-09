@@ -740,6 +740,100 @@ class _SettingsDialogState extends State<SettingsDialog>
                 ),
               ),
 
+              // Preferred Language Setting
+              Text(
+                'اللغة المفضلة للاستجابة',
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 18,
+                    desktop: 20,
+                  ),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(
+                height: ResponsiveHelper.getResponsiveHeight(
+                  context,
+                  mobile: 8,
+                  tablet: 10,
+                  desktop: 12,
+                ),
+              ),
+              
+              Container(
+                padding: ResponsiveHelper.getResponsivePadding(
+                  context,
+                  mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: settings.preferredLanguage,
+                    isExpanded: true,
+                    items: SettingsProvider.supportedLanguages.entries
+                        .map((entry) => DropdownMenuItem<String>(
+                              value: entry.key,
+                              child: Text(
+                                entry.value,
+                                style: TextStyle(
+                                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                                    context,
+                                    mobile: 14,
+                                    tablet: 16,
+                                    desktop: 18,
+                                  ),
+                                ),
+                              ),
+                            ))
+                        .toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        settings.setPreferredLanguage(newValue);
+                      }
+                    },
+                  ),
+                ),
+              ),
+              
+              Padding(
+                padding: ResponsiveHelper.getResponsivePadding(
+                  context,
+                  mobile: const EdgeInsets.only(top: 4, left: 4, right: 4),
+                  tablet: const EdgeInsets.only(top: 6, left: 6, right: 6),
+                  desktop: const EdgeInsets.only(top: 8, left: 8, right: 8),
+                ),
+                child: Text(
+                  'اختر اللغة المفضلة للاستجابة. "تلقائي" يعني أن الذكي الاصطناعي سيتكيف مع لغة رسالتك.',
+                  style: TextStyle(
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ),
+
+              SizedBox(
+                height: ResponsiveHelper.getResponsiveHeight(
+                  context,
+                  mobile: 16,
+                  tablet: 20,
+                  desktop: 24,
+                ),
+              ),
+
               // MCP Servers
               SwitchListTile(
                 title: const Text('خوادم MCP'),

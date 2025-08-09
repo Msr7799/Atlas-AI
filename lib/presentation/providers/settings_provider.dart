@@ -9,6 +9,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _streamResponse = true;
   bool _enableWebSearch = true;
   bool _enableMcpServers = true;
+  String _preferredLanguage = 'auto'; // إضافة إعداد اللغة المفضلة
   Map<String, bool> _mcpServerStatus = {
     'memory': true,
     'sequential-thinking': true,
@@ -25,6 +26,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get streamResponse => _streamResponse;
   bool get enableWebSearch => _enableWebSearch;
   bool get enableMcpServers => _enableMcpServers;
+  String get preferredLanguage => _preferredLanguage; // إضافة getter للغة المفضلة
   Map<String, bool> get mcpServerStatus => Map.unmodifiable(_mcpServerStatus);
   Map<String, dynamic> get customMcpServers => Map.unmodifiable(_customMcpServers);
   String get customMcpJson => _customMcpJson;
@@ -65,6 +67,12 @@ class SettingsProvider extends ChangeNotifier {
 
   void setEnableMcpServers(bool enable) {
     _enableMcpServers = enable;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void setPreferredLanguage(String language) {
+    _preferredLanguage = language;
     _saveSettings();
     notifyListeners();
   }
@@ -189,6 +197,7 @@ class SettingsProvider extends ChangeNotifier {
       _streamResponse = prefs.getBool('streamResponse') ?? true;
       _enableWebSearch = prefs.getBool('enableWebSearch') ?? true;
       _enableMcpServers = prefs.getBool('enableMcpServers') ?? true;
+      _preferredLanguage = prefs.getString('preferredLanguage') ?? 'auto'; // تحميل إعداد اللغة المفضلة
 
       // تحميل إعدادات MCP
       final mcpMemory = prefs.getBool('mcp_memory') ?? true;
@@ -230,6 +239,7 @@ class SettingsProvider extends ChangeNotifier {
       prefs.setBool('streamResponse', _streamResponse);
       prefs.setBool('enableWebSearch', _enableWebSearch);
       prefs.setBool('enableMcpServers', _enableMcpServers);
+      prefs.setString('preferredLanguage', _preferredLanguage); // حفظ إعداد اللغة المفضلة
 
       // حفظ إعدادات MCP
       for (String serverName in _mcpServerStatus.keys) {
@@ -250,10 +260,31 @@ class SettingsProvider extends ChangeNotifier {
     _streamResponse = true;
     _enableWebSearch = true;
     _enableMcpServers = true;
+    _preferredLanguage = 'auto'; // إعادة تعيين اللغة المفضلة
     _mcpServerStatus = {'memory': true, 'sequential-thinking': true};
     _customMcpServers = {};
     _customMcpJson = '';
     _saveSettings();
     notifyListeners();
   }
+
+  // قائمة اللغات المدعومة
+  static const Map<String, String> supportedLanguages = {
+    'auto': 'تلقائي (حسب لغة المستخدم)',
+    'ar': 'العربية',
+    'en': 'English',
+    'fr': 'Français',
+    'es': 'Español', 
+    'de': 'Deutsch',
+    'it': 'Italiano',
+    'pt': 'Português',
+    'ru': 'Русский',
+    'zh': '中文',
+    'ja': '日本語',
+    'ko': '한국어',
+    'hi': 'हिन्दी',
+    'tr': 'Türkçe',
+    'fa': 'فارسی',
+    'ur': 'اردو',
+  };
 }

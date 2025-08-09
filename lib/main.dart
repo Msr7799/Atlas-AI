@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'presentation/pages/main_chat_page.dart';
+import 'presentation/pages/splash_screen.dart';
 import 'presentation/providers/chat_provider.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/settings_provider.dart';
@@ -94,7 +95,10 @@ class MyApp extends StatelessWidget {
               fontSize: themeProvider.fontSize,
               accentColor: themeProvider.accentColor,
             ),
-            home: const MainChatPage(),
+            home: const SplashScreen(),
+            routes: {
+              '/mainChatPage': (context) => const MainChatPage(),
+            },
             themeMode: themeProvider.themeMode,
           );
         },

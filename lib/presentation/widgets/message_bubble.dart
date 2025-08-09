@@ -4,6 +4,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/message_model.dart';
 import '../providers/chat_selection_provider.dart';
+import 'thinking_process_widget.dart';
 
 class CodeElementBuilder extends MarkdownElementBuilder {
   final BuildContext context;
@@ -12,23 +13,99 @@ class CodeElementBuilder extends MarkdownElementBuilder {
 
   @override
   Widget? visitElementAfter(element, preferredStyle) {
+    final theme = Theme.of(context);
+    final codeText = element.textContent;
+    
+    // تحديد لون الخلفية حسب الثيم
+    Color codeBackground;
+    Color codeTextColor;
+    Color borderColor;
+    
+    if (theme.brightness == Brightness.light) {
+      // النهار - خلفية سوداء
+      codeBackground = const Color(0xFF1E1E1E);
+      codeTextColor = const Color(0xFFE0E0E0);
+      borderColor = const Color(0xFF404040);
+    } else {
+      // الليل - خلفية بيج
+      codeBackground = const Color(0xFFF5F5DC);
+      codeTextColor = const Color(0xFF2D2D2D);
+      borderColor = const Color(0xFFD4C4A8);
+    }
+    
     return Container(
-      padding: const EdgeInsets.all(8),
-      margin: const EdgeInsets.symmetric(vertical: 4),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-        ),
+        color: codeBackground,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor),
       ),
-      child: Text(
-        element.textContent,
-        style: TextStyle(
-          fontFamily: 'Courier',
-          fontSize: 12,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // شريط علوي مع زر النسخ
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: codeBackground.withOpacity(0.8),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'كود',
+                  style: TextStyle(
+                    color: codeTextColor.withOpacity(0.7),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.copy,
+                    size: 16,
+                    color: codeTextColor.withOpacity(0.7),
+                  ),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: codeText));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('تم نسخ الكود'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  tooltip: 'نسخ الكود',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // محتوى الكود
+          Container(
+            padding: const EdgeInsets.all(12),
+            child: Directionality(
+              textDirection: TextDirection.ltr, // فرض اتجاه من اليسار لليمين للكود
+              child: SelectableText(
+                codeText,
+                style: TextStyle(
+                  fontFamily: 'Courier',
+                  fontSize: 13,
+                  color: codeTextColor,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -179,6 +256,13 @@ class MessageBubble extends StatelessWidget {
                             ),
                           ),
                         ),
+
+                        // Thinking Process - إضافة عرض عملية التفكير
+                        if (!isUser && message.thinkingProcess != null)
+                          ThinkingProcessWidget(
+                            thinkingProcess: message.thinkingProcess!,
+                            isExpanded: false, // مطوي بشكل افتراضي
+                          ),
 
                         // Copy button
                         if (!isSelectionMode)
@@ -350,26 +434,63 @@ class MessageBubble extends StatelessWidget {
 
       // إضافة النص المنسق
       if (closestMatch == codeBlockMatch) {
+        final codeContent = closestMatch.group(2) ?? '';
+        final language = closestMatch.group(1) ?? '';
+
+        // تحديد لون الخلفية حسب الثيم
+        Color codeBackground;
+        Color codeTextColor;
+
+        if (theme.brightness == Brightness.light) {
+          // النهار - خلفية سوداء
+          codeBackground = const Color(0xFF1E1E1E);
+          codeTextColor = const Color(0xFFE0E0E0);
+        } else {
+          // الليل - خلفية بيج
+          codeBackground = const Color(0xFFF5F5DC);
+          codeTextColor = const Color(0xFF2D2D2D);
+        }
+
         spans.add(
           TextSpan(
-            text: closestMatch.group(2) ?? '',
+            text: codeContent,
             style: TextStyle(
               fontFamily: 'Courier',
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              color: theme.colorScheme.onSurfaceVariant,
+              backgroundColor: codeBackground,
+              color: codeTextColor,
               height: 1.4,
+              // فرض اتجاه من اليسار لليمين للكود فقط
+              locale: const Locale('en', 'US'),
             ),
           ),
         );
       } else if (closestMatch == inlineCodeMatch) {
+        final codeContent = closestMatch.group(1) ?? '';
+
+        // تحديد لون الخلفية للكود المضمن
+        Color inlineCodeBackground;
+        Color inlineCodeTextColor;
+
+        if (theme.brightness == Brightness.light) {
+          // النهار - خلفية سوداء فاتحة
+          inlineCodeBackground = const Color(0xFF2D2D2D);
+          inlineCodeTextColor = const Color(0xFFE0E0E0);
+        } else {
+          // الليل - خلفية بيج فاتحة
+          inlineCodeBackground = const Color(0xFFEDE8D3);
+          inlineCodeTextColor = const Color(0xFF2D2D2D);
+        }
+
         spans.add(
           TextSpan(
-            text: closestMatch.group(1) ?? '',
+            text: codeContent,
             style: TextStyle(
               fontFamily: 'Courier',
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              color: theme.colorScheme.onSurfaceVariant,
+              backgroundColor: inlineCodeBackground,
+              color: inlineCodeTextColor,
               height: 1.4,
+              // فرض اتجاه من اليسار لليمين للكود المضمن
+              locale: const Locale('en', 'US'),
             ),
           ),
         );

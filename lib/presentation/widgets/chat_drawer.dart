@@ -5,6 +5,7 @@ import '../providers/theme_provider.dart';
 import '../providers/chat_selection_provider.dart';
 import '../../data/models/message_model.dart';
 import 'chat_export_dialog.dart';
+import 'settings_dialog.dart';
 
 class ChatDrawer extends StatelessWidget {
   const ChatDrawer({super.key});
@@ -181,7 +182,10 @@ class ChatDrawer extends StatelessWidget {
             title: const Text('الإعدادات'),
             onTap: () {
               Navigator.pop(context);
-              // Open settings dialog
+              showDialog(
+                context: context,
+                builder: (context) => const SettingsDialog(),
+              );
             },
           ),
 
@@ -388,7 +392,7 @@ class ChatDrawer extends StatelessWidget {
   }
 
   /// عرض حوار تصدير المحادثات
-  static void _showExportDialog(
+  void _showExportDialog(
     BuildContext context,
     ChatProvider chatProvider,
     bool exportSelected,
@@ -427,7 +431,7 @@ class ChatDrawer extends StatelessWidget {
   }
 
   /// عرض حوار تصدير الجلسة الحالية
-  static void _showCurrentSessionExportDialog(
+  void _showCurrentSessionExportDialog(
     BuildContext context,
     ChatProvider chatProvider,
   ) {

@@ -62,9 +62,67 @@ class ChatProvider extends ChangeNotifier {
   String? get currentSessionId => _currentSessionId;
   ThinkingProcessModel? get currentThinking => _currentThinking;
 
-  String _getEnhancedSystemPrompt() {
+  String _getEnhancedSystemPrompt({SettingsProvider? settingsProvider}) {
     final mcpService = McpService();
-    return mcpService.getEnhancedSystemPrompt();
+    final basePrompt = mcpService.getEnhancedSystemPrompt();
+    
+    // الحصول على اللغة المفضلة من الإعدادات
+    String languageInstruction = '';
+    if (settingsProvider != null) {
+      final preferredLang = settingsProvider.preferredLanguage;
+      if (preferredLang != 'auto') {
+        final langName = SettingsProvider.supportedLanguages[preferredLang] ?? preferredLang;
+        languageInstruction = '''
+
+## 🎯 USER LANGUAGE PREFERENCE:
+- User has set preferred language to: $langName ($preferredLang)
+- Please respond primarily in this language unless user explicitly requests another language
+- If user writes in a different language, adapt to their choice
+
+''';
+      }
+    }
+    
+    // إضافة تأكيد إضافي على التعدد اللغوي
+    final multilingualEnhancement = '''
+
+## 🌍 MULTILINGUAL SUPPORT CONFIRMATION:
+- You are a FULLY MULTILINGUAL AI assistant
+- You can understand and respond in ANY language the user chooses
+- You are NOT limited to Arabic and English only
+- If user writes in French, German, Spanish, Italian, Chinese, Japanese, etc. - respond in that language
+- Adapt your language naturally based on user input
+- Default to Arabic only when user language is unclear
+
+## 📝 CODE FORMATTING REQUIREMENTS:
+- **MANDATORY**: All code and scripts MUST be in proper Markdown code blocks
+- **MANDATORY**: Use correct language identifiers (```json, ```python, ```bash, ```dart, etc.)
+- **MANDATORY**: Scripts should use native language syntax, NOT English for script content
+- **MANDATORY**: Code blocks will render with appropriate backgrounds (black/day, beige/night)
+- **MANDATORY**: Only code content should be left-to-right (LTR), explanations in user's language
+- **COPYABLE**: User must be able to easily copy code from the formatted blocks
+
+Example formats you MUST follow:
+```json
+{
+  "key": "value"
+}
+```
+
+```python
+# تعليق بالعربية
+def my_function():
+    return "نتيجة"
+```
+
+```bash
+# سكريبت باش
+echo "مرحبا"
+```
+
+''';
+    
+    return basePrompt + languageInstruction + multilingualEnhancement;
   }
 
   // Helper method to get appropriate AI service based on selected model
@@ -419,7 +477,7 @@ class ChatProvider extends ChangeNotifier {
     }
 
     // 🤖 مرحلة المعالجة بالذكاء الاصطناعي - نقل خارج try block
-    final enhancedPrompt = _getEnhancedSystemPrompt();
+    final enhancedPrompt = _getEnhancedSystemPrompt(settingsProvider: settingsProvider);
 
     try {
       // Start thinking process if debug mode is on

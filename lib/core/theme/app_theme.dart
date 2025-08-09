@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Night Theme Colors
-  static const Color nightBackground = Color(0xFF181818);
-  static const Color nightSurface = Color(0xFF212121);
+  static const Color nightBackground = Color(0xFF262626);
+  static const Color nightSurface = Color(0xFF3A3A3A);
   static const Color nightHighlight = Color(0xFFC0E8C1);
   static const Color nightText = Color(0xFFF4F4F4);
-  static const Color nightSecondaryText = Color(0xFFB3B3B3);
-  static const Color nightBorder = Color(0xFF404040);
+  static const Color nightSecondaryText = Color(0xFFD0D0D0);
+  static const Color nightBorder = Color(0xFF555555);
 
   // Day Theme Colors
   static const Color dayBackground = Color(0xFFFFFFFF);
@@ -18,9 +18,9 @@ class AppTheme {
   static const Color dayBorder = Color(0xFFE5E5E7);
 
   // Gradient Colors (من gradient_theme.dart)
-  static const Color gradientStart = Color(0xFF667EEA);
-  static const Color gradientEnd = Color(0xFF764BA2);
-  static const Color gradientAccent = Color(0xFFF093FB);
+  static const Color gradientStart = Color(0xFF8E9AAF);  // رصاصي فاتح
+  static const Color gradientEnd = Color(0xFFCBD2D9);    // رصاصي فاتح أكثر
+  static const Color gradientAccent = Color(0xFFA8B2C0); // رصاصي متوسط
   static const Color gradientBackground = Color(0xFF1A1A2E);
   static const Color gradientSurface = Color(0xFF16213E);
   static const Color gradientText = Color(0xFFE8E8E8);

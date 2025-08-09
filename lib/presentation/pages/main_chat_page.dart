@@ -5,10 +5,8 @@ import 'package:provider/provider.dart';
 // import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
-// Enhanced UI Components - استخدام classes وهمية مؤقتاً
-// import 'package:speech_to_text/speech_to_text.dart';
-// import 'package:flutter_tts/flutter_tts.dart';
-import '../../core/utils/speech_stub.dart';
+// Enhanced UI Components - استخدام الخدمات الحقيقية
+import '../../core/services/speech_service.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
 // تغيير من gradient_theme إلى app_theme
@@ -19,14 +17,15 @@ import '../providers/theme_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/prompt_enhancer_provider.dart';
 import '../providers/chat_selection_provider.dart';
+import '../widgets/chat_drawer.dart';
 import '../widgets/message_bubble.dart';
+import '../widgets/voice_input_button.dart';
 import '../widgets/thinking_process_widget.dart';
 import '../widgets/attachment_preview.dart';
-import '../widgets/chat_drawer.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/debug_panel.dart';
 import '../widgets/prompt_enhancement_dialog.dart';
-
+import '../widgets/language_selector_widget.dart';
 import 'model_training_page.dart';
 import '../../core/widgets/optimized_widgets.dart';
 import '../../core/utils/memory_manager.dart';
@@ -67,8 +66,7 @@ class _MainChatPageState extends State<MainChatPage>
   final bool _showQuickActions = false;
 
   // Voice Input State
-  final SpeechToText _speechToText = SpeechToText();
-  final FlutterTts _flutterTts = FlutterTts();
+  final SpeechService _speechService = SpeechService();
   bool _isListening = false;
   bool _speechEnabled = false;
 
@@ -77,12 +75,12 @@ class _MainChatPageState extends State<MainChatPage>
   late Animation<double> _waveAnimation;
 
   @override
-  @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _loadInputHistory();
     _requestInitialPermissions();
+    _initializeSpeechService();
 
     // تسجيل Controllers في memory manager لإدارة أفضل للذاكرة
     registerTextController('message', _messageController);
@@ -138,34 +136,20 @@ class _MainChatPageState extends State<MainChatPage>
     _slideController.forward();
 
     // Initialize voice input
-    _initializeSpeech();
   }
 
-  // Initialize speech recognition
-  void _initializeSpeech() async {
+  // Initialize speech service
+  Future<void> _initializeSpeechService() async {
     try {
-      _speechEnabled = await _speechToText.initialize(
-        onStatus: (val) => print('Speech Status: $val'),
-        onError: (val) => print('Speech Error: $val'),
-      );
+      final available = await _speechService.initialize();
+      setState(() {
+        _speechEnabled = available;
+      });
     } catch (e) {
-      print('Speech initialization error: $e');
-      _speechEnabled = false;
-    }
-
-    // Configure TTS with error handling
-    try {
-      await _flutterTts.setLanguage('ar-SA');
-      await _flutterTts.setSpeechRate(0.8);
-      await _flutterTts.setVolume(1.0);
-      await _flutterTts.setPitch(1.0);
-    } catch (e) {
-      print('TTS configuration error: $e');
-      // TTS غير مدعوم على هذا النظام، يمكن المتابعة بدونه
-    }
-
-    if (mounted) {
-      setState(() {});
+      print('Speech service initialization failed: $e');
+      setState(() {
+        _speechEnabled = false;
+      });
     }
   }
 
@@ -190,27 +174,66 @@ class _MainChatPageState extends State<MainChatPage>
   // Voice Input Methods
   void _toggleVoiceInput() async {
     if (_isListening) {
-      await _speechToText.stop();
+      await _speechService.stopListening();
       _waveController.stop();
       setState(() => _isListening = false);
     } else {
       if (_speechEnabled) {
         setState(() => _isListening = true);
         _waveController.repeat(reverse: true);
-        await _speechToText.listen(
+        await _speechService.startListening(
           onResult: (result) {
             setState(() {
-              _messageController.text = result.recognizedWords;
+              _messageController.text = result;
             });
-            if (result.finalResult) {
+            if (!_speechService.isListening) {
               _waveController.stop();
               setState(() => _isListening = false);
             }
           },
-          localeId: 'ar-SA',
         );
       }
     }
+  }
+
+  void _startVoiceRecording() async {
+    if (!_speechEnabled) return;
+    
+    setState(() => _isListening = true);
+    _waveController.repeat(reverse: true);
+    
+    await _speechService.startListening(
+      onResult: (result) {
+        setState(() {
+          _messageController.text = result;
+        });
+      },
+    );
+  }
+
+  void _stopVoiceRecording() async {
+    if (!_isListening) return;
+    
+    await _speechService.stopListening();
+    _waveController.stop();
+    setState(() => _isListening = false);
+    
+    // Auto-send if there's text
+    if (_messageController.text.trim().isNotEmpty) {
+      _sendMessage(_messageController.text);
+    }
+  }
+
+  void _cancelVoiceRecording() async {
+    if (!_isListening) return;
+    
+    HapticFeedback.heavyImpact();
+    await _speechService.stopListening();
+    _waveController.stop();
+    setState(() {
+      _isListening = false;
+      _messageController.clear(); // Clear any recognized text
+    });
   }
 
   Widget _buildVoiceWaveAnimation() {
@@ -467,90 +490,21 @@ class _MainChatPageState extends State<MainChatPage>
     return AppBar(
       flexibleSpace: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppTheme.gradientStart.withOpacity(
-                0.8,
-              ), // تغيير من GradientTheme إلى AppTheme
-              AppTheme.gradientEnd.withOpacity(
-                0.6,
-              ), // تغيير من GradientTheme إلى AppTheme
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: AnimatedBuilder(
-          animation: _glowAnimation,
-          builder: (context, child) {
-            return Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.gradientStart.withOpacity(
-                      _glowAnimation.value * 0.3,
-                    ), // تغيير من GradientTheme إلى AppTheme
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-            );
-          },
+          color: Colors.grey[800], // لون رصاصي ثابت
         ),
       ),
       backgroundColor: Colors.transparent,
       elevation: 0,
+      iconTheme: IconThemeData(
+        color: Theme.of(context).colorScheme.primary, // تطبيق لون الثيم على زر الهامبرغر
+      ),
       title: FadeTransition(
         opacity: _fadeAnimation,
         child: SlideTransition(
           position: _slideAnimation,
           child: Row(
             children: [
-              // أيقونة التطبيق
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.gradientStart.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    'assets/icons/app_icon1.png',
-                    width: 32,
-                    height: 32,
-                    fit: BoxFit.contain, // تغيير لإظهار الأيقونة بوضوح
-                    errorBuilder: (context, error, stackTrace) {
-                      // في حالة عدم وجود الصورة، استخدم أيقونة افتراضية
-                      return Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          gradient: LinearGradient(
-                            colors: [
-                              AppTheme.gradientStart,
-                              AppTheme.gradientEnd,
-                            ],
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.auto_awesome,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
+              // إزالة أيقونة التطبيق بالكامل
               // العنوان محسن
               Expanded(
                 child: Column(
@@ -574,7 +528,7 @@ class _MainChatPageState extends State<MainChatPage>
                     ),
                     // عرض النموذج المختار في الهيدر
                     Consumer<SettingsProvider>(
-                      builder: (context, settings, child) {
+                      builder: (context, settingsProvider, child) {
                         return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -589,7 +543,7 @@ class _MainChatPageState extends State<MainChatPage>
                             ),
                           ),
                           child: Text(
-                            _getModelDisplayName(settings.selectedModel),
+                            _getModelDisplayName(settingsProvider.selectedModel),
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -695,30 +649,13 @@ class _MainChatPageState extends State<MainChatPage>
           },
         ),
 
-        // Web Search
-        Consumer<SettingsProvider>(
-          builder: (context, settingsProvider, child) {
-            return IconButton(
-              icon: Icon(
-                Icons.search,
-                color: settingsProvider.enableWebSearch
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).disabledColor,
-              ),
-              onPressed: settingsProvider.enableWebSearch
-                  ? () => _showSearchDialog()
-                  : null,
-              tooltip: 'البحث في الويب',
-            );
-          },
-        ),
-
         // Theme Toggle
         Consumer<ThemeProvider>(
           builder: (context, themeProvider, child) {
             return IconButton(
               icon: Icon(
                 themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                color: Theme.of(context).colorScheme.primary,
               ),
               onPressed: themeProvider.toggleTheme,
               tooltip: 'تبديل المظهر',
@@ -728,21 +665,30 @@ class _MainChatPageState extends State<MainChatPage>
 
         // Settings
         IconButton(
-          icon: const Icon(Icons.settings),
+          icon: Icon(
+            Icons.settings,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           onPressed: () => _showSettingsDialog(),
           tooltip: 'الإعدادات',
         ),
 
         // Model Training
         IconButton(
-          icon: const Icon(Icons.model_training),
+          icon: Icon(
+            Icons.model_training,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           onPressed: () => _navigateToTraining(),
           tooltip: 'تدريب النموذج',
         ),
 
         // New Chat
         IconButton(
-          icon: const Icon(Icons.add_circle_outline),
+          icon: Icon(
+            Icons.add_circle_outline,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           onPressed: () {
             context.read<ChatProvider>().createNewSession();
           },
@@ -757,7 +703,10 @@ class _MainChatPageState extends State<MainChatPage>
               MaterialPageRoute(builder: (context) => const ApiSettingsPage()),
             );
           },
-          icon: const Icon(Icons.api),
+          icon: Icon(
+            Icons.api,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           tooltip: 'إعدادات API',
         ),
       ],
@@ -799,7 +748,6 @@ class _MainChatPageState extends State<MainChatPage>
             children: [
               _buildSuggestionChip('اسأل سؤالاً'),
               _buildSuggestionChip('اطلب مساعدة في البرمجة'),
-              _buildSuggestionChip('ابحث في الويب'),
               _buildSuggestionChip('حلل ملف'),
             ],
           ),
@@ -957,68 +905,158 @@ class _MainChatPageState extends State<MainChatPage>
   }
 
   Widget _buildEnhancedInputArea() {
-    return AnimatedBuilder(
-      animation: _glowAnimation,
-      builder: (context, child) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
         return Container(
-          padding: const EdgeInsets.all(16),
+          // زيادة الارتفاع والعرض كما طلب المستخدم
+          height: 180, // زيادة الارتفاع من 120 إلى 180
+          width: double.infinity, // عرض كامل
+          padding: const EdgeInsets.all(20), // زيادة الحشو
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.gradientSurface.withOpacity(
-                  0.8,
-                ), // تغيير من GradientTheme إلى AppTheme
-                AppTheme.gradientBackground.withOpacity(
-                  0.9,
-                ), // تغيير من GradientTheme إلى AppTheme
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            border: Border(
-              top: BorderSide(
-                color: AppTheme.gradientStart.withOpacity(
-                  _glowAnimation.value * 0.5,
-                ), // تغيير من GradientTheme إلى AppTheme
-                width: 2,
-              ),
-            ),
+            color: Colors.grey[800], // لون رصاصي مثل الشريط العلوي
             boxShadow: [
               BoxShadow(
-                color: AppTheme.gradientStart.withOpacity(
-                  _glowAnimation.value * 0.2,
-                ), // تغيير من GradientTheme إلى AppTheme
-                blurRadius: 20,
-                spreadRadius: 1,
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
               ),
             ],
           ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                // Voice Wave Animation when listening
-                if (_isListening) _buildVoiceWaveAnimation(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Voice Wave Animation when listening
+              if (_isListening) _buildVoiceWaveAnimation(),
 
-                // Enhanced Input Container
-                Container(
+              // شريط الأدوات فوق خانة الكتابة
+              Container(
+                margin: const EdgeInsets.only(bottom: 12), // زيادة المسافة
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // زر الإرفاق
+                    _buildToolButton(
+                      icon: Icons.attach_file,
+                      tooltip: 'إرفاق ملف',
+                      onPressed: () => context.read<ChatProvider>().addAttachment(),
+                    ),
+                    
+                    // زر البحث في الويب
+                    _buildToolButton(
+                      icon: Icons.search,
+                      tooltip: 'البحث في الويب',
+                      onPressed: _showSearchDialog,
+                    ),
+                    
+                    // زر اللغة
+                    _buildToolButton(
+                      icon: Icons.language,
+                      tooltip: 'تغيير لغة التعرف على الصوت',
+                      onPressed: _showLanguageSelector,
+                    ),
+                    
+                    // زر المايك
+                    Consumer<ChatProvider>(
+                      builder: (context, chatProvider, child) {
+                        return GestureDetector(
+                          onLongPressStart: (details) {
+                            if (_speechEnabled) {
+                              HapticFeedback.mediumImpact();
+                              _startVoiceRecording();
+                            }
+                          },
+                          onLongPressEnd: (details) {
+                            if (_isListening) {
+                              _stopVoiceRecording();
+                            }
+                          },
+                          onLongPressMoveUpdate: (details) {
+                            if (_isListening) {
+                              final RenderBox renderBox = context.findRenderObject() as RenderBox;
+                              final localPosition = renderBox.globalToLocal(details.globalPosition);
+                              
+                              if (localPosition.dx < -50) {
+                                _cancelVoiceRecording();
+                              }
+                            }
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: _isListening ? 56 : 44,
+                            height: _isListening ? 56 : 44,
+                            decoration: BoxDecoration(
+                              gradient: _isListening
+                                  ? LinearGradient(
+                                      colors: [
+                                        Colors.red,
+                                        Colors.red.withOpacity(0.8),
+                                      ],
+                                    )
+                                  : LinearGradient(
+                                      colors: [
+                                        Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                        Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                                      ],
+                                    ),
+                              borderRadius: BorderRadius.circular(_isListening ? 28 : 12),
+                              boxShadow: _isListening
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.red.withOpacity(0.4),
+                                        blurRadius: 12,
+                                        spreadRadius: 2,
+                                      ),
+                                    ]
+                                  : [
+                                      BoxShadow(
+                                        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                            ),
+                            child: Center(
+                              child: chatProvider.isTyping
+                                  ? SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white.withOpacity(0.8),
+                                        ),
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.mic,
+                                      color: Colors.white,
+                                      size: _isListening ? 28 : 20,
+                                    ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              // خانة الكتابة المحسنة مع زيادة الحجم
+              Expanded(
+                child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppTheme.gradientStart.withOpacity(
-                          0.8,
-                        ), // تغيير من GradientTheme إلى AppTheme
-                        AppTheme.gradientEnd.withOpacity(
-                          0.6,
-                        ), // تغيير من GradientTheme إلى AppTheme
+                        AppTheme.gradientStart.withOpacity(0.8),
+                        AppTheme.gradientEnd.withOpacity(0.6),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(12), // تقليل من 24
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.gradientStart.withOpacity(
-                          _glowAnimation.value * 0.3,
-                        ), // تغيير من GradientTheme إلى AppTheme
-                        blurRadius: 12,
+                        color: (_isListening ? Colors.red : AppTheme.gradientStart)
+                            .withOpacity(0.4),
+                        blurRadius: _isListening ? 8 : 4,
                         offset: const Offset(0, 4),
                       ),
                     ],
@@ -1027,353 +1065,263 @@ class _MainChatPageState extends State<MainChatPage>
                   child: Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).scaffoldBackgroundColor,
-                      borderRadius: BorderRadius.circular(22),
+                      borderRadius: BorderRadius.circular(10), // تقليل من 22
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        // Attachment Button
-                        IconButton(
-                          icon: const Icon(Icons.attach_file),
-                          onPressed: () {
-                            context.read<ChatProvider>().addAttachment();
-                          },
-                          tooltip: 'إرفاق ملف',
-                        ),
-
-                        // Prompt Enhancement Button
-                        Consumer<PromptEnhancerProvider>(
-                          builder: (context, enhancerProvider, child) {
-                            return Container(
-                              decoration: enhancerProvider.isEnhancing
-                                  ? BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    )
-                                  : null,
-                              child: IconButton(
-                                icon: enhancerProvider.isEnhancing
-                                    ? SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.5,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                              ),
-                                        ),
-                                      )
-                                    : Icon(
-                                        Icons.auto_fix_high,
-                                        color:
-                                            _messageController.text
-                                                .trim()
-                                                .isEmpty
-                                            ? Theme.of(context).disabledColor
-                                            : Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
-                                      ),
-                                onPressed:
-                                    (_messageController.text.trim().isEmpty ||
-                                        enhancerProvider.isEnhancing)
-                                    ? null
-                                    : () => _enhancePrompt(),
-                                tooltip: enhancerProvider.isEnhancing
-                                    ? 'جاري تحسين البرومبت...'
-                                    : 'تحسين البرومبت بالذكاء الاصطناعي',
-                              ),
-                            );
-                          },
-                        ),
-
-                        // Message Input Field
-                        Expanded(
-                          child: Consumer<PromptEnhancerProvider>(
-                            builder: (context, enhancerProvider, child) {
-                              return Stack(
-                                children: [
-                                  KeyboardListener(
-                                    focusNode: FocusNode(),
-                                    onKeyEvent: (KeyEvent event) {
-                                      if (event is KeyDownEvent) {
-                                        // Navigate message history with arrow keys
-                                        if (event.logicalKey ==
-                                            LogicalKeyboardKey.arrowUp) {
-                                          _navigateHistory(true);
-                                        } else if (event.logicalKey ==
-                                            LogicalKeyboardKey.arrowDown) {
-                                          _navigateHistory(false);
-                                        }
-                                        // Send message with Enter (not Shift+Enter)
-                                        else if (event.logicalKey ==
-                                                LogicalKeyboardKey.enter &&
-                                            !HardwareKeyboard
-                                                .instance
-                                                .isShiftPressed) {
-                                          if (_messageController.text
-                                              .trim()
-                                              .isNotEmpty) {
-                                            _sendMessage(
-                                              _messageController.text,
-                                            );
-                                          }
-                                        }
-                                      }
-                                    },
-                                    child: TextField(
-                                      controller: _messageController,
-                                      focusNode: _textFieldFocusNode,
-                                      minLines: 1,
-                                      maxLines: 8,
-                                      keyboardType: TextInputType.multiline,
-                                      textInputAction: TextInputAction.newline,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                      enabled: !enhancerProvider.isEnhancing,
-                                      onChanged: (value) {
-                                        // Reset history navigation when user types
-                                        _historyIndex = -1;
-                                      },
-                                      onSubmitted: (value) {
-                                        // Safe handling for submit action
-                                        if (value.trim().isNotEmpty) {
-                                          try {
-                                            _sendMessage(value);
-                                          } catch (e) {
-                                            print('[SUBMIT ERROR] $e');
-                                          }
-                                        }
-                                      },
-                                      decoration: InputDecoration(
-                                        hintText: enhancerProvider.isEnhancing
-                                            ? 'جاري تحسين البرومبت باستخدام الذكاء الاصطناعي...'
-                                            : _isListening
+                    child: Consumer<PromptEnhancerProvider>(
+                      builder: (context, enhancerProvider, child) {
+                        return Stack(
+                          children: [
+                            KeyboardListener(
+                              focusNode: FocusNode(),
+                              onKeyEvent: (KeyEvent event) {
+                                if (event is KeyDownEvent) {
+                                  // Navigate message history with arrow keys
+                                  if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                                    _navigateHistory(true);
+                                  } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                                    _navigateHistory(false);
+                                  }
+                                }
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10), // تقليل من 20
+                                  border: _textFieldFocusNode.hasFocus
+                                      ? Border.all(
+                                          color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                                          width: 2,
+                                        )
+                                      : null,
+                                  boxShadow: _textFieldFocusNode.hasFocus
+                                      ? [
+                                          BoxShadow(
+                                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                            blurRadius: 8,
+                                            spreadRadius: 1,
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: TextField(
+                                  controller: _messageController,
+                                  focusNode: _textFieldFocusNode,
+                                  minLines: 2, // زيادة الحد الأدنى للأسطر
+                                  maxLines: 8, // زيادة الحد الأقصى للأسطر
+                                  keyboardType: TextInputType.multiline,
+                                  textInputAction: TextInputAction.newline,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontSize: 16, // زيادة حجم الخط
+                                  ),
+                                  enabled: !enhancerProvider.isEnhancing,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _historyIndex = -1;
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText: enhancerProvider.isEnhancing
+                                        ? 'جاري تحسين البرومبت باستخدام الذكاء الاصطناعي...'
+                                        : _isListening
                                             ? 'أستمع...'
-                                            : 'اكتب رسالتك هنا...\n\nEnter للإرسال، Shift+Enter لسطر جديد\n↑↓ للتنقل في الرسائل السابقة',
-                                        hintStyle: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color:
-                                                  enhancerProvider.isEnhancing
-                                                  ? Theme.of(context)
-                                                        .colorScheme
-                                                        .primary
-                                                        .withOpacity(0.7)
-                                                  : Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface
-                                                        .withOpacity(0.5),
-                                              fontStyle:
-                                                  enhancerProvider.isEnhancing
-                                                  ? FontStyle.italic
-                                                  : FontStyle.normal,
-                                            ),
-                                        filled: true,
-                                        fillColor: enhancerProvider.isEnhancing
-                                            ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withOpacity(0.05)
-                                            : Colors.transparent,
-                                        border: InputBorder.none,
-                                        contentPadding: const EdgeInsets.only(
-                                          right: 12,
-                                          left: 40, // مساحة إضافية للسبنر
-                                          top: 16,
-                                          bottom: 16,
-                                        ),
-                                      ),
+                                            : 'اسألني أي سؤال يخطر في بالك',
+                                    hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: enhancerProvider.isEnhancing
+                                          ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
+                                          : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                      fontStyle: enhancerProvider.isEnhancing
+                                          ? FontStyle.italic
+                                          : FontStyle.normal,
+                                    ),
+                                    filled: true,
+                                    fillColor: enhancerProvider.isEnhancing
+                                        ? Theme.of(context).colorScheme.primary.withOpacity(0.05)
+                                        : Colors.transparent,
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.only(
+                                      right: 50, // مساحة لزر تحسين البروبت
+                                      left: 50,  // مساحة لزر الإرسال
+                                      top: 20,   // زيادة الحشو العلوي
+                                      bottom: 20, // زيادة الحشو السفلي
                                     ),
                                   ),
-                                  // Spinner overlay عندما يكون التحسين جارياً
-                                  if (enhancerProvider.isEnhancing)
-                                    Positioned(
-                                      left: 12,
-                                      top: 16,
-                                      child: Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(3),
+                                ),
+                              ),
+                            ),
+                            
+                            // زر تحسين البروبت داخل خانة الكتابة (يمين)
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: Container(
+                                decoration: enhancerProvider.isEnhancing
+                                    ? BoxDecoration(
+                                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      )
+                                    : null,
+                                child: IconButton(
+                                  icon: enhancerProvider.isEnhancing
+                                      ? SizedBox(
+                                          width: 20,
+                                          height: 20,
                                           child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                ),
+                                            strokeWidth: 2.5,
+                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                              Theme.of(context).colorScheme.primary,
+                                            ),
                                           ),
+                                        )
+                                      : Icon(
+                                          Icons.auto_fix_high,
+                                          color: _messageController.text.trim().isEmpty
+                                              ? Theme.of(context).disabledColor
+                                              : Theme.of(context).colorScheme.primary,
+                                          size: 20,
                                         ),
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-
-                        // Voice Input Button
-                        if (_speechEnabled)
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: _isListening
-                                    ? [Colors.red, Colors.red.shade700]
-                                    : [
-                                        AppTheme.gradientStart,
-                                        AppTheme.gradientAccent,
-                                      ], // تغيير من GradientTheme إلى AppTheme
-                              ),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      (_isListening
-                                              ? Colors.red
-                                              : AppTheme.gradientStart)
-                                          .withOpacity(
-                                            0.4,
-                                          ), // تغيير من GradientTheme إلى AppTheme
-                                  blurRadius: _isListening ? 8 : 4,
-                                  spreadRadius: _isListening ? 2 : 0,
-                                ),
-                              ],
-                            ),
-                            child: IconButton(
-                              onPressed: _toggleVoiceInput,
-                              icon: Icon(
-                                _isListening ? Icons.stop : Icons.mic,
-                                color: Colors.white,
-                              ),
-                              tooltip: _isListening
-                                  ? 'إيقاف التسجيل'
-                                  : 'الإدخال الصوتي',
-                            ),
-                          ).animate().scale(duration: 300.ms),
-
-                        // Send Button - محسن وكلاسيكي
-                        Consumer<ChatProvider>(
-                          builder: (context, chatProvider, child) {
-                            return Container(
-                              margin: const EdgeInsets.only(left: 8),
-                              child: Material(
-                                color: Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(12),
-                                  onTap:
-                                      chatProvider.isTyping ||
-                                          _messageController.text.trim().isEmpty
+                                  onPressed: (_messageController.text.trim().isEmpty || enhancerProvider.isEnhancing)
                                       ? null
-                                      : () => _sendMessage(
-                                          _messageController.text,
-                                        ),
-                                  child: Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      gradient:
-                                          (chatProvider.isTyping ||
-                                              _messageController.text
-                                                  .trim()
-                                                  .isEmpty)
-                                          ? LinearGradient(
-                                              colors: [
-                                                Colors.grey.withOpacity(0.3),
-                                                Colors.grey.withOpacity(0.2),
-                                              ],
-                                            )
-                                          : LinearGradient(
-                                              colors: [
-                                                Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                                Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withOpacity(0.8),
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ),
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow:
-                                          (chatProvider.isTyping ||
-                                              _messageController.text
-                                                  .trim()
-                                                  .isEmpty)
-                                          ? null
-                                          : [
-                                              BoxShadow(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withOpacity(0.3),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                    ),
-                                    child: Center(
-                                      child: chatProvider.isTyping
-                                          ? SizedBox(
-                                              width: 18,
-                                              height: 18,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                      Color
-                                                    >(
-                                                      Colors.white.withOpacity(
-                                                        0.8,
-                                                      ),
-                                                    ),
-                                              ),
-                                            )
-                                          : Icon(
-                                              Icons.send,
-                                              color:
-                                                  (_messageController.text
-                                                      .trim()
-                                                      .isEmpty)
-                                                  ? Colors.white.withOpacity(
-                                                      0.5,
-                                                    )
-                                                  : Colors.white,
-                                              size: 20,
-                                            ),
-                                    ),
+                                      : () => _enhancePrompt(),
+                                  tooltip: enhancerProvider.isEnhancing
+                                      ? 'جاري تحسين البرومبت...'
+                                      : 'تحسين البرومبت بالذكاء الاصطناعي',
+                                  constraints: const BoxConstraints(
+                                    minWidth: 32,
+                                    minHeight: 32,
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ],
+                            ),
+
+                            // زر الإرسال داخل خانة الكتابة (يسار)
+                            Positioned(
+                              left: 8,
+                              top: 8,
+                              child: Consumer<ChatProvider>(
+                                builder: (context, chatProvider, child) {
+                                  final hasText = _messageController.text.trim().isNotEmpty;
+                                  
+                                  return GestureDetector(
+                                    onTap: hasText && !chatProvider.isTyping
+                                        ? () => _sendMessage(_messageController.text)
+                                        : null,
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        gradient: hasText && !chatProvider.isTyping
+                                            ? LinearGradient(
+                                                colors: [
+                                                  Theme.of(context).colorScheme.primary,
+                                                  Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                                ],
+                                              )
+                                            : LinearGradient(
+                                                colors: [
+                                                  Colors.grey.withOpacity(0.4),
+                                                  Colors.grey.withOpacity(0.3),
+                                                ],
+                                              ),
+                                        borderRadius: BorderRadius.circular(8), // تقليل من 20
+                                        boxShadow: hasText && !chatProvider.isTyping
+                                            ? [
+                                                BoxShadow(
+                                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 1),
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
+                                      child: Center(
+                                        child: chatProvider.isTyping
+                                            ? SizedBox(
+                                                width: 14,
+                                                height: 14,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                                    Colors.white.withOpacity(0.8),
+                                                  ),
+                                                ),
+                                              )
+                                            : Icon(
+                                                Icons.send,
+                                                color: hasText
+                                                    ? Colors.white
+                                                    : Colors.white.withOpacity(0.5),
+                                                size: 16,
+                                              ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // دالة مساعدة لبناء أزرار الأدوات
+  Widget _buildToolButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                Theme.of(context).colorScheme.primary.withOpacity(0.05),
               ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(12),
+              splashColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+              highlightColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              child: Container(
+                width: 48,
+                height: 48,
+                child: Center(
+                  child: Icon(
+                    icon,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
+                ),
+              ),
             ),
           ),
         );
@@ -1603,6 +1551,112 @@ class _MainChatPageState extends State<MainChatPage>
         ).showSnackBar(SnackBar(content: Text('خطأ غير متوقع: $e')));
       }
     }
+  }
+
+  /// اختبار دقة التعرف على الصوت
+  Future<void> _testSpeechAccuracy() async {
+    try {
+      final results = await _speechService.testSpeechRecognitionAccuracy();
+      
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('🎤 نتائج اختبار دقة التعرف على الصوت'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildTestResult('اللغات المتاحة', '${results['available_locales']} لغة'),
+                  _buildTestResult('اللغات العربية', '${results['arabic_locales']} لهجة'),
+                  _buildTestResult('اللغات الإنجليزية', '${results['english_locales']} لهجة'),
+                  _buildTestResult('إذن الميكروفون', results['microphone_available'] ? '✅ متاح' : '❌ غير متاح'),
+                  _buildTestResult('خدمة التعرف', results['speech_service_initialized'] ? '✅ مفعلة' : '❌ معطلة'),
+                  _buildTestResult('خدمة النطق', results['tts_service_initialized'] ? '✅ مفعلة' : '❌ معطلة'),
+                  _buildTestResult('اللغة الحالية', results['current_locale'] ?? 'غير محددة'),
+                  _buildTestResult('اللغات المدعومة', '${results['supported_locales_count']} لغة'),
+                  
+                  if (results['error'] != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        '❌ خطأ: ${results['error']}',
+                        style: TextStyle(color: Colors.red.shade700),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('إغلاق'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _showLanguageSelector();
+                },
+                child: const Text('تغيير اللغة'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطأ في اختبار دقة التعرف: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildTestResult(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(
+            child: Text(value),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// عرض محدد اللغة
+  void _showLanguageSelector() {
+    showDialog(
+      context: context,
+      builder: (context) => LanguageSelectorDialog(
+        currentLocale: _speechService.currentLocale,
+        onLanguageChanged: (localeId, displayName) {
+          setState(() {
+            // تحديث الواجهة إذا لزم الأمر
+          });
+        },
+      ),
+    );
   }
 }
 
