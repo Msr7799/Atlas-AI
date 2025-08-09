@@ -6,10 +6,12 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Developer](https://img.shields.io/badge/Developer-Mohamed%20S%20AL--Romaihi-blue.svg)](mailto:alromaihi2224@gmail.com)
 
-[![Read in Arabic](https://img.shields.io/badge/Read%20in%20Arabic-blue?style=for-the-badge&logo=readme)](README-ar.md)
 [![Releases](https://img.shields.io/badge/Releases-green?style=for-the-badge&logo=github)](https://github.com/Msr7799/Atlas-AI/releases)
 
 ## Overview
+
+[![Read in Arabic](https://img.shields.io/badge/Read%20in%20Arabic-blue?style=for-the-badge&logo=readme)](README-ar.md)
+
 
 Atlas AI is a sophisticated AI assistant application built with Flutter, featuring native Arabic language support and advanced conversational capabilities. The application integrates multiple AI models and provides a seamless, cross-platform experience with modern UI design and robust performance optimizations.
 
