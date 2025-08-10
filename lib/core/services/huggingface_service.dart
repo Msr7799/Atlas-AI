@@ -326,7 +326,170 @@ class HuggingFaceService {
       buffer.write(chunk);
     }
 
-    return buffer.toString();
+    final rawResponse = buffer.toString();
+    // تطبيق التنسيق الذكي على الرد النهائي
+    return _applySmartFormatting(rawResponse);
+  }
+
+  // خوارزميات ذكية لتحسين ردود النماذج
+  String _applySmartFormatting(String content) {
+    String processedContent = content;
+    
+    // 1. تحسين القوائم والأرقام
+    processedContent = _enhanceListFormatting(processedContent);
+    
+    // 2. تحسين عرض الكود غير المنسق
+    processedContent = _enhanceCodeFormatting(processedContent);
+    
+    // 3. تحسين العناوين
+    processedContent = _enhanceHeaderFormatting(processedContent);
+    
+    // 4. تحسين الأمثلة
+    processedContent = _enhanceExampleFormatting(processedContent);
+    
+    // 5. إضافة رسالة ترحيب محسنة لـ HuggingFace
+    processedContent = _addWelcomeEnhancement(processedContent);
+    
+    return processedContent;
+  }
+
+  String _enhanceListFormatting(String content) {
+    String result = content;
+    
+    // تحسين القوائم المرقمة
+    result = result.replaceAllMapped(
+      RegExp(r'^(\d+)[\.\)][\s]*(.+)$', multiLine: true),
+      (match) => '${match.group(1)}. **${match.group(2)}**'
+    );
+    
+    // تحسين القوائم النقطية
+    result = result.replaceAllMapped(
+      RegExp(r'^[-\*\+][\s]*(.+)$', multiLine: true),
+      (match) => '- **${match.group(1)}**'
+    );
+    
+    return result;
+  }
+
+  String _enhanceCodeFormatting(String content) {
+    String result = content;
+    
+    final lines = result.split('\n');
+    final List<String> processedLines = [];
+    
+    bool inCodeBlock = false;
+    List<String> currentCodeLines = [];
+    
+    for (final line in lines) {
+      final trimmedLine = line.trim();
+      
+      if (trimmedLine.startsWith('```')) {
+        inCodeBlock = !inCodeBlock;
+        processedLines.add(line);
+        continue;
+      }
+      
+      if (inCodeBlock) {
+        processedLines.add(line);
+        continue;
+      }
+      
+      if (_looksLikeCode(trimmedLine) && trimmedLine.isNotEmpty) {
+        currentCodeLines.add(line);
+      } else {
+        if (currentCodeLines.isNotEmpty) {
+          final codeContent = currentCodeLines.join('\n');
+          final language = _detectCodeLanguage(codeContent);
+          processedLines.add('```$language');
+          processedLines.addAll(currentCodeLines);
+          processedLines.add('```');
+          currentCodeLines.clear();
+        }
+        processedLines.add(line);
+      }
+    }
+    
+    if (currentCodeLines.isNotEmpty) {
+      final codeContent = currentCodeLines.join('\n');
+      final language = _detectCodeLanguage(codeContent);
+      processedLines.add('```$language');
+      processedLines.addAll(currentCodeLines);
+      processedLines.add('```');
+    }
+    
+    return processedLines.join('\n');
+  }
+
+  bool _looksLikeCode(String line) {
+    if (line.isEmpty) return false;
+    
+    final codePatterns = [
+      RegExp(r'^\$\s+\w+'),
+      RegExp(r'^(sudo|apt|npm|pip|git|docker|curl|wget)\s+'),
+      RegExp(r'^(def|class|function|const|let|var|import|from)\s+'),
+      RegExp(r'[{}()\[\];].*[{}()\[\];]'),
+      RegExp(r'^\s*[a-zA-Z_]\w*\s*='),
+    ];
+    
+    return codePatterns.any((pattern) => pattern.hasMatch(line));
+  }
+
+  String _detectCodeLanguage(String content) {
+    final contentLower = content.toLowerCase();
+    
+    if (contentLower.contains('def ') || contentLower.contains('import ') ||
+        contentLower.contains('print(')) {
+      return 'python';
+    }
+    
+    if (contentLower.contains('\$') || contentLower.contains('sudo ') ||
+        contentLower.contains('apt ') || contentLower.contains('git ')) {
+      return 'bash';
+    }
+    
+    if (contentLower.contains('function ') || contentLower.contains('const ') ||
+        contentLower.contains('let ')) {
+      return 'javascript';
+    }
+    
+    return 'bash';
+  }
+
+  String _enhanceHeaderFormatting(String content) {
+    String result = content;
+    
+    result = result.replaceAllMapped(
+      RegExp(r'^([^#\n]+):$', multiLine: true),
+      (match) {
+        final title = match.group(1)!.trim();
+        if (title.length < 50 && !title.contains('.')) {
+          return '## $title';
+        }
+        return match.group(0)!;
+      }
+    );
+    
+    return result;
+  }
+
+  String _enhanceExampleFormatting(String content) {
+    String result = content;
+    
+    result = result.replaceAllMapped(
+      RegExp(r'(مثال|Example|example):\s*(.+)', multiLine: true),
+      (match) => '**${match.group(1)}:**\n> ${match.group(2)}'
+    );
+    
+    return result;
+  }
+
+  String _addWelcomeEnhancement(String content) {
+    // إضافة رسالة ترحيب خاصة بـ HuggingFace
+    if (content.length > 200 && !content.startsWith('##') && !content.startsWith('**')) {
+      return '## 🤗 HuggingFace AI مساعدك المتطور\n\n$content\n\n---\n*تم تحسين هذا الرد بواسطة Atlas AI مع خوارزميات ذكية متقدمة*';
+    }
+    
+    return content;
   }
 
   void dispose() {

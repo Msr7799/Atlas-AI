@@ -1,28 +1,25 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+
 class AppConfig {
   static const String appName = 'Arabic Agent';
   static const String version = '1.0.0';
 
-  // API Keys from .env
+  // API Keys from .env file
   static String get groqApiKey => dotenv.env['GROQ_API_KEY'] ?? '';
-  static String get groqApiKey2 =>
-      dotenv.env['GROQ_API_KEY2'] ?? ''; // مفتاح احتياطي
+  static String get groqApiKey2 => dotenv.env['GROQ_API_KEY2'] ?? ''; // مفتاح احتياطي
   static String get tavilyApiKey => dotenv.env['TAVILY_API_KEY'] ?? '';
-  static String get travilyUrlApiPaired =>
-      dotenv.env['TRAVILY_URL_API_PAIRED'] ?? '';
-  static String get gptGodApiKey =>
-      dotenv.env['GPTGOD_API_KEY'] ??
-      'sk-rvz7PGTel8tSYKftzhmZXEZEj4RzAcs7FZFhhhWW6zXhyysu';
+  static String get tavilyUrlApiPaired => dotenv.env['TAVILY_URL_API_PAIRED'] ?? '';
+  static String get gptGodApiKey => dotenv.env['GPTGOD_API_KEY'] ?? '';
+  static String get huggingFaceApiKey => dotenv.env['HUGGINGFACE_API_KEY'] ?? '';
 
-  // Default API Keys (Fallback)
-  static const Map<String, String> defaultApiKeys = {
-    'groq':
-        'gsk_1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', // مفتاح افتراضي لـ Groq
-    'gptgod':
-        'sk-rvz7PGTel8tSYKftzhmZXEZEj4RzAcs7FZFhhhWW6zXhyysu', // مفتاح افتراضي لـ GPTGod
-    'tavily':
-        'tvly-dev-1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', // مفتاح افتراضي لـ Tavily
+  // Default API Keys (هدية مؤقتة للمستخدمين الجدد من .env)
+  static Map<String, String> get defaultApiKeys => {
+    'groq': groqApiKey, // مفتاح مؤقت من .env
+    'gptgod': gptGodApiKey, // مفتاح مؤقت من .env
+    'tavily': tavilyApiKey, // مفتاح مؤقت من .env
+    'huggingface': huggingFaceApiKey, // مفتاح مؤقت من .env
+    'openrouter': '', // لا يوجد مفتاح افتراضي
   };
 
   // Free Models Configuration

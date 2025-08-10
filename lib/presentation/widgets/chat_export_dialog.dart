@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../providers/chat_selection_provider.dart';
 import '../../data/models/message_model.dart';
 import '../../core/utils/responsive_helper.dart';
+import '../../core/services/chat_export_service.dart';
 
 class ChatExportDialog extends StatefulWidget {
   final List<MessageModel> messages;
@@ -47,7 +48,8 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
             context,
             mobile: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.95,
-              maxHeight: MediaQuery.of(context).size.height * 0.8,
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+              minWidth: 280, // حد أدنى للعرض لضمان سهولة الاستخدام
             ),
             tablet: const BoxConstraints(maxWidth: 600, maxHeight: 700),
             desktop: const BoxConstraints(maxWidth: 800, maxHeight: 800),
@@ -93,8 +95,8 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
         ),
         gradient: LinearGradient(
           colors: [
-            AppTheme.gradientStart.withOpacity(0.8),
-            AppTheme.gradientEnd.withOpacity(0.6),
+            Theme.of(context).colorScheme.primary.withOpacity(0.9),
+            Theme.of(context).colorScheme.primary.withOpacity(0.7),
           ],
         ),
       ),
@@ -102,7 +104,9 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
         children: [
           Icon(
             Icons.download,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.primary.computeLuminance() > 0.5
+                ? Colors.black
+                : Colors.white,
             size: ResponsiveHelper.getResponsiveIconSize(
               context,
               mobile: 24,
@@ -132,7 +136,9 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                       desktop: 22,
                     ),
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.primary.computeLuminance() > 0.5
+                        ? Colors.black
+                        : Colors.white,
                   ),
                 ),
                 Text(
@@ -144,7 +150,9 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                       tablet: 14,
                       desktop: 16,
                     ),
-                    color: Colors.white.withOpacity(0.9),
+                    color: (Theme.of(context).colorScheme.primary.computeLuminance() > 0.5
+                        ? Colors.black
+                        : Colors.white).withOpacity(0.8),
                   ),
                 ),
               ],
@@ -154,7 +162,9 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
             onPressed: () => Navigator.of(context).pop(),
             icon: Icon(
               Icons.close,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.primary.computeLuminance() > 0.5
+                  ? Colors.black
+                  : Colors.white,
               size: ResponsiveHelper.getResponsiveIconSize(context),
             ),
           ),
@@ -706,27 +716,39 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
     });
 
     try {
-      final selectionProvider = context.read<ChatSelectionProvider>();
       String content;
       String filename;
 
       switch (_exportType) {
         case 'selected':
-          content = await selectionProvider.exportSelectedMessages(
-            allMessages: widget.messages,
-            chatTitle: widget.chatTitle,
+          final selectionProvider = context.read<ChatSelectionProvider>();
+          final selectedMessages = selectionProvider.getSelectedMessages(widget.messages);
+          if (selectedMessages.isEmpty) {
+            throw Exception('لم يتم تحديد أي رسائل للتصدير');
+          }
+          content = await ChatExportService.exportSingleChat(
+            messages: selectedMessages,
+            chatTitle: '${widget.chatTitle} (رسائل محددة)',
             format: _selectedFormat,
           );
           filename = '${widget.chatTitle}_selected';
           break;
         case 'all':
-          content = await selectionProvider.exportAllChats(
+          final selectionProvider = context.read<ChatSelectionProvider>();
+          if (selectionProvider.availableChats.isEmpty) {
+            throw Exception('لا توجد محادثات متاحة للتصدير');
+          }
+          content = await ChatExportService.exportMultipleChats(
+            chats: selectionProvider.availableChats,
             format: _selectedFormat,
           );
           filename = 'all_chats';
           break;
         default:
-          content = await selectionProvider.exportFullChat(
+          if (widget.messages.isEmpty) {
+            throw Exception('لا توجد رسائل للتصدير');
+          }
+          content = await ChatExportService.exportSingleChat(
             messages: widget.messages,
             chatTitle: widget.chatTitle,
             format: _selectedFormat,
@@ -734,7 +756,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
           filename = widget.chatTitle;
       }
 
-      final filePath = await selectionProvider.saveToFile(
+      final filePath = await ChatExportService.saveToFile(
         content: content,
         filename: filename,
         format: _selectedFormat,
@@ -774,27 +796,39 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
     });
 
     try {
-      final selectionProvider = context.read<ChatSelectionProvider>();
       String content;
       String filename;
 
       switch (_exportType) {
         case 'selected':
-          content = await selectionProvider.exportSelectedMessages(
-            allMessages: widget.messages,
-            chatTitle: widget.chatTitle,
+          final selectionProvider = context.read<ChatSelectionProvider>();
+          final selectedMessages = selectionProvider.getSelectedMessages(widget.messages);
+          if (selectedMessages.isEmpty) {
+            throw Exception('لم يتم تحديد أي رسائل للمشاركة');
+          }
+          content = await ChatExportService.exportSingleChat(
+            messages: selectedMessages,
+            chatTitle: '${widget.chatTitle} (رسائل محددة)',
             format: _selectedFormat,
           );
           filename = '${widget.chatTitle}_selected';
           break;
         case 'all':
-          content = await selectionProvider.exportAllChats(
+          final selectionProvider = context.read<ChatSelectionProvider>();
+          if (selectionProvider.availableChats.isEmpty) {
+            throw Exception('لا توجد محادثات متاحة للمشاركة');
+          }
+          content = await ChatExportService.exportMultipleChats(
+            chats: selectionProvider.availableChats,
             format: _selectedFormat,
           );
           filename = 'all_chats';
           break;
         default:
-          content = await selectionProvider.exportFullChat(
+          if (widget.messages.isEmpty) {
+            throw Exception('لا توجد رسائل للمشاركة');
+          }
+          content = await ChatExportService.exportSingleChat(
             messages: widget.messages,
             chatTitle: widget.chatTitle,
             format: _selectedFormat,
@@ -802,7 +836,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
           filename = widget.chatTitle;
       }
 
-      await selectionProvider.shareChat(
+      await ChatExportService.shareChat(
         content: content,
         filename: filename,
         format: _selectedFormat,

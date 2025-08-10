@@ -768,41 +768,44 @@ class _MainChatPageState extends State<MainChatPage>
   }
 
   Widget _buildQuickActions() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     final quickActions = [
       _QuickAction(
         icon: Icons.code,
         label: 'كتابة كود',
-        color: const Color(0xFF6C63FF),
+        color: colorScheme.primary,
         prompt: 'اكتب لي كود بلغة Python لـ',
       ),
       _QuickAction(
         icon: Icons.translate,
         label: 'ترجمة',
-        color: const Color(0xFF00BFA5),
+        color: colorScheme.secondary,
         prompt: 'ترجم لي النص التالي:',
       ),
       _QuickAction(
         icon: Icons.school,
         label: 'شرح مفهوم',
-        color: const Color(0xFFFF6B6B),
+        color: colorScheme.tertiary,
         prompt: 'اشرح لي مفهوم',
       ),
       _QuickAction(
         icon: Icons.analytics,
         label: 'تحليل بيانات',
-        color: const Color(0xFFFFA726),
+        color: colorScheme.primaryContainer,
         prompt: 'حلل لي البيانات التالية:',
       ),
       _QuickAction(
         icon: Icons.psychology,
         label: 'Fine-Tuning',
-        color: const Color(0xFF9C27B0),
+        color: colorScheme.secondaryContainer,
         prompt: 'ساعدني في fine-tuning نموذج',
       ),
       _QuickAction(
         icon: Icons.bug_report,
         label: 'حل مشكلة',
-        color: const Color(0xFF795548),
+        color: colorScheme.error,
         prompt: 'ساعدني في حل المشكلة:',
       ),
     ];

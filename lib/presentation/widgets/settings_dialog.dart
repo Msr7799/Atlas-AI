@@ -52,31 +52,31 @@ class _SettingsDialogState extends State<SettingsDialog>
             width: ResponsiveHelper.getResponsiveConstraints(
               context,
               mobile: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.95,
-                maxHeight: MediaQuery.of(context).size.height * 0.85,
+                maxWidth: MediaQuery.of(context).size.width * 0.98,
+                maxHeight: MediaQuery.of(context).size.height * 0.9,
               ),
               tablet: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.8,
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
               ),
               desktop: BoxConstraints(
-                maxWidth: 800,
-                maxHeight: MediaQuery.of(context).size.height * 0.75,
+                maxWidth: 1000,
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
               ),
             ).maxWidth,
             height: ResponsiveHelper.getResponsiveConstraints(
               context,
               mobile: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.95,
-                maxHeight: MediaQuery.of(context).size.height * 0.85,
+                maxWidth: MediaQuery.of(context).size.width * 0.98,
+                maxHeight: MediaQuery.of(context).size.height * 0.9,
               ),
               tablet: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.8,
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
               ),
               desktop: BoxConstraints(
-                maxWidth: 800,
-                maxHeight: MediaQuery.of(context).size.height * 0.75,
+                maxWidth: 1000,
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
               ),
             ).maxHeight,
             padding: ResponsiveHelper.getResponsivePadding(
@@ -317,7 +317,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                     onPressed: () => _showModelsInfoDialog(context),
                     icon: Icon(
                       Icons.info_outline,
-                      color: Colors.blue,
+                      color: Theme.of(context).colorScheme.primary,
                       size: ResponsiveHelper.getResponsiveIconSize(
                         context,
                         mobile: 20,
@@ -621,8 +621,8 @@ class _SettingsDialogState extends State<SettingsDialog>
                           Icons.palette,
                           color:
                               themeProvider.accentColor.computeLuminance() > 0.5
-                              ? Colors.black.withOpacity(0.8)
-                              : Colors.white.withOpacity(0.8),
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context).colorScheme.surface,
                           size: ResponsiveHelper.getResponsiveIconSize(
                             context,
                             mobile: 20,
@@ -661,8 +661,8 @@ class _SettingsDialogState extends State<SettingsDialog>
                           Icons.arrow_forward_ios,
                           color:
                               themeProvider.accentColor.computeLuminance() > 0.5
-                              ? Colors.black.withOpacity(0.6)
-                              : Colors.white.withOpacity(0.6),
+                              ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
+                              : Theme.of(context).colorScheme.surface.withOpacity(0.6),
                           size: ResponsiveHelper.getResponsiveIconSize(
                             context,
                             mobile: 16,
@@ -1002,7 +1002,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                       tablet: 60,
                       desktop: 70,
                     ),
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   );
                 },
               ),
@@ -1568,7 +1568,7 @@ class _SettingsDialogState extends State<SettingsDialog>
           Text(
             isEnabled ? 'متصل' : 'غير متصل',
             style: TextStyle(
-              color: isEnabled ? Colors.green : Colors.red,
+              color: isEnabled ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.error,
               fontWeight: FontWeight.bold,
               fontSize: ResponsiveHelper.getResponsiveFontSize(
                 context,
@@ -1915,7 +1915,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                         color: themeProvider.accentColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                           width: 2,
                         ),
                       ),

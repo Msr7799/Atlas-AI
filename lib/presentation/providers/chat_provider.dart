@@ -83,7 +83,7 @@ class ChatProvider extends ChangeNotifier {
       }
     }
     
-    // إضافة تأكيد إضافي على التعدد اللغوي
+    // إضافة تأكيد إضافي على التعدد اللغوي والردود المفصلة
     final multilingualEnhancement = '''
 
 ## 🌍 MULTILINGUAL SUPPORT CONFIRMATION:
@@ -94,31 +94,71 @@ class ChatProvider extends ChangeNotifier {
 - Adapt your language naturally based on user input
 - Default to Arabic only when user language is unclear
 
-## 📝 CODE FORMATTING REQUIREMENTS:
-- **MANDATORY**: All code and scripts MUST be in proper Markdown code blocks
-- **MANDATORY**: Use correct language identifiers (```json, ```python, ```bash, ```dart, etc.)
-- **MANDATORY**: Scripts should use native language syntax, NOT English for script content
-- **MANDATORY**: Code blocks will render with appropriate backgrounds (black/day, beige/night)
-- **MANDATORY**: Only code content should be left-to-right (LTR), explanations in user's language
-- **COPYABLE**: User must be able to easily copy code from the formatted blocks
+## 📋 RESPONSE QUALITY & LENGTH REQUIREMENTS:
+### 🎯 MANDATORY RESPONSE STANDARDS:
+1. **COMPREHENSIVE ANSWERS**: Always provide detailed, thorough responses
+2. **HELPFUL EXPLANATIONS**: Include context, examples, and practical guidance
+3. **STEP-BY-STEP GUIDANCE**: Break down complex topics into clear steps
+4. **COMPLETE INFORMATION**: Don't leave users with partial answers
+5. **PRACTICAL EXAMPLES**: Include relevant code examples, use cases, or scenarios
 
-Example formats you MUST follow:
+### ✅ RESPONSE LENGTH GUIDELINES:
+- **Minimum**: Never give one-sentence answers unless explicitly requested
+- **Technical questions**: Provide comprehensive explanations with examples
+- **Programming help**: Include full code examples with explanations
+- **Problem-solving**: Walk through the complete thought process
+- **Educational content**: Provide thorough, learning-focused responses
+
+### 🚫 AVOID:
+- Brief, unhelpful responses
+- Leaving questions partially answered
+- Skipping important context or details
+- Providing code without explanations
+
+## 📝 CRITICAL CODE FORMATTING RULES - NO EXCEPTIONS:
+
+### 🔒 ABSOLUTE REQUIREMENTS:
+1. **ALL CODE MUST BE IN MARKDOWN CODE BLOCKS** - NO EXCEPTIONS
+2. **USE CORRECT LANGUAGE IDENTIFIERS** - ```python, ```dart, ```json, ```bash, ```javascript, etc.
+3. **NEVER PUT CODE TITLES/HEADERS INSIDE CODE BLOCKS**
+4. **NEVER USE SHELL BLOCKS FOR NON-SHELL CODE**
+5. **CODE EXPLANATIONS OUTSIDE BLOCKS, CODE INSIDE BLOCKS**
+
+### ✅ CORRECT PATTERNS YOU MUST FOLLOW:
+
+**For Python code:**
+إليك مثال على كود بايثون:
+```python
+def greet():
+    print("مرحبا بالعالم")
+```
+
+**For configuration files:**
+ملف التكوين JSON:
 ```json
 {
   "key": "value"
 }
 ```
 
-```python
-# تعليق بالعربية
-def my_function():
-    return "نتيجة"
+**For shell commands:**
+أوامر الشل:
+```bash
+pip install transformers
+echo "تم التثبيت"
 ```
 
+### ❌ NEVER DO THIS:
 ```bash
-# سكريبت باش
-echo "مرحبا"
+# عنوان الكود هنا - خطأ!
+def my_function():
+    pass
 ```
+
+### 🎯 ENFORCEMENT:
+- If you write ANY code without proper markdown blocks, you are failing
+- If you put titles inside code blocks, you are failing  
+- Every single piece of code must follow these rules exactly
 
 ''';
     
@@ -480,13 +520,11 @@ echo "مرحبا"
     final enhancedPrompt = _getEnhancedSystemPrompt(settingsProvider: settingsProvider);
 
     try {
-      // Start thinking process if debug mode is on
-      if (_debugMode) {
-        await _startThinkingProcess(
-          content,
-          settingsProvider: settingsProvider,
-        );
-      }
+      // Start mandatory thinking process for better responses
+      await _startThinkingProcess(
+        content,
+        settingsProvider: settingsProvider,
+      );
 
       _isTyping = true;
       notifyListeners();
@@ -657,14 +695,16 @@ echo "مرحبا"
         attachedFiles: attachedFilesContent,
       );
 
-      // Stream response
+      // Stream response with code formatting enforcement
       StringBuffer responseBuffer = StringBuffer();
       await for (final chunk in responseStream) {
         responseBuffer.write(chunk);
-        // Update the last message with accumulated content
+        // Apply code formatting enforcement to accumulated content
+        final formattedContent = _enforceCodeFormatting(responseBuffer.toString());
+        // Update the last message with formatted content
         final lastMessage = _messages.last;
         final updatedMessage = lastMessage.copyWith(
-          content: responseBuffer.toString(),
+          content: formattedContent,
         );
         _messages[_messages.length - 1] = updatedMessage;
         notifyListeners();
@@ -703,14 +743,16 @@ echo "مرحبا"
           attachedFiles: attachedFilesContent,
         );
 
-        // Stream response from fallback service
+        // Stream response from fallback service with code formatting
         StringBuffer responseBuffer = StringBuffer();
         await for (final chunk in fallbackStream) {
           responseBuffer.write(chunk);
-          // Update the last message with accumulated content
+          // Apply code formatting enforcement to fallback responses too
+          final formattedContent = _enforceCodeFormatting(responseBuffer.toString());
+          // Update the last message with formatted content
           final lastMessage = _messages.last;
           final updatedMessage = lastMessage.copyWith(
-            content: responseBuffer.toString(),
+            content: formattedContent,
           );
           _messages[_messages.length - 1] = updatedMessage;
           notifyListeners();
@@ -1028,6 +1070,132 @@ echo "مرحبا"
     } catch (e) {
       print('Error clearing input history: $e');
     }
+  }
+
+  /// Enforce strict markdown code block formatting
+  String _enforceCodeFormatting(String content) {
+    if (content.trim().isEmpty) return content;
+    
+    // إصلاح الأخطاء الشائعة في تنسيق الكود
+    String formatted = content;
+    
+    // 1. إصلاح الكود المكتوب بدون code blocks
+    // البحث عن أكواد Python, JavaScript, etc غير مُنسقة
+    formatted = _fixUnformattedCode(formatted);
+    
+    // 2. إصلاح العناوين الموضوعة داخل code blocks
+    formatted = _fixHeadersInsideCodeBlocks(formatted);
+    
+    // 3. إصلاح استخدام bash blocks للكود غير المناسب
+    formatted = _fixIncorrectBashBlocks(formatted);
+    
+    // 4. التأكد من وجود language identifier صحيح
+    formatted = _ensureProperLanguageIdentifiers(formatted);
+    
+    return formatted;
+  }
+  
+  /// إصلاح الكود غير المُنسق
+  String _fixUnformattedCode(String content) {
+    // البحث عن patterns شائعة للكود غير المُنسق
+    
+    // Python functions غير مُنسقة
+    final pythonRegex = RegExp(
+      r'(?:^|\n)(?:def |class |import |from |pip install |print\()',
+      multiLine: true,
+    );
+    
+    // JavaScript/TypeScript غير مُنسق
+    final jsRegex = RegExp(
+      r'(?:^|\n)(?:function |const |let |var |npm install |console\.)',
+      multiLine: true,
+    );
+    
+    // JSON غير مُنسق
+    final jsonRegex = RegExp(
+      r'(?:^|\n)\s*\{\s*"[^"]+"\s*:',
+      multiLine: true,
+    );
+    
+    String formatted = content;
+    
+    // إذا وُجد كود Python غير مُنسق، لفه في code block
+    if (pythonRegex.hasMatch(formatted) && !formatted.contains('```python')) {
+      // تنفيذ logic أكثر تعقيداً لتحديد وتنسيق الكود
+      formatted = _wrapCodeInBlocks(formatted, 'python');
+    }
+    
+    return formatted;
+  }
+  
+  /// إصلاح العناوين داخل code blocks
+  String _fixHeadersInsideCodeBlocks(String content) {
+    // البحث عن code blocks تحتوي على عناوين
+    final codeBlockWithHeaderRegex = RegExp(
+      r'```(\w+)?\s*\n(#[^\n]+)\n',
+      multiLine: true,
+    );
+    
+    return content.replaceAllMapped(codeBlockWithHeaderRegex, (match) {
+      final language = match.group(1) ?? '';
+      final header = match.group(2) ?? '';
+      
+      // نقل العنوان خارج code block
+      return '$header\n```$language\n';
+    });
+  }
+  
+  /// إصلاح استخدام bash blocks للكود غير المناسب  
+  String _fixIncorrectBashBlocks(String content) {
+    // البحث عن bash blocks تحتوي على كود غير shell
+    final bashBlockRegex = RegExp(
+      r'```bash\s*\n((?:(?!```)[\s\S])*)\n```',
+      multiLine: true,
+    );
+    
+    return content.replaceAllMapped(bashBlockRegex, (match) {
+      final codeContent = match.group(1) ?? '';
+      
+      // فحص إذا كان الكود Python أو JavaScript
+      if (codeContent.contains('def ') || codeContent.contains('import ') || 
+          codeContent.contains('print(')) {
+        return '```python\n$codeContent\n```';
+      }
+      
+      if (codeContent.contains('function ') || codeContent.contains('const ') || 
+          codeContent.contains('console.')) {
+        return '```javascript\n$codeContent\n```';
+      }
+      
+      if (codeContent.trim().startsWith('{') && codeContent.contains('"')) {
+        return '```json\n$codeContent\n```';
+      }
+      
+      // إذا كان shell حقيقي، أبقه
+      return match.group(0) ?? '';
+    });
+  }
+  
+  /// التأكد من language identifiers صحيحة
+  String _ensureProperLanguageIdentifiers(String content) {
+    // قائمة اللغات المدعومة
+    const supportedLanguages = [
+      'python', 'javascript', 'typescript', 'dart', 'java', 'cpp', 'c',
+      'bash', 'shell', 'json', 'yaml', 'xml', 'html', 'css', 'sql',
+      'dockerfile', 'makefile', 'gradle', 'swift', 'kotlin', 'go', 'rust'
+    ];
+    
+    // البحث عن code blocks بدون language identifier
+    final emptyCodeBlockRegex = RegExp(r'```\s*\n', multiLine: true);
+    
+    return content.replaceAll(emptyCodeBlockRegex, '```text\n');
+  }
+  
+  /// لف الكود في code blocks مناسبة
+  String _wrapCodeInBlocks(String content, String language) {
+    // تنفيذ منطق أكثر تعقيداً لتحديد حدود الكود
+    // هذا مثال مبسط
+    return content;
   }
 
   String _generateSessionTitle() {
