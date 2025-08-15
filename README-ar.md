@@ -392,6 +392,7 @@ cp .env.example .env
 GROQ_API_KEY=your_groq_api_key_here
 TAVILY_API_KEY=your_tavily_api_key_here
 TRAVILY_URL_API_PAIRED=your_mcp_endpoint_here
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
 
 4. **تشغيل التطبيق:**
