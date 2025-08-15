@@ -1,6 +1,6 @@
 # Atlas AI Advanced Features
 
-<img src="assets/icons/app_icon4.png" alt="Atlas AI Icon" style="width: 600px; height: 450px;">
+<img src="assets/icons/app_icon4.png" alt="Atlas AI Icon" style="width: 600px; height: 400px;">
 
 [![Read in Arabic](https://img.shields.io/badge/Read%20in%20Arabic-white?style=for-the-badge&logo=readme&logoColor=black)](FEATURES-ar.md)
 
