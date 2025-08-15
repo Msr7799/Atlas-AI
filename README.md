@@ -18,12 +18,32 @@
 Atlas AI is a sophisticated AI assistant application built with Flutter, featuring native Arabic language support and advanced conversational capabilities. The application integrates multiple AI models and provides a seamless, cross-platform experience with modern UI design and robust performance optimizations.
 
 
-<img src="assets/icons/screenshot1.png" width="180" height="370" style="padding-left: 10px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
-<img src="assets/icons/screenshot2.png" width="180" height="370" style="padding-left: 10px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
-<img src="assets/icons/screenshot3.png" width="180" height="370" style="padding-left: 10px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
-<img src="assets/icons/screenshot4.png" width="180" height="370" style="padding-left: 10px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
-<img src="assets/icons/screenshot5.png" width="180" height="370" style="padding-left: 10px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
-<img src="assets/icons/screenshot6.png" width="180" height="370" style="padding-left: 10px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" style="padding: 50px;">
+        <img src="assets/icons/screenshot1.png" width="180" height="370" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
+      </td>
+      <td align="center" style="padding: 50px;">
+        <img src="assets/icons/screenshot2.png" width="180" height="370" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
+      </td>
+      <td align="center" style="padding: 50px;">
+        <img src="assets/icons/screenshot3.png" width="180" height="370" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding: 50px;">
+        <img src="assets/icons/screenshot4.png" width="180" height="370" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
+      </td>
+      <td align="center" style="padding: 50px;">
+        <img src="assets/icons/screenshot5.png" width="180" height="370" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
+      </td>
+      <td align="center" style="padding: 50px;">
+        <img src="assets/icons/screenshot6.png" width="180" height="370" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
+      </td>
+    </tr>
+  </table>
+</div>
 
 ## ✨ Key Features
 
