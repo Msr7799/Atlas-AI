@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Night Theme Colors
-  static const Color nightBackground = Color(0xFF262626);
+  static const Color nightBackground = Color(0xFF141414);
   static const Color nightSurface = Color(0xFF3A3A3A);
   static const Color nightHighlight = Color(0xFFC0E8C1);
   static const Color nightText = Color(0xFFF4F4F4);
@@ -34,8 +34,9 @@ class AppTheme {
   static const Color infoColor = Color(0xFF3182CE);
 
   static ThemeData nightTheme({
-    String fontFamily = 'Cairo',
+    String fontFamily = 'Amiri',
     double fontSize = 14.0,
+    FontWeight fontWeight = FontWeight.normal,
     Color? accentColor,
   }) {
     final Color highlight = accentColor ?? nightHighlight;
@@ -153,8 +154,9 @@ class AppTheme {
   }
 
   static ThemeData dayTheme({
-    String fontFamily = 'Cairo',
+    String fontFamily = 'Amiri',
     double fontSize = 14.0,
+    FontWeight fontWeight = FontWeight.normal,
     Color? accentColor,
   }) {
     final Color highlight = accentColor ?? dayHighlight;
@@ -402,7 +404,7 @@ class AppTheme {
     double fontSize = 16,
     FontWeight fontWeight = FontWeight.normal,
     List<Color>? colors,
-    String fontFamily = 'Cairo',
+    String fontFamily = 'Amiri',
   }) {
     return ShaderMask(
       shaderCallback: (bounds) => LinearGradient(

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/services/groq_service.dart';
-import '../../core/services/gptgod_service.dart';
+import '../../core/services/unified_ai_service.dart';
 import '../../core/services/tavily_service.dart';
-import '../../core/services/huggingface_service.dart';
-import '../../core/services/openrouter_service.dart';
 import '../../core/services/api_key_manager.dart';
 import '../../core/utils/responsive_helper.dart';
 import '../widgets/models_info_dialog.dart';
@@ -121,20 +118,11 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
       final openrouterKey = await ApiKeyManager.getApiKey('openrouter');
 
       // إعادة تهيئة خدمات API بالمفاتيح الجديدة
-      if (groqKey.isNotEmpty) {
-        GroqService().updateApiKey(groqKey);
-      }
-      if (gptgodKey.isNotEmpty) {
-        GPTGodService().updateApiKey(gptgodKey);
-      }
+      final aiService = UnifiedAIService();
+      await aiService.initialize();
+
       if (tavilyKey.isNotEmpty) {
         TavilyService().updateApiKey(tavilyKey);
-      }
-      if (huggingfaceKey.isNotEmpty) {
-        HuggingFaceService().updateApiKey(huggingfaceKey);
-      }
-      if (openrouterKey.isNotEmpty) {
-        OpenRouterService().updateApiKey(openrouterKey);
       }
     } catch (e) {
       print('[SERVICE REINITIALIZATION ERROR] $e');

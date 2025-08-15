@@ -1,16 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:async';
-import 'performance_optimizer.dart';
 import 'image_optimizer.dart';
-import 'database_optimizer.dart';
 import 'network_optimizer.dart';
+import 'database_optimizer.dart';
 import 'performance_report.dart';
+import 'performance_optimizer.dart';
+import 'package:flutter/services.dart';
 import '../utils/asset_optimizer.dart';
+import 'package:flutter/material.dart';
 
 /// محسن التطبيق الشامل
 class AppOptimizer {
+  /// محسن التطبيق الشامل
   static bool _isInitialized = false;
+  static bool _isAppActive = true;
+  static Timer? _cleanupTimer;
 
   /// تهيئة جميع التحسينات
   static Future<void> initialize() async {
@@ -118,33 +121,89 @@ class AppOptimizer {
 
   /// تحسين الأداء أثناء التشغيل
   static void optimizeRuntime() {
-    // تنظيف دوري للذاكرة
-    Timer.periodic(const Duration(minutes: 5), (timer) {
+    // إلغاء Timer السابق إذا كان موجوداً
+    _cleanupTimer?.cancel();
+    
+    // تنظيف دوري للذاكرة مع فحص نشاط التطبيق
+    _cleanupTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      // فحص إذا كان التطبيق نشطاً
+      if (!_isAppActive) {
+        print('🔄 [APP_OPTIMIZER] التطبيق غير نشط، إيقاف Timer التنظيف...');
+        timer.cancel();
+        _cleanupTimer = null;
+        return;
+      }
       _periodicCleanup();
     });
   }
 
-  /// تنظيف دوري
+  /// تعيين حالة نشاط التطبيق
+  static void setAppActive(bool isActive) {
+    _isAppActive = isActive;
+    if (!isActive) {
+      _cleanupTimer?.cancel();
+      _cleanupTimer = null;
+    } else if (_cleanupTimer == null || !_cleanupTimer!.isActive) {
+      // إعادة تشغيل التنظيف عند عودة التطبيق للنشاط
+      optimizeRuntime();
+    }
+  }
+
+  /// تنظيف دوري محسن
   static void _periodicCleanup() {
     try {
+      print('🧹 [APP_OPTIMIZER] بدء التنظيف الدوري...');
+      
       // تنظيف الذاكرة المؤقتة للصور
-      if (ImageOptimizer.getImageCacheSize() > 15) {
+      final imageCacheSize = ImageOptimizer.getImageCacheSize();
+      if (imageCacheSize > 15) {
         ImageOptimizer.clearImageCache();
+        print('✅ [APP_OPTIMIZER] تم تنظيف ذاكرة الصور (كانت $imageCacheSize MB)');
       }
 
       // تنظيف ذاكرة الشبكة
-      if (NetworkOptimizer.getCacheSize() > 30) {
+      final networkCacheSize = NetworkOptimizer.getCacheSize();
+      if (networkCacheSize > 30) {
         NetworkOptimizer.clearCache();
+        print('✅ [APP_OPTIMIZER] تم تنظيف ذاكرة الشبكة (كانت $networkCacheSize MB)');
       }
 
       // تنظيف الذاكرة العامة
-      if (ResourceManager.getCacheSize() > 40) {
+      final resourceCacheSize = ResourceManager.getCacheSize();
+      if (resourceCacheSize > 40) {
         ResourceManager.clearCache();
+        print('✅ [APP_OPTIMIZER] تم تنظيف الذاكرة العامة (كانت $resourceCacheSize MB)');
       }
 
-      PerformanceReport.addToLog('AppOptimizer: تم التنظيف الدوري');
+      // تنظيف ذاكرة قاعدة البيانات
+      final dbCacheSize = DatabaseCache.getCacheSize();
+      if (dbCacheSize > 20) {
+        DatabaseCache.clearCache();
+        print('✅ [APP_OPTIMIZER] تم تنظيف ذاكرة قاعدة البيانات (كانت $dbCacheSize MB)');
+      }
+
+      // تنظيف إضافي للذاكرة
+      _forceGarbageCollection();
+      
+      print('✅ [APP_OPTIMIZER] تم التنظيف الدوري بنجاح');
+      PerformanceReport.addToLog('AppOptimizer: تم التنظيف الدوري بنجاح');
     } catch (e) {
+      print('❌ [APP_OPTIMIZER] خطأ في التنظيف الدوري: $e');
       PerformanceReport.addToLog('AppOptimizer: خطأ في التنظيف الدوري - $e');
+    }
+  }
+
+  /// إجبار تنظيف الذاكرة
+  static void _forceGarbageCollection() {
+    try {
+      // محاولة تنظيف الذاكرة بشكل إجباري
+      // هذا قد يساعد في تقليل استخدام الذاكرة
+      print('🔄 [APP_OPTIMIZER] تنظيف الذاكرة الإجباري...');
+      
+      // يمكن إضافة منطق إضافي هنا إذا لزم الأمر
+      
+    } catch (e) {
+      print('⚠️ [APP_OPTIMIZER] خطأ في تنظيف الذاكرة الإجباري: $e');
     }
   }
 

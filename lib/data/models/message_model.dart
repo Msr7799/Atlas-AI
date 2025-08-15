@@ -29,6 +29,11 @@ class MessageModel {
 
   Map<String, dynamic> toJson() => _$MessageModelToJson(this);
 
+  // Getters for convenience
+  bool get isUser => role == MessageRole.user;
+  bool get isAssistant => role == MessageRole.assistant;
+  bool get isSystem => role == MessageRole.system;
+
   MessageModel copyWith({
     String? id,
     String? content,
@@ -98,16 +103,22 @@ class AttachmentModel {
 
 @JsonSerializable()
 class ThinkingProcessModel {
+  final String id;
   final List<ThinkingStepModel> steps;
   final bool isComplete;
   final DateTime startedAt;
   final DateTime? completedAt;
+  final String status;
+  final DateTime? endTime;
 
   ThinkingProcessModel({
+    required this.id,
     required this.steps,
     required this.isComplete,
     required this.startedAt,
     this.completedAt,
+    this.status = 'thinking',
+    this.endTime,
   });
 
   factory ThinkingProcessModel.fromJson(Map<String, dynamic> json) =>
@@ -116,34 +127,46 @@ class ThinkingProcessModel {
   Map<String, dynamic> toJson() => _$ThinkingProcessModelToJson(this);
 
   ThinkingProcessModel copyWith({
+    String? id,
     List<ThinkingStepModel>? steps,
     bool? isComplete,
     DateTime? startedAt,
     DateTime? completedAt,
+    String? status,
+    DateTime? endTime,
   }) {
     return ThinkingProcessModel(
+      id: id ?? this.id,
       steps: steps ?? this.steps,
       isComplete: isComplete ?? this.isComplete,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
+      status: status ?? this.status,
+      endTime: endTime ?? this.endTime,
     );
   }
 }
 
 @JsonSerializable()
 class ThinkingStepModel {
+  final String id;
   final int stepNumber;
-  final String content;
+  final String message;
+  final String type;
   final DateTime timestamp;
   final bool isRevision;
   final int? revisesStep;
+  final String content; // إضافة خاصية content للتوافق مع الكود الموجود
 
   ThinkingStepModel({
+    required this.id,
     required this.stepNumber,
-    required this.content,
+    required this.message,
+    required this.type,
     required this.timestamp,
     this.isRevision = false,
     this.revisesStep,
+    required this.content, // إضافة content كمعامل مطلوب
   });
 
   factory ThinkingStepModel.fromJson(Map<String, dynamic> json) =>

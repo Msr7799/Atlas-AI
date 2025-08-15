@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
 
 class TavilyService {
@@ -7,12 +8,15 @@ class TavilyService {
   TavilyService._internal();
 
   late final Dio _dio;
+  bool _isInitialized = false;
 
   void initialize() {
+    if (_isInitialized) return;
     _dio = Dio(
       BaseOptions(
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 60),
+        connectTimeout: const Duration(seconds: 45),
+        receiveTimeout: const Duration(seconds: 120),
+        sendTimeout: const Duration(seconds: 45),
       ),
     );
 
@@ -20,9 +24,71 @@ class TavilyService {
       LogInterceptor(
         requestBody: true,
         responseBody: true,
-        logPrint: (object) => print('[TAVILY API] $object'),
+        logPrint: (object) {
+          if (kDebugMode) print('[TAVILY API] $object');
+        },
       ),
     );
+
+    // إضافة معالج أخطاء مخصص
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onError: (error, handler) {
+          if (kDebugMode) print('[TAVILY ERROR] ${error.type}: ${error.message}');
+          _handleError(error);
+          handler.next(error);
+        },
+      ),
+    );
+
+    _isInitialized = true;
+  }
+
+  /// معالج أخطاء محسن
+  void _handleError(DioException error) {
+    String errorMessage = 'خطأ غير معروف';
+    
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+        errorMessage = 'انتهت مهلة الاتصال - تحقق من اتصال الإنترنت';
+        break;
+      case DioExceptionType.sendTimeout:
+        errorMessage = 'انتهت مهلة الإرسال - تحقق من سرعة الإنترنت';
+        break;
+      case DioExceptionType.receiveTimeout:
+        errorMessage = 'انتهت مهلة الاستقبال - الخادم بطيء';
+        break;
+      case DioExceptionType.connectionError:
+        errorMessage = 'خطأ في الاتصال - تحقق من إعدادات الشبكة';
+        break;
+      case DioExceptionType.badResponse:
+        final statusCode = error.response?.statusCode;
+        switch (statusCode) {
+          case 400:
+            errorMessage = 'طلب بحث غير صحيح';
+            break;
+          case 401:
+            errorMessage = 'مفتاح API غير صحيح';
+            break;
+          case 403:
+            errorMessage = 'غير مصرح بالوصول لخدمة البحث';
+            break;
+          case 429:
+            errorMessage = 'معدل البحث مرتفع - انتظر قليلاً';
+            break;
+          case 500:
+            errorMessage = 'خطأ في خادم البحث - حاول لاحقاً';
+            break;
+          default:
+            errorMessage = 'خطأ في خادم البحث (كود $statusCode)';
+        }
+        break;
+      default:
+        errorMessage = 'خطأ في البحث: ${error.message}';
+    }
+    
+    if (kDebugMode) print('[TAVILY ERROR] $errorMessage');
+    throw TavilyException(errorMessage);
   }
 
   Future<TavilySearchResult> search({
@@ -32,27 +98,63 @@ class TavilyService {
     bool includeAnswer = true,
     String searchDepth = 'basic',
   }) async {
-    try {
-      final requestData = {
-        'api_key': AppConfig.tavilyApiKey,
-        'query': query,
-        'max_results': maxResults,
-        'include_images': includeImages,
-        'include_answer': includeAnswer,
-        'search_depth': searchDepth,
-      };
+    return await searchWithRetry(
+      query: query,
+      maxResults: maxResults,
+      includeImages: includeImages,
+      includeAnswer: includeAnswer,
+      searchDepth: searchDepth,
+    );
+  }
 
-      final response = await _dio.post(
-        'https://api.tavily.com/search',
-        data: requestData,
-        options: Options(headers: {'Content-Type': 'application/json'}),
-      );
+  /// البحث مع إعادة المحاولة عند فشل الشبكة
+  Future<TavilySearchResult> searchWithRetry({
+    required String query,
+    int maxResults = 5,
+    bool includeImages = false,
+    bool includeAnswer = true,
+    String searchDepth = 'basic',
+    int maxRetries = 3,
+  }) async {
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        if (kDebugMode) print('[TAVILY] 🔍 محاولة البحث ${attempt + 1}/$maxRetries للاستعلام: $query');
+        
+        final requestData = {
+          'api_key': AppConfig.tavilyApiKey,
+          'query': query,
+          'max_results': maxResults,
+          'include_images': includeImages,
+          'include_answer': includeAnswer,
+          'search_depth': searchDepth,
+        };
 
-      return TavilySearchResult.fromJson(response.data);
-    } catch (e) {
-      print('[TAVILY SEARCH ERROR] $e');
-      throw TavilyException('Failed to search: $e');
+        final response = await _dio.post(
+          'https://api.tavily.com/search',
+          data: requestData,
+          options: Options(headers: {'Content-Type': 'application/json'}),
+        );
+
+        if (kDebugMode) print('[TAVILY] ✅ نجح البحث في المحاولة ${attempt + 1}');
+        return TavilySearchResult.fromJson(response.data);
+        
+      } catch (e) {
+        if (kDebugMode) print('[TAVILY] ❌ فشلت المحاولة ${attempt + 1}: $e');
+        
+        // إذا كانت هذه آخر محاولة، ارمي الخطأ
+        if (attempt == maxRetries - 1) {
+          if (kDebugMode) print('[TAVILY] 🚫 فشل البحث نهائياً بعد $maxRetries محاولات');
+          throw TavilyException('Failed to search after $maxRetries attempts: $e');
+        }
+        
+        // انتظار متزايد بين المحاولات (exponential backoff)
+        final delaySeconds = (attempt + 1) * 2; // 2, 4, 6 ثواني
+        if (kDebugMode) print('[TAVILY] ⏳ انتظار $delaySeconds ثانية قبل إعادة المحاولة...');
+        await Future.delayed(Duration(seconds: delaySeconds));
+      }
     }
+    
+    throw TavilyException('Unexpected error in searchWithRetry');
   }
 
   Future<TavilyExtractResult> extract({required List<String> urls}) async {
@@ -67,7 +169,7 @@ class TavilyService {
 
       return TavilyExtractResult.fromJson(response.data);
     } catch (e) {
-      print('[TAVILY EXTRACT ERROR] $e');
+      if (kDebugMode) print('[TAVILY EXTRACT ERROR] $e');
       throw TavilyException('Failed to extract: $e');
     }
   }
@@ -91,7 +193,7 @@ class TavilyService {
 
       return TavilyCrawlResult.fromJson(response.data);
     } catch (e) {
-      print('[TAVILY CRAWL ERROR] $e');
+      if (kDebugMode) print('[TAVILY CRAWL ERROR] $e');
       throw TavilyException('Failed to crawl: $e');
     }
   }
@@ -103,7 +205,14 @@ class TavilyService {
   }
 
   void dispose() {
-    _dio.close();
+    if (_isInitialized) {
+      try {
+        _dio.close();
+      } catch (e) {
+        if (kDebugMode) print('[TAVILY DISPOSE ERROR] $e');
+      }
+    }
+    _isInitialized = false;
   }
 }
 

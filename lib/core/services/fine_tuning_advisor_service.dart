@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'unified_ai_service.dart';
 import 'package:flutter/services.dart';
-
+import 'package:flutter/foundation.dart';
 import '../../data/models/message_model.dart';
-import 'groq_service.dart';
+
 
 class FineTuningAdvisorService {
   static final FineTuningAdvisorService _instance =
@@ -11,7 +12,7 @@ class FineTuningAdvisorService {
   factory FineTuningAdvisorService() => _instance;
   FineTuningAdvisorService._internal();
 
-  final GroqService _groqService = GroqService();
+  final UnifiedAIService _aiService = UnifiedAIService();
   String? _fineTuningKnowledgeBase;
   Map<String, dynamic>? _fineTuningDataset;
 
@@ -27,22 +28,26 @@ class FineTuningAdvisorService {
 
       // تحقق من تحميل البيانات بنجاح
       final cellsCount = _fineTuningDataset?['cells']?.length ?? 0;
-      print(
+      if (kDebugMode) {
+        print(
         '[FINE_TUNING_ADVISOR] ✅ Dataset loaded successfully with $cellsCount cells',
       );
+      }
 
       // استخراج أمثلة الكود للتحقق
       if (_fineTuningDataset != null) {
-        final cells = _fineTuningDataset!['cells'] as List?;
+        final cells = _fineTuningDataset?['cells'] as List?;
         final codeCells =
             cells?.where((cell) => cell['cell_type'] == 'code').length ?? 0;
-        print(
+        if (kDebugMode) {
+          print(
           '[FINE_TUNING_ADVISOR] 📊 Found $codeCells code cells in dataset',
         );
+        }
       }
     } catch (e) {
-      print('[FINE_TUNING_ADVISOR] ❌ Could not load dataset: $e');
-      print('[FINE_TUNING_ADVISOR] 🔄 Using fallback knowledge base');
+      if (kDebugMode) print('[FINE_TUNING_ADVISOR] ❌ Could not load dataset: $e');
+      if (kDebugMode) print('[FINE_TUNING_ADVISOR] 🔄 Using fallback knowledge base');
       _fineTuningKnowledgeBase = _getAdvancedPythonKnowledgeBase();
     }
   }
@@ -280,7 +285,7 @@ Important Instructions:
 6. مشاريع عملية مناسبة للمستوى
 ''';
 
-      final stream = await _groqService.sendMessageStream(
+      final response = await _aiService.sendMessage(
         messages: [
           MessageModel(
             id: 'skill_assessment',
@@ -289,16 +294,12 @@ Important Instructions:
             timestamp: DateTime.now(),
           ),
         ],
+        model: 'llama-3.1-70b-versatile', // Default model for assessment
         systemPrompt: _buildSpecializedSystemPrompt(),
         temperature: 0.3,
       );
 
-      final buffer = StringBuffer();
-      await for (final chunk in stream) {
-        buffer.write(chunk);
-      }
-
-      return ProgrammingSkillAssessmentModel.fromAIResponse(buffer.toString());
+      return ProgrammingSkillAssessmentModel.fromAIResponse(response);
     } catch (e) {
       throw Exception('فشل في تقييم المهارات البرمجية: $e');
     }
@@ -315,7 +316,7 @@ Important Instructions:
       // إضافة السياق من الـ dataset المتاح
       String datasetContext = '';
       if (_fineTuningDataset != null) {
-        final cells = _fineTuningDataset!['cells'] as List?;
+        final cells = _fineTuningDataset?['cells'] as List?;
         if (cells != null && cells.isNotEmpty) {
           // استخراج أمثلة محددة من الـ dataset بناءً على الموضوع
           List<dynamic> relevantCells = [];
@@ -401,18 +402,14 @@ Important Instructions:
           ),
       ];
 
-      final stream = await _groqService.sendMessageStream(
+      final response = await _aiService.sendMessage(
         messages: enhancedMessages,
+        model: 'llama-3.1-70b-versatile', // Default model for advice
         systemPrompt: _buildSpecializedSystemPrompt(),
         temperature: 0.7,
       );
 
-      final buffer = StringBuffer();
-      await for (final chunk in stream) {
-        buffer.write(chunk);
-      }
-
-      return buffer.toString();
+      return response;
     } catch (e) {
       throw Exception('فشل في إنشاء خطة التدريب: $e');
     }
@@ -456,7 +453,7 @@ Important Instructions:
 9. اقتراحات لتحسين كفاءة التدريب
 ''';
 
-      final stream = await _groqService.sendMessageStream(
+      final response = await _aiService.sendMessage(
         messages: [
           MessageModel(
             id: 'learning_progress_analysis',
@@ -465,16 +462,12 @@ Important Instructions:
             timestamp: DateTime.now(),
           ),
         ],
+        model: 'llama-3.1-70b-versatile', // Default model for progress tracking
         systemPrompt: _buildSpecializedSystemPrompt(),
         temperature: 0.3,
       );
 
-      final buffer = StringBuffer();
-      await for (final chunk in stream) {
-        buffer.write(chunk);
-      }
-
-      return LearningProgressReportModel.fromAIResponse(buffer.toString());
+      return LearningProgressReportModel.fromAIResponse(response);
     } catch (e) {
       throw Exception('فشل في تحليل التقدم التعليمي: $e');
     }
@@ -488,7 +481,7 @@ Important Instructions:
   List<String> getAvailableCodeSamples({int limit = 3}) {
     if (_fineTuningDataset == null) return [];
 
-    final cells = _fineTuningDataset!['cells'] as List?;
+    final cells = _fineTuningDataset?['cells'] as List?;
     if (cells == null) return [];
 
     return cells
@@ -620,7 +613,7 @@ class LearningProgressReportModel {
       improvements: ['تحسن في PyTorch', 'فهم أفضل للـ Fine-Tuning'],
       challenges: ['تحسين الأداء', 'إدارة الذاكرة'],
       recommendations: ['المزيد من الممارسة', 'دراسة حالات متقدمة'],
-      planAdjustments: 'التركيز على مشاريع أكثر تعقيداً',
+      planAdjustments: 'التركيز على مشاريع أكثر تعقيد',
       skillMetrics: {'pytorch': 0.8, 'fine_tuning': 0.6, 'optimization': 0.7},
       completedProjects: ['Image Classification', 'Model Fine-Tuning'],
     );

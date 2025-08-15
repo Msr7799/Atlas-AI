@@ -67,6 +67,7 @@ class DebugPanel extends StatelessWidget {
                         'الاستجابة المتدفقة: ${settingsProvider.streamResponse ? "مفعل" : "معطل"}',
                         'البحث في الويب: ${settingsProvider.enableWebSearch ? "مفعل" : "معطل"}',
                         'خوادم MCP: ${settingsProvider.enableMcpServers ? "مفعل" : "معطل"}',
+                        'المعالجة التلقائية للنص: ${settingsProvider.enableAutoTextFormatting ? "مفعل" : "معطل"}',
                       ]),
 
                       const SizedBox(height: 16),

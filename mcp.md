@@ -1,48 +1,17 @@
 
 # context7 mcp
 
-```json
+# sequential-thinking mcp
 
-{
-  
-  "mcpServers": {    
-    "context-7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ],
-      "env": {}
-    }
-  }
-}
+# memory mcp
 
-
-```
 
 # filesystem mcp
 
 ```json
 
 {
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "your/path/to/your/project"
-      ],
-      "env": {}
-    },
-}
-
-```
-
-# memory mcp
-
-```json
-
-{
+  "mcpServers": {
     "memory": {
       "command": "npx",
       "args": [
@@ -50,24 +19,29 @@
         "@modelcontextprotocol/server-memory"
       ],
       "env": {
-        "MEMORY_FILE_PATH": "your/path/to/your/project/memory.json"
+        "MEMORY_FILE_PATH": "C:/Users/code4/Desktop/atlas_ai/memory.json"
       }
     },
-
-```
-
-
-# sequential-thinking mcp
-
-```json
-
-{
+    
     "sequential-thinking": {
       "command": "npx",
       "args": [
         "-y",
         "@modelcontextprotocol/server-sequential-thinking"
       ]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "c:/Users/code4/Desktop/atlas_ai"
+      ],
+      "env": {}
+    },
+          "context7": {
+        "url": "https://mcp.context7.com/mcp"
+      }
     }
   }
 

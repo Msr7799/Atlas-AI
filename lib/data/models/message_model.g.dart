@@ -73,6 +73,7 @@ Map<String, dynamic> _$AttachmentModelToJson(AttachmentModel instance) =>
 ThinkingProcessModel _$ThinkingProcessModelFromJson(
   Map<String, dynamic> json,
 ) => ThinkingProcessModel(
+  id: json['id'] as String,
   steps: (json['steps'] as List<dynamic>)
       .map((e) => ThinkingStepModel.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -81,33 +82,46 @@ ThinkingProcessModel _$ThinkingProcessModelFromJson(
   completedAt: json['completedAt'] == null
       ? null
       : DateTime.parse(json['completedAt'] as String),
+  status: json['status'] as String? ?? 'thinking',
+  endTime: json['endTime'] == null
+      ? null
+      : DateTime.parse(json['endTime'] as String),
 );
 
 Map<String, dynamic> _$ThinkingProcessModelToJson(
   ThinkingProcessModel instance,
 ) => <String, dynamic>{
+  'id': instance.id,
   'steps': instance.steps,
   'isComplete': instance.isComplete,
   'startedAt': instance.startedAt.toIso8601String(),
   'completedAt': instance.completedAt?.toIso8601String(),
+  'status': instance.status,
+  'endTime': instance.endTime?.toIso8601String(),
 };
 
 ThinkingStepModel _$ThinkingStepModelFromJson(Map<String, dynamic> json) =>
     ThinkingStepModel(
+      id: json['id'] as String,
       stepNumber: (json['stepNumber'] as num).toInt(),
-      content: json['content'] as String,
+      message: json['message'] as String,
+      type: json['type'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
       isRevision: json['isRevision'] as bool? ?? false,
       revisesStep: (json['revisesStep'] as num?)?.toInt(),
+      content: json['content'] as String,
     );
 
 Map<String, dynamic> _$ThinkingStepModelToJson(ThinkingStepModel instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'stepNumber': instance.stepNumber,
-      'content': instance.content,
+      'message': instance.message,
+      'type': instance.type,
       'timestamp': instance.timestamp.toIso8601String(),
       'isRevision': instance.isRevision,
       'revisesStep': instance.revisesStep,
+      'content': instance.content,
     };
 
 ChatSessionModel _$ChatSessionModelFromJson(Map<String, dynamic> json) =>

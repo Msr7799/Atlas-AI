@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,114 +11,156 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _waveController;
-  late AnimationController _logoController;
-  late AnimationController _fadeController;
+  AnimationController? _logoController;
+  AnimationController? _fadeController;
   
-  late Animation<double> _waveAnimation;
-  late Animation<double> _logoAnimation;
-  late Animation<double> _fadeAnimation;
+  Animation<double>? _logoAnimation;
+  Animation<double>? _fadeAnimation;
+  
+  bool _isInitialized = false;
 
-  // Atlas red color from the image
-  static const Color atlasRed = Color(0xFF871121);
+  // Atlas dark theme color
+  static const Color atlasTheme = Color(0xFF1F2428);
 
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-    _startSplashSequence();
+    
+    if (kDebugMode) {
+      print('🎬 SplashScreen initialized');
+    }
+    
+    _startAnimation();
   }
 
+  /// تهيئة الرسوم المتحركة
   void _initializeAnimations() {
-    // Wave animation controller
-    _waveController = AnimationController(
+    if (kDebugMode) {
+      print('🎬 Initializing splash animations...');
+    }
+    
+    _logoController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-
-    // Logo animation controller
-    _logoController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    // Fade animation controller
+    
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-
-    // Wave animation (continuous)
-    _waveAnimation = Tween<double>(
-      begin: 0.0,
-      end: 2 * math.pi,
-    ).animate(CurvedAnimation(
-      parent: _waveController,
-      curve: Curves.linear,
-    ));
-
-    // Logo scale animation
+    
+    // تهيئة الرسوم المتحركة
     _logoAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _logoController,
+      parent: _logoController!,
       curve: Curves.elasticOut,
     ));
-
-    // Fade in animation
+    
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _fadeController,
+      parent: _fadeController!,
       curve: Curves.easeInOut,
     ));
+    
+    if (kDebugMode) {
+      print('✅ Splash animations initialized successfully');
+    }
   }
 
-  void _startSplashSequence() async {
-    // Start fade in
-    _fadeController.forward();
+  /// بدء الرسوم المتحركة
+  void _startAnimation() {
+    if (kDebugMode) {
+      print('🎬 Starting splash animations...');
+    }
     
-    // Wait a bit then start logo animation
-    await Future.delayed(const Duration(milliseconds: 300));
-    _logoController.forward();
+    _initializeAnimations();
+    _startSplashSequence();
+  }
+
+  /// بدء تسلسل السبلاش
+  Future<void> _startSplashSequence() async {
+    if (kDebugMode) {
+      print('🎬 Starting splash sequence...');
+    }
     
-    // Start wave animation (repeating)
-    await Future.delayed(const Duration(milliseconds: 500));
-    _waveController.repeat();
+    // تأكد من التهيئة
+    if (_logoController != null && _fadeController != null) {
+      // بدء الرسوم المتحركة
+      _logoController!.forward();
+      _fadeController!.forward();
+      
+      // تحديث حالة التهيئة
+      setState(() {
+        _isInitialized = true;
+      });
+    }
     
-    // Navigate to main screen after splash duration
-    await Future.delayed(const Duration(milliseconds: 3000));
+    // Navigate to main screen main_chat_page_enhanced.dart  after splash duration (reduced to 2 seconds)
+    if (kDebugMode) {
+      print('⏱️ Waiting 2 seconds before navigation...');
+    }
+    
+    await Future.delayed(const Duration(milliseconds: 2000));
     if (mounted) {
+      if (kDebugMode) {
+        print('🚀 Navigating to main chat page...');
+      }
       Navigator.of(context).pushReplacementNamed('/mainChatPage');
     }
   }
 
   @override
   void dispose() {
-    _waveController.dispose();
-    _logoController.dispose();
-    _fadeController.dispose();
+    if (kDebugMode) {
+      print('🧹 Disposing SplashScreen...');
+    }
+    
+    _logoController?.dispose();
+    _fadeController?.dispose();
+    
+    if (kDebugMode) {
+      print('✅ SplashScreen disposed successfully');
+    }
+    
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print('🎨 Building SplashScreen...');
+    }
+    
+    // فحص الجاهزية
+    if (!_isInitialized || _fadeAnimation == null || _logoAnimation == null) {
+      return Scaffold(
+        backgroundColor: atlasTheme,
+        body: const Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+    
     // Set status bar to match splash screen
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
-        statusBarColor: atlasRed,
+        statusBarColor: atlasTheme,
         statusBarIconBrightness: Brightness.light,
-        systemNavigationBarColor: atlasRed,
+        systemNavigationBarColor: atlasTheme,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
     );
 
     return Scaffold(
-      backgroundColor: atlasRed,
+      backgroundColor: atlasTheme,
       body: FadeTransition(
-        opacity: _fadeAnimation,
+        opacity: _fadeAnimation!,
         child: Container(
           width: double.infinity,
           height: double.infinity,
@@ -127,115 +169,171 @@ class _SplashScreenState extends State<SplashScreen>
               center: Alignment.center,
               radius: 1.0,
               colors: [
-                Color(0xFF9A1A2A), // Slightly lighter red for depth
-                atlasRed,
-                Color(0xFF6B0E1A), // Darker red for edges
+                Color(0xFF2A3038), // Slightly lighter for depth
+                atlasTheme,
+                Color(0xFF171B20), // Darker for edges
               ],
               stops: [0.0, 0.7, 1.0],
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
             children: [
-              // Logo with scale animation
-              ScaleTransition(
-                scale: _logoAnimation,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+              // Skip button
+              Positioned(
+                top: 50,
+                right: 20,
+                child: TextButton(
+                  onPressed: () {
+                    if (kDebugMode) {
+                      print('⏭️ Skip button pressed - navigating immediately...');
+                    }
+                    Navigator.of(context).pushReplacementNamed('/mainChatPage');
+                  },
+                  child: const Text(
+                    'تخطي',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
-                      'assets/icons/atlas2.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        // Fallback if image not found
-                        return Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            gradient: const LinearGradient(
-                              colors: [
-                                Colors.white,
-                                Color(0xFFF0F0F0),
-                              ],
+                ),
+              ),
+              
+              // Main content
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo with scale animation
+                    ScaleTransition(
+                      scale: _logoAnimation!,
+                      child: Container(
+                        width: 280,
+                        height: 280,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 25,
+                              spreadRadius: 8,
+                              offset: const Offset(0, 15),
                             ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(30),
+                          child: Image.asset(
+                            'assets/icons/no-bg-icon1.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Fallback if image not found
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Colors.white,
+                                      Color(0xFFF0F0F0),
+                                    ],
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.auto_awesome,
+                                  size: 90,
+                                  color: atlasTheme,
+                                ),
+                              );
+                            },
                           ),
-                          child: const Icon(
-                            Icons.auto_awesome,
-                            size: 60,
-                            color: atlasRed,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 40),
-
-              // App name with fade animation
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: const Text(
-                  'ATLAS AI',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 4,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black26,
-                        offset: Offset(0, 2),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 60),
-
-              // Wave loader animation
-              AnimatedBuilder(
-                animation: _waveAnimation,
-                builder: (context, child) {
-                  return SizedBox(
-                    width: 200,
-                    height: 60,
-                    child: CustomPaint(
-                      painter: WaveLoaderPainter(
-                        animationValue: _waveAnimation.value,
+                        ),
                       ),
                     ),
-                  );
-                },
-              ),
 
-              const SizedBox(height: 20),
+                    const SizedBox(height: 40),
 
-              // Loading text
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: const Text(
-                  'جاري التحميل...',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w300,
-                  ),
+                    // App name with fade animation
+                    FadeTransition(
+                      opacity: _fadeAnimation!,
+                      child: const Text(
+                        'ATLAS AI',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 4,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 60),
+
+                    // Ball animation GIF
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(60),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.2),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(60),
+                        child: Image.asset(
+                          'assets/icons/ball_ani.gif',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            // Fallback if GIF not found
+                            return Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(60),
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Colors.white,
+                                    Color(0xFFE0E0E0),
+                                  ],
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.sports_soccer,
+                                size: 60,
+                                color: atlasTheme,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Loading text
+                    FadeTransition(
+                      opacity: _fadeAnimation!,
+                      child: const Text(
+                        'جاري التحميل...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -246,51 +344,4 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-class WaveLoaderPainter extends CustomPainter {
-  final double animationValue;
 
-  WaveLoaderPainter({required this.animationValue});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 3
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    final waveHeight = 15.0;
-    final waveLength = size.width / 3;
-
-    // Create multiple wave bars with different phases
-    for (int i = 0; i < 8; i++) {
-      final x = (size.width / 8) * i + (size.width / 16);
-      final phase = (i * 0.5) + animationValue;
-      final height = waveHeight * (0.5 + 0.5 * math.sin(phase));
-      
-      // Create rounded rectangle for each wave bar
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          x - 8,
-          size.height / 2 - height / 2,
-          16,
-          height,
-        ),
-        const Radius.circular(8),
-      );
-
-      // Add glow effect
-      final glowPaint = Paint()
-        ..color = Colors.white.withOpacity(0.3)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-      
-      canvas.drawRRect(rect, glowPaint);
-      canvas.drawRRect(rect, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
-}

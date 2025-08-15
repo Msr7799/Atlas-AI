@@ -2,41 +2,130 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'base_api_service.dart';
+import 'package:uuid/uuid.dart';
 import '../config/app_config.dart';
+import 'package:flutter/foundation.dart';
 import '../../data/models/message_model.dart';
 
-class GPTGodService {
+class GPTGodService extends BaseApiService {
   static final GPTGodService _instance = GPTGodService._internal();
   factory GPTGodService() => _instance;
   GPTGodService._internal();
 
-  late final Dio _dio;
-  bool _isInitialized = false;
+  final _uuid = Uuid();
 
-  void initialize() {
-    if (_isInitialized) return; // منع التهيئة المتكررة
+  @override
+  Future<void> initialize() async {
+    if (isInitialized) return; // منع التهيئة المتكررة
 
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: AppConfig.gptGodBaseUrl,
-        headers: {
-          'Authorization': 'Bearer ${AppConfig.gptGodApiKey}',
-          'Content-Type': 'application/json',
+    // استخدام BaseApiService.initializeBase
+    initializeBase(
+      serviceName: 'GPTGod',
+      baseUrl: AppConfig.gptGodBaseUrl,
+      headers: {
+        'Authorization': 'Bearer ${AppConfig.gptGodApiKey}',
+        'Content-Type': 'application/json',
+      },
+      connectTimeout: const Duration(seconds: 45),
+      receiveTimeout: const Duration(seconds: 120),
+      sendTimeout: const Duration(seconds: 45),
+    );
+
+    // إضافة معالج أخطاء مخصص لـ GPTGod
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onError: (error, handler) {
+          if (kDebugMode) debugPrint('[GPTGOD ERROR] ${error.type}: ${error.message}');
+          _handleError(error);
+          handler.next(error);
         },
-        connectTimeout: const Duration(seconds: 30), // تقليل وقت الاتصال
-        receiveTimeout: const Duration(seconds: 30), // تقليل وقت الاستقبال
       ),
     );
+  }
 
-    _dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (object) => print('[GPTGOD API] $object'),
-      ),
-    );
+  /// معالج أخطاء محسن
+  void _handleError(DioException error) {
+    String errorMessage = 'خطأ غير معروف';
+    
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+        errorMessage = 'انتهت مهلة الاتصال - تحقق من اتصال الإنترنت';
+        break;
+      case DioExceptionType.sendTimeout:
+        errorMessage = 'انتهت مهلة الإرسال - تحقق من سرعة الإنترنت';
+        break;
+      case DioExceptionType.receiveTimeout:
+        errorMessage = 'انتهت مهلة الاستقبال - الخادم بطيء';
+        break;
+      case DioExceptionType.connectionError:
+        errorMessage = 'خطأ في الاتصال - تحقق من إعدادات الشبكة';
+        break;
+      case DioExceptionType.badResponse:
+        final statusCode = error.response?.statusCode;
+        switch (statusCode) {
+          case 400:
+            errorMessage = 'طلب غير صحيح - تحقق من البيانات المرسلة';
+            break;
+          case 401:
+            errorMessage = 'غير مصرح - تحقق من مفتاح API';
+            break;
+          case 403:
+            errorMessage = 'محظور - قد تكون الخدمة محظورة في منطقتك';
+            break;
+          case 429:
+            errorMessage = 'معدل الطلبات مرتفع - انتظر قليلاً';
+            break;
+          case 500:
+            errorMessage = 'خطأ في الخادم - حاول لاحقاً';
+            break;
+          case 502:
+            errorMessage = 'خطأ في البوابة - الخادم غير متاح';
+            break;
+          case 503:
+            errorMessage = 'الخدمة غير متاحة - الخادم في الصيانة';
+            break;
+          default:
+            errorMessage = 'خطأ في الخادم (كود $statusCode)';
+        }
+        break;
+      default:
+        errorMessage = 'خطأ في الشبكة: ${error.message}';
+    }
+    
+    if (kDebugMode) debugPrint('[GPTGOD ERROR] $errorMessage');
+    throw Exception(errorMessage);
+  }
 
-    _isInitialized = true; // تأكيد التهيئة
+  /// نظام Retry متقدم مع Exponential Backoff
+  Future<Response> _makeRequestWithRetry(
+    Future<Response> Function() request, {
+    int maxRetries = 3,
+    Duration initialDelay = const Duration(seconds: 2),
+  }) async {
+    int retryCount = 0;
+    Duration delay = initialDelay;
+    
+    while (retryCount < maxRetries) {
+      try {
+        return await request();
+      } catch (e) {
+        retryCount++;
+        if (kDebugMode) debugPrint('[GPTGOD] ❌ محاولة $retryCount/$maxRetries فشلت: $e');
+        
+        if (retryCount >= maxRetries) {
+          if (kDebugMode) debugPrint('[GPTGOD] ❌ انتهت جميع المحاولات، فشل الطلب نهائياً');
+          rethrow;
+        }
+        
+        // انتظار مع Exponential Backoff
+        if (kDebugMode) debugPrint('[GPTGOD] ⏳ انتظار ${delay.inSeconds} ثانية قبل المحاولة التالية...');
+        await Future.delayed(delay);
+        delay = Duration(seconds: delay.inSeconds * 2); // مضاعفة وقت الانتظار
+      }
+    }
+    
+    throw Exception('Max retries exceeded');
   }
 
   Future<Stream<String>> sendMessageStream({
@@ -89,10 +178,12 @@ class GPTGodService {
         requestData['tool_choice'] = 'auto';
       }
 
-      print('[GPTGOD] 🤖 استخدام نموذج: ${model ?? 'gpt-3.5-turbo'}');
-      print('[GPTGOD] Sending request: ${jsonEncode(requestData)}');
+      if (kDebugMode) {
+        debugPrint('[GPTGOD] 🤖 استخدام نموذج: ${model ?? 'gpt-3.5-turbo'}');
+        debugPrint('[GPTGOD] Sending request: ${jsonEncode(requestData)}');
+      }
 
-      final response = await _dio.post(
+      final response = await dio.post(
         AppConfig.gptGodChatEndpoint,
         data: requestData,
         options: Options(
@@ -103,7 +194,7 @@ class GPTGodService {
 
       return _parseStreamResponse(response.data);
     } catch (e) {
-      print('[GPTGOD ERROR] $e');
+      if (kDebugMode) debugPrint('[GPTGOD ERROR] $e');
 
       // معالجة أنواع مختلفة من الأخطاء
       if (e is DioException) {
@@ -204,7 +295,7 @@ class GPTGodService {
           }
         }
       } catch (e) {
-        print('[GPTGOD ENCODING ERROR] Failed to decode chunk: $e');
+        if (kDebugMode) debugPrint('[GPTGOD ENCODING ERROR] Failed to decode chunk: $e');
         // تجاهل الأجزاء التالفة ومتابعة المعالجة
         continue;
       }
@@ -213,11 +304,13 @@ class GPTGodService {
 
   Future<String> sendMessage({
     required List<MessageModel> messages,
-    String? model,
+    required String model,
     double? temperature,
     int? maxTokens,
     String? systemPrompt,
     List<String>? attachedFiles,
+    List<Map<String, dynamic>>? tools,
+    bool? enableAutoFormatting, // إضافة معامل للتحكم في التنسيق
   }) async {
     final stream = await sendMessageStream(
       messages: messages,
@@ -226,6 +319,7 @@ class GPTGodService {
       maxTokens: maxTokens,
       systemPrompt: systemPrompt,
       attachedFiles: attachedFiles,
+      tools: tools,
     );
 
     final buffer = StringBuffer();
@@ -234,8 +328,13 @@ class GPTGodService {
     }
 
     final rawResponse = buffer.toString();
-    // تطبيق التنسيق الذكي على الرد النهائي
-    return _applySmartFormatting(rawResponse);
+    
+    // تطبيق التنسيق الذكي فقط إذا كان مفعلاً
+    if (enableAutoFormatting ?? true) {
+      return _applySmartFormatting(rawResponse);
+    } else {
+      return rawResponse;
+    }
   }
 
   // Sequential Thinking Integration
@@ -254,7 +353,7 @@ class GPTGodService {
         'stream': true,
       };
 
-      final response = await _dio.post(
+      final response = await dio.post(
         AppConfig.gptGodChatEndpoint,
         data: requestData,
         options: Options(responseType: ResponseType.stream),
@@ -270,7 +369,10 @@ class GPTGodService {
         if (chunk.contains('\n') || chunk.contains('.')) {
           if (buffer.length > 50) {
             yield ThinkingStepModel(
+              id: _uuid.v4(),
               stepNumber: stepNumber++,
+              message: buffer.toString().trim(),
+              type: 'thinking',
               content: buffer.toString().trim(),
               timestamp: DateTime.now(),
             );
@@ -282,13 +384,16 @@ class GPTGodService {
       // Final step if buffer has content
       if (buffer.isNotEmpty) {
         yield ThinkingStepModel(
+          id: _uuid.v4(),
           stepNumber: stepNumber,
+          message: buffer.toString().trim(),
+          type: 'thinking',
           content: buffer.toString().trim(),
           timestamp: DateTime.now(),
         );
       }
     } catch (e) {
-      print('[GPTGOD THINKING ERROR] $e');
+      if (kDebugMode) debugPrint('[GPTGOD THINKING ERROR] $e');
       throw GPTGodException('Failed to generate thinking process: $e');
     }
   }
@@ -454,13 +559,15 @@ class GPTGodService {
     return content;
   }
 
+  @override
   void dispose() {
-    _dio.close();
+    dio.close();
   }
 
   /// تحديث مفتاح API
-  void updateApiKey(String newApiKey) {
-    _dio.options.headers['Authorization'] = 'Bearer $newApiKey';
+  @override
+  void updateApiKey(String newApiKey, {String prefix = 'Bearer'}) {
+    super.updateApiKey(newApiKey, prefix: prefix);
   }
 }
 

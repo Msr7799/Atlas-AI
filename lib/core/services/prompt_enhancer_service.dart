@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../data/models/message_model.dart';
 import '../config/app_config.dart';
 
@@ -56,12 +57,14 @@ class PromptEnhancerService {
       LogInterceptor(
         requestBody: true,
         responseBody: true,
-        logPrint: (object) => print('[PROMPT_ENHANCER] $object'),
+        logPrint: (object) {
+          if (kDebugMode) print('[PROMPT_ENHANCER] $object');
+        },
       ),
     );
 
     _initialized = true;
-    print('[PROMPT_ENHANCER] ✅ تم تهيئة الخدمة بنجاح');
+    if (kDebugMode) print('[PROMPT_ENHANCER] ✅ تم تهيئة الخدمة بنجاح');
   }
 
   Future<PromptEnhancementResult> enhancePrompt({
@@ -92,7 +95,7 @@ class PromptEnhancerService {
         'stream': false,
       };
 
-      print('[PROMPT_ENHANCER] 🧠 استخدام GPT-3.5 لتحسين البرومبت');
+      if (kDebugMode) print('[PROMPT_ENHANCER] 🧠 استخدام GPT-3.5 لتحسين البرومبت');
 
       final response = await _dio.post(
         AppConfig.gptGodChatEndpoint,
@@ -108,7 +111,7 @@ class PromptEnhancerService {
         throw Exception('فشل في الاتصال بخدمة GPTGod: ${response.statusCode}');
       }
     } catch (e) {
-      print('[PROMPT_ENHANCER ERROR] $e');
+      if (kDebugMode) print('[PROMPT_ENHANCER ERROR] $e');
       throw Exception('فشل في تحسين البرومبت: $e');
     }
   }
@@ -119,7 +122,7 @@ class PromptEnhancerService {
       // هذا سيساعد في فهم الموضوع بشكل أفضل
       return 'سياق إضافي حول: $topic';
     } catch (e) {
-      print('[CONTEXT7 WARNING] فشل في جلب السياق: $e');
+      if (kDebugMode) print('[CONTEXT7 WARNING] فشل في جلب السياق: $e');
       return '';
     }
   }
@@ -241,7 +244,7 @@ ${contextualInfo.isNotEmpty ? "معلومات سياقية إضافية:\n$conte
         return _parseTextResponse(originalPrompt, content);
       }
     } catch (e) {
-      print('[PROMPT_ENHANCER] فشل في تحليل JSON، استخدام تحليل النص: $e');
+      if (kDebugMode) print('[PROMPT_ENHANCER] فشل في تحليل JSON، استخدام تحليل النص: $e');
       return _parseTextResponse(originalPrompt, content);
     }
   }

@@ -1,6 +1,6 @@
 {
-    "name": "ai_x",
-    "short_name": "ai_x",
+    "name": "atlas_ai",
+    "short_name": "atlas_ai",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",

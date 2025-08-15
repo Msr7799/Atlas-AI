@@ -3,13 +3,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class SettingsProvider extends ChangeNotifier {
-  String _selectedModel = 'gemma2-9b-it';
+  String _selectedModel = 'llama-3.1-8b-instant';
   double _temperature = 1.0;
   int _maxTokens = 1024;
   bool _streamResponse = true;
   bool _enableWebSearch = true;
+
+  // إعدادات إضافية
+  bool _speechEnabled = false;
+  bool _autoPlayEnabled = false;
+  double _volume = 0.7;
+  bool _autoSaveEnabled = true;
   bool _enableMcpServers = true;
   String _preferredLanguage = 'auto'; // إضافة إعداد اللغة المفضلة
+  bool _enableAutoTextFormatting = true; // إضافة خيار المعالجة التلقائية للنص
   Map<String, bool> _mcpServerStatus = {
     'memory': true,
     'sequential-thinking': true,
@@ -27,9 +34,16 @@ class SettingsProvider extends ChangeNotifier {
   bool get enableWebSearch => _enableWebSearch;
   bool get enableMcpServers => _enableMcpServers;
   String get preferredLanguage => _preferredLanguage; // إضافة getter للغة المفضلة
+  bool get enableAutoTextFormatting => _enableAutoTextFormatting; // إضافة getter لخيار المعالجة التلقائية للنص
   Map<String, bool> get mcpServerStatus => Map.unmodifiable(_mcpServerStatus);
   Map<String, dynamic> get customMcpServers => Map.unmodifiable(_customMcpServers);
   String get customMcpJson => _customMcpJson;
+
+  // إعدادات إضافية
+  bool get speechEnabled => _speechEnabled;
+  bool get autoPlayEnabled => _autoPlayEnabled;
+  double get volume => _volume;
+  bool get autoSaveEnabled => _autoSaveEnabled;
 
   SettingsProvider() {
     _loadSettings();
@@ -73,6 +87,12 @@ class SettingsProvider extends ChangeNotifier {
 
   void setPreferredLanguage(String language) {
     _preferredLanguage = language;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void setEnableAutoTextFormatting(bool enable) {
+    _enableAutoTextFormatting = enable;
     _saveSettings();
     notifyListeners();
   }
@@ -173,6 +193,23 @@ class SettingsProvider extends ChangeNotifier {
     return _customMcpServers[serverName] ?? {};
   }
 
+  void addCustomMcpServer(String serverName, String command, List<String> args, Map<String, String> env) {
+    _customMcpServers[serverName] = {
+      'command': command,
+      'args': args,
+      'env': env,
+    };
+
+    // تفعيل الخادم الجديد افتراضياً
+    _mcpServerStatus[serverName] = true;
+
+    // تحديث JSON
+    _customMcpJson = jsonEncode(_customMcpServers);
+
+    _saveSettings();
+    notifyListeners();
+  }
+
   void removeCustomMcpServer(String serverName) {
     if (_customMcpServers.containsKey(serverName)) {
       _customMcpServers.remove(serverName);
@@ -198,6 +235,7 @@ class SettingsProvider extends ChangeNotifier {
       _enableWebSearch = prefs.getBool('enableWebSearch') ?? true;
       _enableMcpServers = prefs.getBool('enableMcpServers') ?? true;
       _preferredLanguage = prefs.getString('preferredLanguage') ?? 'auto'; // تحميل إعداد اللغة المفضلة
+      _enableAutoTextFormatting = prefs.getBool('enableAutoTextFormatting') ?? true; // تحميل إعداد المعالجة التلقائية للنص
 
       // تحميل إعدادات MCP
       final mcpMemory = prefs.getBool('mcp_memory') ?? true;
@@ -240,6 +278,7 @@ class SettingsProvider extends ChangeNotifier {
       prefs.setBool('enableWebSearch', _enableWebSearch);
       prefs.setBool('enableMcpServers', _enableMcpServers);
       prefs.setString('preferredLanguage', _preferredLanguage); // حفظ إعداد اللغة المفضلة
+      prefs.setBool('enableAutoTextFormatting', _enableAutoTextFormatting); // حفظ إعداد المعالجة التلقائية للنص
 
       // حفظ إعدادات MCP
       for (String serverName in _mcpServerStatus.keys) {
@@ -261,6 +300,7 @@ class SettingsProvider extends ChangeNotifier {
     _enableWebSearch = true;
     _enableMcpServers = true;
     _preferredLanguage = 'auto'; // إعادة تعيين اللغة المفضلة
+    _enableAutoTextFormatting = true; // إعادة تعيين المعالجة التلقائية للنص
     _mcpServerStatus = {'memory': true, 'sequential-thinking': true};
     _customMcpServers = {};
     _customMcpJson = '';
@@ -287,4 +327,50 @@ class SettingsProvider extends ChangeNotifier {
     'fa': 'فارسی',
     'ur': 'اردو',
   };
+
+  // Setters للإعدادات الإضافية
+  void setSpeechEnabled(bool enabled) {
+    _speechEnabled = enabled;
+    notifyListeners();
+    _saveSettings();
+  }
+
+  void setAutoPlayEnabled(bool enabled) {
+    _autoPlayEnabled = enabled;
+    notifyListeners();
+    _saveSettings();
+  }
+
+  void setVolume(double volume) {
+    _volume = volume;
+    notifyListeners();
+    _saveSettings();
+  }
+
+  void setAutoSaveEnabled(bool enabled) {
+    _autoSaveEnabled = enabled;
+    notifyListeners();
+    _saveSettings();
+  }
+
+  void setSelectedModel(String model) {
+    _selectedModel = model;
+    notifyListeners();
+    _saveSettings();
+  }
+
+  void clearAllData() {
+    // إعادة تعيين جميع الإعدادات للقيم الافتراضية
+    _selectedModel = 'llama-3.1-8b-instant';
+    _temperature = 1.0;
+    _maxTokens = 1024;
+    _streamResponse = true;
+    _enableWebSearch = true;
+    _speechEnabled = false;
+    _autoPlayEnabled = false;
+    _volume = 0.7;
+    _autoSaveEnabled = true;
+    notifyListeners();
+    _saveSettings();
+  }
 }

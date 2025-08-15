@@ -4,8 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-		<key>CFBundleDisplayName</key>
-	<string>Atlas AI</string>
+	<key>CFBundleDisplayName</key>
+	<string>Atlas Ai</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -44,90 +44,6 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	
-	<!-- إعدادات الشبكة لـ iOS - للسماح باتصالات HTTPS و HTTP -->
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>api.groq.com</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<false/>
-				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.2</string>
-				<key>NSExceptionRequiresForwardSecrecy</key>
-				<false/>
-			</dict>
-			<key>api.tavily.com</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<false/>
-				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.2</string>
-				<key>NSExceptionRequiresForwardSecrecy</key>
-				<false/>
-			</dict>
-		</dict>
-	</dict>
-	
-	<!-- أذونات الوصول للملفات والمشاركة -->
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>يحتاج Atlas AI للوصول إلى مكتبة الصور لمشاركة ومعالجة الصور</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>يحتاج Atlas AI لحفظ الصور المُصدرة في مكتبة الصور</string>
-	<key>NSCameraUsageDescription</key>
-	<string>يحتاج Atlas AI للوصول للكاميرا لالتقاط الصور ومعالجتها</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>يحتاج Atlas AI للوصول للمايكروفون لتسجيل المذكرات الصوتية</string>
-	<key>NSDocumentsFolderUsageDescription</key>
-	<string>يحتاج Atlas AI للوصول لمجلد المستندات لحفظ وقراءة الملفات</string>
-	<key>NSDownloadsFolderUsageDescription</key>
-	<string>يحتاج Atlas AI للوصول لمجلد التنزيلات لحفظ الملفات المُصدرة</string>
-	
-	<!-- دعم فتح الملفات -->
-	<key>CFBundleDocumentTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeName</key>
-			<string>Text Files</string>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>public.text</string>
-				<string>public.plain-text</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeName</key>
-			<string>JSON Files</string>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>public.json</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeName</key>
-			<string>All Files</string>
-			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>public.item</string>
-			</array>
-		</dict>
-	</array>
-	
-	<!-- دعم تبادل الملفات مع iTunes -->
-	<key>UIFileSharingEnabled</key>
-	<true/>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 </dict>
 </plist>

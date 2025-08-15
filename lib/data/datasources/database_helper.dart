@@ -25,8 +25,14 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, 'chat_history.db');
+    // استخدام مجلد المشروع بدلاً من Documents
+    String currentDir = Directory.current.path;
+    String dbDir = join(currentDir, 'lib', 'data', 'datasources');
+    
+    // التأكد من وجود المجلد
+    Directory(dbDir).createSync(recursive: true);
+    
+    String path = join(dbDir, 'chat_history.db');
 
     return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
@@ -190,57 +196,82 @@ class DatabaseHelper {
 
   Future<List<MessageModel>> getMessagesForSession(String sessionId) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'messages',
-      where: 'session_id = ?',
-      whereArgs: [sessionId],
-      orderBy: 'timestamp ASC',
-    );
+    
+    // 🚀 تحسين الأداء: استخدام JOIN بدلاً من N+1 queries
+    // جلب الرسائل مع المرفقات في استعلام واحد محسن
+    final List<Map<String, dynamic>> joinedMaps = await db.rawQuery('''
+      SELECT 
+        m.id as message_id,
+        m.content as message_content,
+        m.role as message_role,
+        m.timestamp as message_timestamp,
+        m.status as message_status,
+        a.id as attachment_id,
+        a.name as attachment_name,
+        a.type as attachment_type,
+        a.size as attachment_size,
+        a.path as attachment_path,
+        a.uploaded_at as attachment_uploaded_at
+      FROM messages m
+      LEFT JOIN attachments a ON m.id = a.message_id
+      WHERE m.session_id = ?
+      ORDER BY m.timestamp ASC, a.uploaded_at ASC
+    ''', [sessionId]);
 
-    List<MessageModel> messages = [];
-    for (final map in maps) {
-      // Get attachments for this message
-      final attachmentMaps = await db.query(
-        'attachments',
-        where: 'message_id = ?',
-        whereArgs: [map['id']],
-      );
-
-      List<AttachmentModel>? attachments;
-      if (attachmentMaps.isNotEmpty) {
-        attachments = attachmentMaps.map((attachmentMap) {
-          return AttachmentModel(
-            id: attachmentMap['id'] as String,
-            name: attachmentMap['name'] as String,
-            type: attachmentMap['type'] as String,
-            size: attachmentMap['size'] as int,
-            path: attachmentMap['path'] as String,
-            uploadedAt: DateTime.fromMillisecondsSinceEpoch(
-              attachmentMap['uploaded_at'] as int,
-            ),
-          );
-        }).toList();
-      }
-
-      messages.add(
-        MessageModel(
-          id: map['id'] as String,
-          content: map['content'] as String,
+    // تجميع النتائج - كل رسالة مع مرفقاتها
+    final Map<String, MessageModel> messagesMap = {};
+    
+    for (final row in joinedMaps) {
+      final messageId = row['message_id'] as String;
+      
+      // إنشاء الرسالة إذا لم تكن موجودة
+      if (!messagesMap.containsKey(messageId)) {
+        messagesMap[messageId] = MessageModel(
+          id: messageId,
+          content: row['message_content'] as String,
           role: MessageRole.values.firstWhere(
-            (e) => e.name == (map['role'] as String),
+            (e) => e.name == (row['message_role'] as String),
           ),
           timestamp: DateTime.fromMillisecondsSinceEpoch(
-            map['timestamp'] as int,
+            row['message_timestamp'] as int,
           ),
           status: MessageStatus.values.firstWhere(
-            (e) => e.name == (map['status'] as String),
+            (e) => e.name == (row['message_status'] as String),
           ),
-          attachments: attachments,
-        ),
-      );
+          attachments: [],
+        );
+      }
+      
+      // إضافة المرفق إذا كان موجوداً
+      final attachmentId = row['attachment_id'] as String?;
+      if (attachmentId != null) {
+        final attachment = AttachmentModel(
+          id: attachmentId,
+          name: row['attachment_name'] as String,
+          type: row['attachment_type'] as String,
+          size: row['attachment_size'] as int,
+          path: row['attachment_path'] as String,
+          uploadedAt: DateTime.fromMillisecondsSinceEpoch(
+            row['attachment_uploaded_at'] as int,
+          ),
+        );
+        
+        // تجنب المرفقات المكررة
+        final currentAttachments = messagesMap[messageId]!.attachments ?? [];
+        if (!currentAttachments.any((a) => a.id == attachmentId)) {
+          messagesMap[messageId] = messagesMap[messageId]!.copyWith(
+            attachments: [...currentAttachments, attachment],
+          );
+        }
+      }
     }
 
-    return messages;
+    // ترتيب الرسائل حسب التوقيت وإرجاعها كقائمة
+    final messagesList = messagesMap.values.toList();
+    messagesList.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    
+    print('🚀 [DB_PERFORMANCE] تم تحميل ${messagesList.length} رسالة مع المرفقات في استعلام واحد محسن');
+    return messagesList;
   }
 
   // Message History Methods (for input history per session)

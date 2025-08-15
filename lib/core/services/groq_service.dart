@@ -1,65 +1,55 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'api_key_manager.dart';
+import 'base_api_service.dart';
+import 'package:uuid/uuid.dart';
 import '../config/app_config.dart';
+import 'package:flutter/foundation.dart';
 import '../../data/models/message_model.dart';
 
 // في بداية الملف، يحتاج استيراد إضافي لـ ApiKeyManager
-class GroqService {
+class GroqService extends BaseApiService {
   static final GroqService _instance = GroqService._internal();
   factory GroqService() => _instance;
   GroqService._internal();
 
-  late final Dio _dio;
-  bool _isInitialized = false;
-  String _currentApiKey = '';
+  final _uuid = Uuid();
 
-  void initialize() {
-    if (_isInitialized) return; // منع التهيئة المتكررة
+  @override
+  Future<void> initialize() async {
+    if (isInitialized) return; // منع التهيئة المتكررة
 
     // جرب المفتاح الأساسي أولاً، ثم الاحتياطي
     String apiKey = AppConfig.groqApiKey;
     if (apiKey.isEmpty || apiKey.startsWith('gsk_انشئ_مفتاح')) {
       apiKey = AppConfig.groqApiKey2;
-      print('[GROQ] 🔄 استخدام المفتاح الاحتياطي');
+      // Using backup API key
     }
 
-    _currentApiKey = apiKey;
-
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: AppConfig.groqBaseUrl,
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-          'User-Agent': 'Atlas-AI/1.0',
-        },
-        connectTimeout: const Duration(seconds: 45), // زيادة وقت الاتصال
-        receiveTimeout: const Duration(
-          seconds: 120,
-        ), // زيادة وقت الاستقبال لدقيقتين
-        sendTimeout: const Duration(seconds: 45), // زيادة وقت الإرسال أيضاً
-      ),
+    // استخدام BaseApiService.initializeBase
+    initializeBase(
+      serviceName: 'Groq',
+      baseUrl: AppConfig.groqBaseUrl,
+      headers: {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Atlas-AI/1.0',
+      },
+      connectTimeout: const Duration(seconds: 45),
+      receiveTimeout: const Duration(seconds: 120),
+      sendTimeout: const Duration(seconds: 45),
     );
 
-    _dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (object) => print('[GROQ API] $object'),
-      ),
-    );
-
-    // إضافة معالج أخطاء مخصص
-    _dio.interceptors.add(
+    // إضافة معالج أخطاء مخصص لـ Groq
+    dio.interceptors.add(
       InterceptorsWrapper(
         onError: (error, handler) {
-          print('[GROQ ERROR] ${error.type}: ${error.message}');
+          if (kDebugMode) print('[GROQ ERROR] ${error.type}: ${error.message}');
 
           // إذا كان خطأ 403، جرب تبديل المفتاح
           if (error.response?.statusCode == 403) {
-            print('[GROQ] ❌ خطأ 403 - جاري تجربة المفتاح الاحتياطي...');
+            if (kDebugMode) print('[GROQ] ❌ خطأ 403 - جاري تجربة المفتاح الاحتياطي...');
             _tryFallbackKey();
             handler.reject(
               DioException(
@@ -69,67 +59,137 @@ class GroqService {
                 type: DioExceptionType.badResponse,
               ),
             );
-          } else if (error.type == DioExceptionType.connectionTimeout) {
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                error: 'Connection timeout - check your internet connection',
-                type: DioExceptionType.connectionTimeout,
-              ),
-            );
-          } else if (error.type == DioExceptionType.connectionError) {
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                error:
-                    'Network connection error - check your internet connection and DNS settings',
-                type: DioExceptionType.connectionError,
-              ),
-            );
           } else {
             handler.next(error);
           }
         },
       ),
     );
-
-    _isInitialized = true; // تأكيد التهيئة
   }
 
   /// تجربة المفتاح الاحتياطي عند فشل المفتاح الأساسي
   void _tryFallbackKey() {
-    if (_currentApiKey == AppConfig.groqApiKey &&
+    final currentKey = currentApiKey;
+    if (currentKey == AppConfig.groqApiKey &&
         AppConfig.groqApiKey2.isNotEmpty) {
-      print('[GROQ] 🔄 تبديل للمفتاح الاحتياطي...');
-      _currentApiKey = AppConfig.groqApiKey2;
-      _dio.options.headers['Authorization'] = 'Bearer ${AppConfig.groqApiKey2}';
-    } else if (_currentApiKey == AppConfig.groqApiKey2 &&
+      if (kDebugMode) print('[GROQ] 🔄 تبديل للمفتاح الاحتياطي...');
+      updateApiKey(AppConfig.groqApiKey2);
+    } else if (currentKey == AppConfig.groqApiKey2 &&
         AppConfig.groqApiKey.isNotEmpty) {
-      print('[GROQ] 🔄 تبديل للمفتاح الأساسي...');
-      _currentApiKey = AppConfig.groqApiKey;
-      _dio.options.headers['Authorization'] = 'Bearer ${AppConfig.groqApiKey}';
+      if (kDebugMode) print('[GROQ] 🔄 تبديل للمفتاح الأساسي...');
+      updateApiKey(AppConfig.groqApiKey);
     }
   }
 
   /// تحديث مفتاح API
-  void updateApiKey(String newApiKey) {
-    _currentApiKey = newApiKey;
-    _dio.options.headers['Authorization'] = 'Bearer $newApiKey';
+  @override
+  void updateApiKey(String newApiKey, {String prefix = 'Bearer'}) {
+    super.updateApiKey(newApiKey, prefix: prefix);
   }
 
   /// تجربة المفتاح الاحتياطي إذا فشل الأول
   Future<bool> _tryAlternativeKey() async {
     try {
       final altKey = AppConfig.groqApiKey2;
-      if (altKey.isNotEmpty && altKey != _currentApiKey) {
-        print('[GROQ] 🔄 Trying alternative API key...');
+      if (altKey.isNotEmpty && altKey != currentApiKey) {
+        if (kDebugMode) print('[GROQ] 🔄 Trying alternative API key...');
         updateApiKey(altKey);
         return true;
       }
     } catch (e) {
-      print('[GROQ] ❌ Failed to switch to alternative key: $e');
+      if (kDebugMode) print('[GROQ] ❌ Failed to switch to alternative key: $e');
     }
     return false;
+  }
+
+  /// نظام Retry متقدم مع Exponential Backoff
+  Future<Response> _makeRequestWithRetry(
+    Future<Response> Function() request, {
+    int maxRetries = 3,
+    Duration initialDelay = const Duration(seconds: 2),
+    bool shouldSwitchKey = true,
+  }) async {
+    int retryCount = 0;
+    Duration delay = initialDelay;
+    
+    while (retryCount < maxRetries) {
+      try {
+        return await request();
+      } catch (e) {
+        retryCount++;
+        if (kDebugMode) print('[GROQ] ❌ محاولة $retryCount/$maxRetries فشلت: $e');
+        
+        if (retryCount >= maxRetries) {
+          if (kDebugMode) print('[GROQ] ❌ انتهت جميع المحاولات، فشل الطلب نهائياً');
+          rethrow;
+        }
+        
+        // تبديل المفتاح إذا كان مناسباً
+        if (shouldSwitchKey && retryCount == 1) {
+          await _tryAlternativeKey();
+        }
+        
+        // انتظار مع Exponential Backoff
+        if (kDebugMode) print('[GROQ] ⏳ انتظار ${delay.inSeconds} ثانية قبل المحاولة التالية...');
+        await Future.delayed(delay);
+        delay = Duration(seconds: delay.inSeconds * 2); // مضاعفة وقت الانتظار
+      }
+    }
+    
+    throw Exception('Max retries exceeded');
+  }
+
+  /// معالج أخطاء محسن
+  void _handleError(DioException error) {
+    String errorMessage = 'خطأ غير معروف';
+    
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+        errorMessage = 'انتهت مهلة الاتصال - تحقق من اتصال الإنترنت';
+        break;
+      case DioExceptionType.sendTimeout:
+        errorMessage = 'انتهت مهلة الإرسال - تحقق من سرعة الإنترنت';
+        break;
+      case DioExceptionType.receiveTimeout:
+        errorMessage = 'انتهت مهلة الاستقبال - الخادم بطيء';
+        break;
+      case DioExceptionType.connectionError:
+        errorMessage = 'خطأ في الاتصال - تحقق من إعدادات الشبكة';
+        break;
+      case DioExceptionType.badResponse:
+        final statusCode = error.response?.statusCode;
+        switch (statusCode) {
+          case 400:
+            errorMessage = 'طلب غير صحيح - تحقق من البيانات المرسلة';
+            break;
+          case 401:
+            errorMessage = 'غير مصرح - تحقق من مفتاح API';
+            break;
+          case 403:
+            errorMessage = 'محظور - قد تكون الخدمة محظورة أو المفتاح غير صحيح.';
+            break;
+          case 429:
+            errorMessage = 'معدل الطلبات مرتفع - انتظر قليلاً';
+            break;
+          case 500:
+            errorMessage = 'خطأ في الخادم - حاول لاحقاً';
+            break;
+          case 502:
+            errorMessage = 'خطأ في البوابة - الخادم غير متاح';
+            break;
+          case 503:
+            errorMessage = 'الخدمة غير متاحة - الخادم في الصيانة';
+            break;
+          default:
+            errorMessage = 'خطأ في الخادم (كود $statusCode)';
+        }
+        break;
+      default:
+        errorMessage = 'خطأ في الشبكة: ${error.message}';
+    }
+    
+    if (kDebugMode) print('[GROQ ERROR] $errorMessage');
+    throw Exception(errorMessage);
   }
 
   Future<Stream<String>> sendMessageStream({
@@ -182,10 +242,13 @@ class GroqService {
         requestData['tool_choice'] = 'auto';
       }
 
-      print('[GROQ] 🚀 Sending request to Groq API...');
-      print('[GROQ] 📝 Request data: ${jsonEncode(requestData)}');
+      if (kDebugMode) print('[GROQ] 🚀 Sending request to Groq API...');
+      if (kDebugMode) print('[GROQ] 📝 Request data: ${jsonEncode(requestData)}');
 
-      final response = await _dio.post(
+      // تسجيل الاستخدام
+      await ApiKeyManager.recordApiUsage('groq', isSuccess: true);
+
+      final response = await dio.post(
         AppConfig.groqChatEndpoint,
         data: requestData,
         options: Options(
@@ -196,10 +259,15 @@ class GroqService {
 
       return _parseStreamResponse(response.data);
     } on DioException catch (e) {
-      print('[GROQ DIO ERROR] Type: ${e.type}, Message: ${e.message}');
-      print(
+      // تسجيل الخطأ
+      await ApiKeyManager.recordApiUsage('groq', isSuccess: false);
+      
+      if (kDebugMode) print('[GROQ DIO ERROR] Type: ${e.type}, Message: ${e.message}');
+      if (kDebugMode) {
+        print(
         '[GROQ DIO ERROR] Response: ${e.response?.statusCode} - ${e.response?.data}',
       );
+      }
 
       // معالجة أنواع مختلفة من الأخطاء مع رسائل عربية واضحة
       switch (e.type) {
@@ -233,7 +301,7 @@ class GroqService {
             case 403:
               // جرب المفتاح الاحتياطي
               if (await _tryAlternativeKey()) {
-                print('[GROQ] 🔄 Retrying with alternative key...');
+                if (kDebugMode) print('[GROQ] 🔄 Retrying with alternative key...');
                 // إعادة المحاولة مع المفتاح الجديد
                 return sendMessageStream(
                   messages: messages,
@@ -269,16 +337,16 @@ class GroqService {
           throw GroqException('خطأ غير متوقع مع Groq: ${e.message}');
       }
     } catch (e) {
-      print('[GROQ GENERAL ERROR] $e');
+      if (kDebugMode) print('[GROQ GENERAL ERROR] $e');
       throw GroqException('فشل في إرسال الرسالة لـ Groq: $e');
     }
   }
 
   Stream<String> _parseStreamResponse(ResponseBody responseBody) async* {
-    print('[GROQ] 📡 Response received, parsing stream...');
+    if (kDebugMode) print('[GROQ] 📡 Response received, parsing stream...');
 
     await for (final Uint8List bytes in responseBody.stream) {
-      print('[GROQ] 📦 Received chunk: ${bytes.length} bytes');
+      if (kDebugMode) print('[GROQ] 📦 Received chunk: ${bytes.length} bytes');
       try {
         // معالجة آمنة للترميز مع السماح بالأخطاء
         final chunk = utf8.decode(bytes, allowMalformed: true);
@@ -303,17 +371,17 @@ class GroqService {
                 final content = delta?['content'] as String?;
 
                 if (content != null) {
-                  print('[GROQ] 💬 Yielding content: ${content.length} chars');
+                  if (kDebugMode) print('[GROQ] 💬 Yielding content: ${content.length} chars');
                   yield content;
                 }
               }
             } catch (e) {
-              print('[GROQ PARSE ERROR] Failed to parse: $data, Error: $e');
+              if (kDebugMode) print('[GROQ PARSE ERROR] Failed to parse: $data, Error: $e');
             }
           }
         }
       } catch (e) {
-        print('[GROQ ENCODING ERROR] Failed to decode chunk: $e');
+        if (kDebugMode) print('[GROQ ENCODING ERROR] Failed to decode chunk: $e');
         // تجاهل الأجزاء التالفة ومتابعة المعالجة
         continue;
       }
@@ -327,6 +395,7 @@ class GroqService {
     int? maxTokens,
     String? systemPrompt,
     List<String>? attachedFiles,
+    bool? enableAutoFormatting, // إضافة معامل للتحكم في التنسيق
   }) async {
     final stream = await sendMessageStream(
       messages: messages,
@@ -343,8 +412,13 @@ class GroqService {
     }
 
     final rawResponse = buffer.toString();
-    // تطبيق التنسيق الذكي على الرد النهائي
-    return _applySmartFormatting(rawResponse);
+    
+    // تطبيق التنسيق الذكي فقط إذا كان مفعلاً
+    if (enableAutoFormatting ?? true) {
+      return _applySmartFormatting(rawResponse);
+    } else {
+      return rawResponse;
+    }
   }
 
   // Sequential Thinking Integration
@@ -363,7 +437,7 @@ class GroqService {
         'stream': true,
       };
 
-      final response = await _dio.post(
+      final response = await dio.post(
         AppConfig.groqChatEndpoint,
         data: requestData,
         options: Options(responseType: ResponseType.stream),
@@ -379,7 +453,10 @@ class GroqService {
         if (chunk.contains('\n') || chunk.contains('.')) {
           if (buffer.length > 50) {
             yield ThinkingStepModel(
+              id: _uuid.v4(),
               stepNumber: stepNumber++,
+              message: buffer.toString().trim(),
+              type: 'thinking',
               content: buffer.toString().trim(),
               timestamp: DateTime.now(),
             );
@@ -391,13 +468,16 @@ class GroqService {
       // Final step if buffer has content
       if (buffer.isNotEmpty) {
         yield ThinkingStepModel(
+          id: _uuid.v4(),
           stepNumber: stepNumber,
+          message: buffer.toString().trim(),
+          type: 'thinking',
           content: buffer.toString().trim(),
           timestamp: DateTime.now(),
         );
       }
     } catch (e) {
-      print('[THINKING ERROR] $e');
+      if (kDebugMode) print('[THINKING ERROR] $e');
       throw GroqException('Failed to generate thinking process: $e');
     }
   }
@@ -567,8 +647,9 @@ class GroqService {
     return content;
   }
 
+  @override
   void dispose() {
-    _dio.close();
+    dio.close();
   }
 }
 

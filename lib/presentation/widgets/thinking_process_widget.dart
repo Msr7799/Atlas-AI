@@ -34,9 +34,14 @@ class ThinkingProcessWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxHeight: 400, // حد أقصى للارتفاع لتجنب overflow
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min, // استخدام أقل مساحة ممكنة
+          children: [
           // Header
           InkWell(
             onTap: onToggleExpanded,
@@ -98,11 +103,14 @@ class ThinkingProcessWidget extends StatelessWidget {
           // Content
           if (isExpanded) ...[
             const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            Flexible(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                   // Steps
                   ..._buildSteps(context),
                   
@@ -127,12 +135,15 @@ class ThinkingProcessWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
+          ),
           ],
         ],
       ),
+    ),
     ).animate()
      .fadeIn(duration: 300.ms)
      .slideY(begin: 0.3, end: 0);
@@ -197,7 +208,7 @@ class ThinkingProcessWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    step.content,
+                    step.message,
                     style: theme.textTheme.bodyMedium,
                   ),
                   if (step.isRevision && step.revisesStep != null)

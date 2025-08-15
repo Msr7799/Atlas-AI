@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/theme/app_theme.dart';
 import '../providers/chat_selection_provider.dart';
 import '../../data/models/message_model.dart';
 import '../../core/utils/responsive_helper.dart';

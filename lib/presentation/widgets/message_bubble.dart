@@ -1,11 +1,11 @@
+import 'thinking_process_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
+import '../providers/settings_provider.dart';
 import '../../data/models/message_model.dart';
 import '../providers/chat_selection_provider.dart';
-import 'thinking_process_widget.dart';
-
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 
 class MessageBubble extends StatelessWidget {
@@ -117,6 +117,9 @@ class MessageBubble extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Model name header - لرسائل النموذج فقط
+                        if (!isUser) _buildModelHeader(context, theme),
+                        
                         // Message content - مع دعم الاتجاه التلقائي
                         Padding(
                           padding: const EdgeInsets.all(16),
@@ -128,7 +131,10 @@ class MessageBubble extends StatelessWidget {
                           ),
                         ),
 
-                        // Thinking Process - عرض عملية التفكير (مفتوح بشكل افتراضي)
+                        // Thinking Process - عرض عملية التفكير مع سهم مرئي
+                        if (!isUser && message.thinkingProcess != null)
+                          _buildThinkingIndicator(context, theme),
+                          
                         if (!isUser && message.thinkingProcess != null)
                           ThinkingProcessWidget(
                             thinkingProcess: message.thinkingProcess!,
@@ -206,8 +212,14 @@ class MessageBubble extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
   
-    // تطبيق الخوارزميات الذكية لتحسين المحتوى
-    final processedContent = _applySmartFormatting(content, isUser);
+    // التحقق من إعداد المعالجة التلقائية للنص
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final shouldApplyFormatting = settingsProvider.enableAutoTextFormatting;
+  
+    // تطبيق الخوارزميات الذكية لتحسين المحتوى (فقط إذا كان مفعلاً)
+    final processedContent = shouldApplyFormatting 
+        ? _applySmartFormatting(content, isUser)
+        : content;
   
     // التحقق من وجود code blocks وفصلها عن النص العادي
     final codeBlockRegex = RegExp(r'```(\w+)?\s*\n?([\s\S]*?)```', multiLine: true);
@@ -307,7 +319,7 @@ class MessageBubble extends StatelessWidget {
                 : theme.colorScheme.onSurface,
             fontSize: isTablet ? 18 : 16,
             height: 1.4,
-            fontFamily: _containsArabic(content) ? 'Cairo' : null,
+            fontFamily: theme.textTheme.bodyMedium?.fontFamily,
           ),
           // العناوين
           h1: TextStyle(
@@ -319,7 +331,7 @@ class MessageBubble extends StatelessWidget {
             fontSize: isTablet ? 28 : 24,
             fontWeight: FontWeight.bold,
             height: 1.3,
-            fontFamily: _containsArabic(content) ? 'Cairo' : null,
+            fontFamily: theme.textTheme.bodyMedium?.fontFamily,
           ),
           h2: TextStyle(
             color: isUser 
@@ -330,7 +342,7 @@ class MessageBubble extends StatelessWidget {
             fontSize: isTablet ? 24 : 20,
             fontWeight: FontWeight.bold,
             height: 1.3,
-            fontFamily: _containsArabic(content) ? 'Cairo' : null,
+            fontFamily: theme.textTheme.bodyMedium?.fontFamily,
           ),
           h3: TextStyle(
             color: isUser 
@@ -341,7 +353,7 @@ class MessageBubble extends StatelessWidget {
             fontSize: isTablet ? 20 : 18,
             fontWeight: FontWeight.bold,
             height: 1.3,
-            fontFamily: _containsArabic(content) ? 'Cairo' : null,
+            fontFamily: theme.textTheme.bodyMedium?.fontFamily,
           ),
           // القوائم
           listBullet: TextStyle(
@@ -351,7 +363,7 @@ class MessageBubble extends StatelessWidget {
                     : Colors.white)
                 : theme.colorScheme.onSurface,
             fontSize: isTablet ? 18 : 16,
-            fontFamily: _containsArabic(content) ? 'Cairo' : null,
+            fontFamily: theme.textTheme.bodyMedium?.fontFamily,
           ),
           // الروابط
           a: TextStyle(
@@ -368,7 +380,7 @@ class MessageBubble extends StatelessWidget {
                 : theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: isTablet ? 18 : 16,
-            fontFamily: _containsArabic(content) ? 'Cairo' : null,
+            fontFamily: theme.textTheme.bodyMedium?.fontFamily,
           ),
           em: TextStyle(
             color: isUser 
@@ -378,7 +390,7 @@ class MessageBubble extends StatelessWidget {
                 : theme.colorScheme.onSurface,
             fontStyle: FontStyle.italic,
             fontSize: isTablet ? 18 : 16,
-            fontFamily: _containsArabic(content) ? 'Cairo' : null,
+            fontFamily: theme.textTheme.bodyMedium?.fontFamily,
           ),
           // الاقتباسات
           blockquote: TextStyle(
@@ -403,7 +415,7 @@ class MessageBubble extends StatelessWidget {
           ),
           // الكود المضمن
           code: TextStyle(
-            fontFamily: 'Courier',
+            fontFamily: theme.textTheme.bodyMedium?.fontFamily ?? 'monospace',
             fontSize: isTablet ? 16 : 14,
             color: isUser 
                 ? (theme.colorScheme.primary.computeLuminance() > 0.5 
@@ -471,27 +483,57 @@ class MessageBubble extends StatelessWidget {
     // إذا كان من المستخدم، لا نحتاج تنسيق إضافي
     if (isUser) return content;
     
+    // التحقق من أن النص لا يحتوي بالفعل على تنسيق Markdown
+    if (_containsMarkdownFormatting(content)) {
+      // إذا كان النص يحتوي على تنسيق Markdown، اتركه كما هو
+      return content;
+    }
+    
     String processedContent = content;
     
-    // 1. تحسين تنسيق القوائم والأرقام
+    // 1. تحسين تنسيق القوائم والأرقام (فقط إذا لم تكن موجودة بالفعل)
     processedContent = _enhanceListFormatting(processedContent);
     
-    // 2. تحسين عرض الكود غير المنسق
+    // 2. تحسين عرض الكود غير المنسق (فقط إذا لم يكن موجوداً بالفعل)
     processedContent = _enhanceCodeFormatting(processedContent);
     
-    // 3. تحسين تنسيق العناوين
+    // 3. تحسين تنسيق العناوين (فقط إذا لم تكن موجودة بالفعل)
     processedContent = _enhanceHeaderFormatting(processedContent);
     
-    // 4. تحسين تنسيق الروابط والمراجع
+    // 4. تحسين تنسيق الروابط والمراجع (فقط إذا لم تكن موجودة بالفعل)
     processedContent = _enhanceLinkFormatting(processedContent);
     
-    // 5. إضافة فواصل منطقية بين الأقسام
-    processedContent = _addLogicalSeparators(processedContent);
+    // 5. إضافة فواصل منطقية بين الأقسام (فقط للنصوص الطويلة)
+    if (content.length > 300) {
+      processedContent = _addLogicalSeparators(processedContent);
+    }
     
-    // 6. تحسين عرض الأمثلة والتفسيرات
+    // 6. تحسين عرض الأمثلة والتفسيرات (فقط إذا لم تكن موجودة بالفعل)
     processedContent = _enhanceExampleFormatting(processedContent);
     
     return processedContent;
+  }
+
+  // التحقق من وجود تنسيق Markdown بالفعل
+  bool _containsMarkdownFormatting(String content) {
+    // التحقق من وجود HTML tags
+    if (RegExp(r'<[^>]+>').hasMatch(content)) {
+      return true;
+    }
+    
+    // التحقق من وجود Markdown formatting
+    if (RegExp(r'\*\*.*\*\*').hasMatch(content) || // bold
+        RegExp(r'\*.*\*').hasMatch(content) || // italic
+        RegExp(r'`.*`').hasMatch(content) || // inline code
+        RegExp(r'^#{1,6}\s', multiLine: true).hasMatch(content) || // headers
+        RegExp(r'^[-*+]\s', multiLine: true).hasMatch(content) || // bullet lists
+        RegExp(r'^\d+\.\s', multiLine: true).hasMatch(content) || // numbered lists
+        RegExp(r'^>.*$', multiLine: true).hasMatch(content) || // blockquotes
+        RegExp(r'```.*```', dotAll: true).hasMatch(content)) { // code blocks
+      return true;
+    }
+    
+    return false;
   }
 
   // تحسين تنسيق القوائم
@@ -749,7 +791,7 @@ class MessageBubble extends StatelessWidget {
       // إذا كان السطر يبدأ بـ $ أو يحتوي على commands
       if (trimmedLine.startsWith('\$') || 
           trimmedLine.startsWith('#') ||
-          shellCommands.any((cmd) => trimmedLine.toLowerCase().startsWith(cmd + ' '))) {
+          shellCommands.any((cmd) => trimmedLine.toLowerCase().startsWith('$cmd '))) {
         shellLikeLines++;
       }
     }
@@ -796,13 +838,13 @@ class MessageBubble extends StatelessWidget {
       codeBackground = theme.colorScheme.inverseSurface;
       codeTextColor = theme.colorScheme.onInverseSurface;
       borderColor = theme.colorScheme.outline;
-      headerColor = theme.colorScheme.surfaceVariant;
+      headerColor = theme.colorScheme.surfaceContainerHighest;
     } else {
       // الوضع الليلي - استخدام ألوان الثيم مباشرة
       codeBackground = theme.colorScheme.surface;
       codeTextColor = theme.colorScheme.onSurface;
       borderColor = theme.colorScheme.outline;
-      headerColor = theme.colorScheme.surfaceVariant;
+      headerColor = theme.colorScheme.surfaceContainerHighest;
     }
     
     return Container(
@@ -845,7 +887,7 @@ class MessageBubble extends StatelessWidget {
                         color: theme.colorScheme.onSurface.withOpacity(0.7),
                         fontSize: isTablet ? 14 : 12,
                         fontWeight: FontWeight.w500,
-                        fontFamily: 'Courier',
+                        fontFamily: theme.textTheme.bodyMedium?.fontFamily ?? 'monospace',
                       ),
                     ),
                   ],
@@ -882,7 +924,7 @@ class MessageBubble extends StatelessWidget {
               child: SelectableText(
                 codeContent.trim(),
                 style: TextStyle(
-                  fontFamily: 'Courier',
+                  fontFamily: theme.textTheme.bodyMedium?.fontFamily ?? 'monospace',
                   fontSize: isTablet ? 16 : 14,
                   color: codeTextColor,
                   height: 1.4,
@@ -978,7 +1020,8 @@ class MessageBubble extends StatelessWidget {
           TextSpan(
             text: text,
             style: TextStyle(
-              fontFamily: _containsArabic(text) ? 'Cairo' : null,
+              // استخدام الخط المختار من الإعدادات دائماً
+              fontFamily: theme.textTheme.bodyMedium?.fontFamily,
               height: 1.5, // تحسين المسافة بين الأسطر للنص العربي
             ),
           ),
@@ -997,7 +1040,8 @@ class MessageBubble extends StatelessWidget {
           TextSpan(
             text: text,
             style: TextStyle(
-              fontFamily: _containsArabic(text) ? 'Cairo' : null,
+              // استخدام الخط المختار من الإعدادات دائماً
+              fontFamily: theme.textTheme.bodyMedium?.fontFamily,
               height: 1.5,
             ),
           ),
@@ -1019,7 +1063,7 @@ class MessageBubble extends StatelessWidget {
           codeTextColor = theme.colorScheme.onInverseSurface;
         } else {
           // الليل - خلفية فاتحة للكود
-          codeBackground = theme.colorScheme.surfaceVariant;
+          codeBackground = theme.colorScheme.surfaceContainerHighest;
           codeTextColor = theme.colorScheme.onSurfaceVariant;
         }
 
@@ -1027,7 +1071,8 @@ class MessageBubble extends StatelessWidget {
           TextSpan(
             text: codeContent,
             style: TextStyle(
-              fontFamily: 'Courier',
+              // استخدام الخط المختار من الإعدادات مع fallback للكود
+              fontFamily: theme.textTheme.bodyMedium?.fontFamily ?? 'monospace',
               backgroundColor: codeBackground,
               color: codeTextColor,
               height: 1.4,
@@ -1049,7 +1094,7 @@ class MessageBubble extends StatelessWidget {
           inlineCodeTextColor = theme.colorScheme.onInverseSurface;
         } else {
           // الليل - خلفية فاتحة للكود المضمن
-          inlineCodeBackground = theme.colorScheme.surfaceVariant;
+          inlineCodeBackground = theme.colorScheme.surfaceContainerHighest;
           inlineCodeTextColor = theme.colorScheme.onSurfaceVariant;
         }
 
@@ -1057,7 +1102,8 @@ class MessageBubble extends StatelessWidget {
           TextSpan(
             text: codeContent,
             style: TextStyle(
-              fontFamily: 'Courier',
+              // استخدام الخط المختار من الإعدادات مع fallback للكود المضمن
+              fontFamily: theme.textTheme.bodyMedium?.fontFamily ?? 'monospace',
               backgroundColor: inlineCodeBackground,
               color: inlineCodeTextColor,
               height: 1.4,
@@ -1073,7 +1119,8 @@ class MessageBubble extends StatelessWidget {
             text: text,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontFamily: _containsArabic(text) ? 'Cairo' : null,
+              // استخدام الخط المختار من الإعدادات دائماً
+              fontFamily: theme.textTheme.bodyMedium?.fontFamily,
               height: 1.5,
             ),
           ),
@@ -1085,7 +1132,8 @@ class MessageBubble extends StatelessWidget {
             text: text,
             style: TextStyle(
               fontStyle: FontStyle.italic,
-              fontFamily: _containsArabic(text) ? 'Cairo' : null,
+              // استخدام الخط المختار من الإعدادات دائماً
+              fontFamily: theme.textTheme.bodyMedium?.fontFamily,
               height: 1.5,
             ),
           ),
@@ -1100,7 +1148,8 @@ class MessageBubble extends StatelessWidget {
             TextSpan(
               text: content,
               style: TextStyle(
-                fontFamily: _containsArabic(content) ? 'Cairo' : null,
+                // استخدام الخط المختار من الإعدادات دائماً
+                fontFamily: theme.textTheme.bodyMedium?.fontFamily,
                 height: 1.5,
               ),
             ),
@@ -1173,5 +1222,137 @@ class MessageBubble extends StatelessWidget {
       case 'c': return 'C';
       default: return language.toUpperCase();
     }
+  }
+
+  // بناء رأس النموذج مع مؤشر الحالة
+  Widget _buildModelHeader(BuildContext context, ThemeData theme) {
+    final modelName = message.metadata?['model'] ?? 'مجهول';
+    final serviceName = message.metadata?['service'] ?? '';
+    final hasError = message.metadata?['type'] == 'connection_error';
+    final isSuccess = !hasError && message.content.isNotEmpty;
+    
+    // تحديد لون النص بناءً على التباين الذكي
+    final backgroundColor = theme.colorScheme.surface;
+    final isLightBackground = backgroundColor.computeLuminance() > 0.5;
+    final textColor = isLightBackground 
+        ? Colors.black.withOpacity(0.6)
+        : Colors.white.withOpacity(0.6);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColor.withOpacity(0.5),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: theme.colorScheme.outline.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // مؤشر الحالة (أخضر للنجاح، أحمر للفشل)
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: isSuccess ? Colors.green : Colors.red,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: (isSuccess ? Colors.green : Colors.red).withOpacity(0.3),
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          
+          // اسم النموذج
+          Flexible(
+            child: Text(
+              '$modelName${serviceName.isNotEmpty ? ' ($serviceName)' : ''}',
+              style: TextStyle(
+                fontSize: (theme.textTheme.bodySmall?.fontSize ?? 12) * 0.85,
+                fontFamily: theme.textTheme.bodyMedium?.fontFamily,
+                color: textColor,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          
+          // أيقونة الحالة
+          const SizedBox(width: 4),
+          Icon(
+            isSuccess ? Icons.check_circle_outline : Icons.error_outline,
+            size: 12,
+            color: isSuccess ? Colors.green : Colors.red,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // بناء مؤشر التفكير مع سهم متحرك
+  Widget _buildThinkingIndicator(BuildContext context, ThemeData theme) {
+    // تحديد لون النص بناءً على التباين الذكي
+    final backgroundColor = theme.colorScheme.surface;
+    final isLightBackground = backgroundColor.computeLuminance() > 0.5;
+    final textColor = isLightBackground 
+        ? Colors.black.withOpacity(0.7)
+        : Colors.white.withOpacity(0.7);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // سهم متحرك للتفكير
+          TweenAnimationBuilder<double>(
+            duration: const Duration(seconds: 1),
+            tween: Tween(begin: 0.0, end: 1.0),
+            builder: (context, value, child) {
+              return Transform.rotate(
+                angle: value * 6.28, // دورة كاملة
+                child: Icon(
+                  Icons.psychology,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 6),
+          
+          // نص التفكير
+          Flexible(
+            child: Text(
+              '🧠 عملية التفكير',
+              style: TextStyle(
+                fontSize: (theme.textTheme.bodySmall?.fontSize ?? 12) * 0.9,
+                fontFamily: theme.textTheme.bodyMedium?.fontFamily,
+                color: textColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          
+          // سهم للأسفل
+          const SizedBox(width: 4),
+          Icon(
+            Icons.keyboard_arrow_down,
+            size: 14,
+            color: theme.colorScheme.primary,
+          ),
+        ],
+      ),
+    );
   }
 }

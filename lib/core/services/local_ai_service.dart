@@ -1,20 +1,21 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
-
-import '../../data/models/message_model.dart';
 import '../utils/logger.dart';
+import 'base_api_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
+import '../../data/models/message_model.dart';
+import 'package:path_provider/path_provider.dart';
+
+
 
 /// خدمة الذكاء الاصطناعي المحلية (LocalAI)
 ///
 /// هذه الخدمة توفر واجهة للتفاعل مع نماذج الذكاء الاصطناعي المحلية
 /// المستضافة على جهاز المستخدم أو في الشبكة المحلية.
 /// يمكن استخدامها كاحتياط في حالة فشل الخدمات السحابية.
-class LocalAIService {
+class LocalAIService extends BaseAIService {
   static const String _baseUrl = 'http://localhost:8080';
   static const String _completionEndpoint = '/api/chat';
 
@@ -22,6 +23,9 @@ class LocalAIService {
   static final LocalAIService _instance = LocalAIService._internal();
   factory LocalAIService() => _instance;
   LocalAIService._internal();
+
+  @override
+  String get serviceName => 'LocalAI';
 
   /// المتغيرات الأساسية
   bool _isInitialized = false;
@@ -33,6 +37,7 @@ class LocalAIService {
   final Map<String, Map<String, dynamic>> _availableModels = {};
 
   /// تهيئة الخدمة
+  @override
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -145,12 +150,16 @@ class LocalAIService {
   }
 
   /// إرسال رسالة إلى نموذج الذكاء الاصطناعي المحلي
+  @override
   Future<String> sendMessage({
     required List<MessageModel> messages,
+    String? model,
+    double? temperature,
+    int? maxTokens,
     String? systemPrompt,
-    double temperature = 0.7,
-    int maxTokens = 2048,
-    List<String>? attachedFilesContent,
+    List<String>? attachedFiles,
+    List<Map<String, dynamic>>? tools,
+    bool? enableAutoFormatting, // إضافة معامل للتحكم في التنسيق
   }) async {
     try {
       if (!_isLocalServerRunning) {
@@ -178,23 +187,25 @@ class LocalAIService {
       }
 
       // إضافة محتوى الملفات المرفقة إذا كانت موجودة
-      if (attachedFilesContent != null && attachedFilesContent.isNotEmpty) {
+      if (attachedFiles != null && attachedFiles.isNotEmpty) {
         final userMessages = formattedMessages
             .where((msg) => msg['role'] == 'user')
             .toList();
         if (userMessages.isNotEmpty) {
           final lastUserMessage = userMessages.last;
           lastUserMessage['content'] =
-              '${lastUserMessage['content']}\n\n--- الملفات المرفقة ---\n${attachedFilesContent.join('\n\n')}';
+              '${lastUserMessage['content']}\n\n--- الملفات المرفقة ---\n${attachedFiles.join('\n\n')}';
         }
       }
 
       // إعداد طلب HTTP
       final requestBody = json.encode({
         'messages': formattedMessages,
-        'temperature': temperature,
-        'max_tokens': maxTokens,
+        'model': model, // إضافة دعم النموذج
+        'temperature': temperature ?? 0.7,
+        'max_tokens': maxTokens ?? 2048,
         'stream': false,
+        'tools': tools, // إضافة دعم الأدوات
       });
 
       LogHelper.debug('[LOCAL_AI] إرسال طلب للنموذج المحلي');
@@ -215,7 +226,13 @@ class LocalAIService {
             responseData['choices'][0]['message'] != null) {
           final content = responseData['choices'][0]['message']['content'];
           LogHelper.success('[LOCAL_AI] تم استلام الرد بنجاح');
-          return content;
+          
+          // تطبيق التنسيق الذكي فقط إذا كان مفعلاً
+          if (enableAutoFormatting ?? true) {
+            return _applySmartFormatting(content);
+          } else {
+            return content;
+          }
         } else {
           throw Exception('تنسيق الاستجابة غير صحيح');
         }
@@ -228,13 +245,23 @@ class LocalAIService {
     }
   }
 
+  /// تطبيق التنسيق الذكي على النص (تجاوز من BaseAIService)
+  @override
+  String _applySmartFormatting(String content) {
+    // LocalAI لا يحتاج تنسيق إضافي - إعادة النص كما هو
+    return content;
+  }
+
   /// إرسال رسالة إلى نموذج الذكاء الاصطناعي المحلي وإرجاع النتيجة كـ Stream
+  @override
   Stream<String> sendMessageStream({
     required List<MessageModel> messages,
+    String? model,
+    double? temperature,
+    int? maxTokens,
     String? systemPrompt,
-    double temperature = 0.7,
-    int maxTokens = 2048,
-    List<String>? attachedFilesContent,
+    List<String>? attachedFiles,
+    List<Map<String, dynamic>>? tools,
   }) async* {
     try {
       if (!_isLocalServerRunning) {
@@ -262,23 +289,25 @@ class LocalAIService {
       }
 
       // إضافة محتوى الملفات المرفقة إذا كانت موجودة
-      if (attachedFilesContent != null && attachedFilesContent.isNotEmpty) {
+      if (attachedFiles != null && attachedFiles.isNotEmpty) {
         final userMessages = formattedMessages
             .where((msg) => msg['role'] == 'user')
             .toList();
         if (userMessages.isNotEmpty) {
           final lastUserMessage = userMessages.last;
           lastUserMessage['content'] =
-              '${lastUserMessage['content']}\n\n--- الملفات المرفقة ---\n${attachedFilesContent.join('\n\n')}';
+              '${lastUserMessage['content']}\n\n--- الملفات المرفقة ---\n${attachedFiles.join('\n\n')}';
         }
       }
 
       // إعداد طلب HTTP
       final requestBody = json.encode({
         'messages': formattedMessages,
-        'temperature': temperature,
-        'max_tokens': maxTokens,
+        'model': model, // إضافة دعم النموذج
+        'temperature': temperature ?? 0.7,
+        'max_tokens': maxTokens ?? 2048,
         'stream': true,
+        'tools': tools, // إضافة دعم الأدوات
       });
 
       LogHelper.debug('[LOCAL_AI] إرسال طلب stream للنموذج المحلي');
@@ -344,6 +373,7 @@ class LocalAIService {
   String? get activeModel => _activeModel;
 
   /// تنظيف الموارد عند الانتهاء
+  @override
   void dispose() {
     // تنظيف الموارد إذا لزم الأمر
     LogHelper.info('[LOCAL_AI] تم تنظيف موارد خدمة الذكاء الاصطناعي المحلية');

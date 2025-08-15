@@ -160,10 +160,13 @@ class OptimizedAssets {
   static const String appIcon4 = 'assets/icons/app_icon4.png';
   static const String logo = 'assets/icons/logo_.png';
   static const String atlas = 'assets/icons/atlas.png';
+  static const String noBgIcon = 'assets/icons/no-bg-icon.png';
 
   // الخطوط
-  static const String cairoFont = 'assets/fonts/Cairo-Regular.ttf';
   static const String uthmanicFont = 'assets/fonts/uthmanic_hafs.ttf';
+  static const String amiriFont = 'assets/fonts/Amiri,Scheherazade_New/Amiri/Amiri-Regular.ttf';
+  static const String scheherazadeFont = 'assets/fonts/Amiri,Scheherazade_New/Scheherazade_New/ScheherazadeNew-Regular.ttf';
+  static const String boutrosFont = 'assets/fonts/BoutrosNewsH1-Bold.ttf';
 
   // البيانات
   static const String fineTuningData =
@@ -180,8 +183,11 @@ class OptimizedAssets {
       appIcon4,
       logo,
       atlas,
-      cairoFont,
+      noBgIcon,
       uthmanicFont,
+      amiriFont,
+      scheherazadeFont,
+      boutrosFont,
       fineTuningData,
       trainingData,
     ];
@@ -194,7 +200,7 @@ class OptimizedAssets {
 
   /// الحصول على قائمة الخطوط فقط
   static List<String> getFontAssets() {
-    return [cairoFont, uthmanicFont];
+    return [uthmanicFont, amiriFont, scheherazadeFont, boutrosFont];
   }
 
   /// الحصول على قائمة ملفات البيانات فقط

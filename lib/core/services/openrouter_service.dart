@@ -2,167 +2,108 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'base_api_service.dart';
+import 'package:uuid/uuid.dart';
+import '../config/app_config.dart';
+import 'package:flutter/foundation.dart';
 import '../../data/models/message_model.dart';
 
-class OpenRouterService {
+class OpenRouterService extends BaseApiService {
   static final OpenRouterService _instance = OpenRouterService._internal();
   factory OpenRouterService() => _instance;
   OpenRouterService._internal();
 
-  late final Dio _dio;
+  final _uuid = Uuid();
+  String _currentApiKey = '';
+
+
 
   void initialize() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: 'https://openrouter.ai/api/v1',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Atlas-AI/1.0',
-        },
-        connectTimeout: const Duration(seconds: 45),
-        receiveTimeout: const Duration(seconds: 120),
-        sendTimeout: const Duration(seconds: 45),
-      ),
+    if (isInitialized) return;
+
+    // الحصول على مفتاح API من التكوين
+    _currentApiKey = AppConfig.openRouterApiKey;
+    
+    if (_currentApiKey.isEmpty) {
+      if (kDebugMode) debugPrint('[OPENROUTER] ⚠️ لا يوجد مفتاح API - سيتم تعطيل الخدمة');
+      return;
+    }
+
+    // تهيئة الخدمة الأساسية
+    initializeBase(
+      serviceName: 'OpenRouter',
+      baseUrl: 'https://openrouter.ai/api/v1',
+      headers: {
+        'Authorization': 'Bearer $_currentApiKey',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Atlas-AI/1.0',
+        'HTTP-Referer': 'https://atlas-ai.app', // مطلوب لـ OpenRouter
+        'X-Title': 'Atlas AI - Arabic Assistant', // اختياري
+      },
     );
 
-    _dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (object) => print('[OPENROUTER API] $object'),
-      ),
-    );
-
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onError: (error, handler) {
-          print('[OPENROUTER ERROR] Type: ${error.type}, Message: ${error.message}');
-          if (error.type == DioExceptionType.connectionTimeout) {
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                error: 'Connection timeout - check your internet connection',
-                type: DioExceptionType.connectionTimeout,
-              ),
-            );
-          } else if (error.type == DioExceptionType.connectionError) {
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                error: 'Network connection error - check your internet connection',
-                type: DioExceptionType.connectionError,
-              ),
-            );
-          } else {
-            handler.next(error);
-          }
-        },
-      ),
-    );
+    if (kDebugMode) debugPrint('[OPENROUTER] ✅ تم تهيئة الخدمة بنجاح');
   }
 
-  /// تحديث مفتاح API
-  void updateApiKey(String newApiKey) {
-    _dio.options.headers['Authorization'] = 'Bearer $newApiKey';
+  @override
+  void updateApiKey(String newApiKey, {String prefix = 'Bearer'}) {
+    _currentApiKey = newApiKey;
+    super.updateApiKey(newApiKey, prefix: prefix);
+    if (kDebugMode) debugPrint('[OPENROUTER] 🔄 تم تحديث مفتاح API');
   }
 
-  /// الحصول على قائمة النماذج المتاحة
+  /// الحصول على قائمة النماذج المجانية المتاحة
   List<OpenRouterModel> getAvailableModels() {
-    return [
-      OpenRouterModel(
-        id: 'openai/gpt-3.5-turbo',
-        name: 'GPT-3.5 Turbo',
-        description: 'نموذج GPT-3.5 Turbo من OpenAI',
-        maxTokens: 4096,
-        contextLength: 4096,
-        provider: 'OpenAI',
-      ),
-      OpenRouterModel(
-        id: 'openai/gpt-4',
-        name: 'GPT-4',
-        description: 'نموذج GPT-4 من OpenAI',
-        maxTokens: 8192,
-        contextLength: 8192,
-        provider: 'OpenAI',
-      ),
-      OpenRouterModel(
-        id: 'openai/gpt-4-turbo',
-        name: 'GPT-4 Turbo',
-        description: 'نموذج GPT-4 Turbo من OpenAI',
-        maxTokens: 128000,
-        contextLength: 128000,
-        provider: 'OpenAI',
-      ),
-      OpenRouterModel(
-        id: 'anthropic/claude-3-haiku',
-        name: 'Claude 3 Haiku',
-        description: 'نموذج Claude 3 Haiku من Anthropic',
-        maxTokens: 4096,
-        contextLength: 4096,
-        provider: 'Anthropic',
-      ),
-      OpenRouterModel(
-        id: 'anthropic/claude-3-sonnet',
-        name: 'Claude 3 Sonnet',
-        description: 'نموذج Claude 3 Sonnet من Anthropic',
-        maxTokens: 4096,
-        contextLength: 4096,
-        provider: 'Anthropic',
-      ),
-      OpenRouterModel(
-        id: 'anthropic/claude-3-opus',
-        name: 'Claude 3 Opus',
-        description: 'نموذج Claude 3 Opus من Anthropic',
-        maxTokens: 4096,
-        contextLength: 4096,
-        provider: 'Anthropic',
-      ),
-      OpenRouterModel(
-        id: 'google/gemini-pro',
-        name: 'Gemini Pro',
-        description: 'نموذج Gemini Pro من Google',
-        maxTokens: 8192,
-        contextLength: 8192,
-        provider: 'Google',
-      ),
-      OpenRouterModel(
-        id: 'meta-llama/llama-2-13b-chat',
-        name: 'Llama 2 13B Chat',
-        description: 'نموذج Llama 2 13B من Meta',
-        maxTokens: 4096,
-        contextLength: 4096,
-        provider: 'Meta',
-      ),
-      OpenRouterModel(
-        id: 'meta-llama/llama-2-70b-chat',
-        name: 'Llama 2 70B Chat',
-        description: 'نموذج Llama 2 70B من Meta',
-        maxTokens: 4096,
-        contextLength: 4096,
-        provider: 'Meta',
-      ),
-      OpenRouterModel(
-        id: 'mistralai/mistral-7b-instruct',
-        name: 'Mistral 7B Instruct',
-        description: 'نموذج Mistral 7B من Mistral AI',
-        maxTokens: 4096,
-        contextLength: 4096,
-        provider: 'Mistral AI',
-      ),
-      OpenRouterModel(
-        id: 'mistralai/mixtral-8x7b-instruct',
-        name: 'Mixtral 8x7B Instruct',
-        description: 'نموذج Mixtral 8x7B من Mistral AI',
-        maxTokens: 4096,
-        contextLength: 4096,
-        provider: 'Mistral AI',
-      ),
-    ];
+    final models = <OpenRouterModel>[];
+    
+    // الحصول على النماذج المجانية من التكوين
+    final freeModels = AppConfig.freeModels['openrouter'] ?? [];
+    
+    for (final modelConfig in freeModels) {
+      models.add(OpenRouterModel(
+        id: modelConfig['id'] ?? '',
+        name: modelConfig['name'] ?? '',
+        description: modelConfig['description'] ?? '',
+        maxTokens: _parseTokens(modelConfig['context'] ?? '4K tokens'),
+        contextLength: _parseTokens(modelConfig['context'] ?? '4K tokens'),
+        provider: modelConfig['provider'] ?? 'Unknown',
+        isFree: modelConfig['isFree'] ?? false,
+        tokens: modelConfig['tokens'] ?? '',
+        features: List<String>.from(modelConfig['features'] ?? []),
+        speed: modelConfig['speed'] ?? 'متوسط',
+        quality: modelConfig['quality'] ?? 'جيد',
+      ));
+    }
+    
+    if (kDebugMode) debugPrint('[OPENROUTER] ✅ تم تحميل ${models.length} نموذج مجاني');
+    return models;
+  }
+
+  /// تحويل نص السياق إلى رقم (مثل "131K tokens" إلى 131000)
+  int _parseTokens(String contextText) {
+    final regex = RegExp(r'(\d+(?:\.\d+)?)([KM]?)\s*tokens?', caseSensitive: false);
+    final match = regex.firstMatch(contextText);
+    
+    if (match != null) {
+      final number = double.tryParse(match.group(1) ?? '0') ?? 0;
+      final unit = match.group(2)?.toUpperCase() ?? '';
+      
+      switch (unit) {
+        case 'K':
+          return (number * 1000).round();
+        case 'M':
+          return (number * 1000000).round();
+        default:
+          return number.round();
+      }
+    }
+    
+    return 4096; // قيمة افتراضية
   }
 
   Future<Stream<String>> sendMessageStream({
     required List<MessageModel> messages,
-    required String modelId,
+    required String model,
     double? temperature,
     int? maxTokens,
     String? systemPrompt,
@@ -194,17 +135,19 @@ class OpenRouterService {
       }
 
       final requestData = {
-        'model': modelId,
+        'model': model,
         'messages': requestMessages,
         'temperature': temperature ?? 0.7,
         'max_tokens': maxTokens ?? 2048,
         'stream': true,
       };
 
-      print('[OPENROUTER] Sending request to model: $modelId');
-      print('[OPENROUTER] Request data: ${jsonEncode(requestData)}');
+      if (kDebugMode) {
+        debugPrint('[OPENROUTER] Sending request to model: $model');
+        debugPrint('[OPENROUTER] Request data: ${jsonEncode(requestData)}');
+      }
 
-      final response = await _dio.post(
+      final response = await post(
         '/chat/completions',
         data: requestData,
         options: Options(
@@ -215,7 +158,7 @@ class OpenRouterService {
 
       return _parseStreamResponse(response.data);
     } on DioException catch (e) {
-      print('[OPENROUTER DIO ERROR] Type: ${e.type}, Message: ${e.message}');
+      if (kDebugMode) debugPrint('[OPENROUTER DIO ERROR] Type: ${e.type}, Message: ${e.message}');
       
       switch (e.type) {
         case DioExceptionType.connectionTimeout:
@@ -246,7 +189,7 @@ class OpenRouterService {
           throw OpenRouterException('خطأ غير متوقع مع OpenRouter: ${e.message}');
       }
     } catch (e) {
-      print('[OPENROUTER GENERAL ERROR] $e');
+      if (kDebugMode) debugPrint('[OPENROUTER GENERAL ERROR] $e');
       throw OpenRouterException('فشل في إرسال الرسالة لـ OpenRouter: $e');
     }
   }
@@ -280,20 +223,21 @@ class OpenRouterService {
                 }
               }
             } catch (e) {
-              print('[OPENROUTER PARSE ERROR] Failed to parse: $data, Error: $e');
+              if (kDebugMode) debugPrint('[OPENROUTER PARSE ERROR] Failed to parse: $data, Error: $e');
             }
           }
         }
       } catch (e) {
-        print('[OPENROUTER ENCODING ERROR] Failed to decode chunk: $e');
+        if (kDebugMode) debugPrint('[OPENROUTER ENCODING ERROR] Failed to decode chunk: $e');
         continue;
       }
     }
   }
 
-  Future<String> sendMessage({
+  /// دالة sendMessage الأساسية (API الجديد)
+  Future<String> sendMessageWithModelId({
     required List<MessageModel> messages,
-    required String modelId,
+    required String model,
     double? temperature,
     int? maxTokens,
     String? systemPrompt,
@@ -301,7 +245,7 @@ class OpenRouterService {
   }) async {
     final stream = await sendMessageStream(
       messages: messages,
-      modelId: modelId,
+      model: model,
       temperature: temperature,
       maxTokens: maxTokens,
       systemPrompt: systemPrompt,
@@ -316,9 +260,34 @@ class OpenRouterService {
     return buffer.toString();
   }
 
-  void dispose() {
-    _dio.close();
+  /// دالة sendMessage المتوافقة مع ChatProvider (API القديم)
+  Future<String> sendMessage({
+    required List<MessageModel> messages,
+    required String model, // model بدلاً من model
+    double? temperature,
+    int? maxTokens,
+    String? systemPrompt,
+    List<String>? attachedFiles,
+    bool? enableAutoFormatting, // إضافة معامل للتحكم في التنسيق
+  }) async {
+    final response = await sendMessageWithModelId(
+      messages: messages,
+      model: model, // تمرير model كـ model
+      temperature: temperature,
+      maxTokens: maxTokens,
+      systemPrompt: systemPrompt,
+      attachedFiles: attachedFiles,
+    );
+    
+    // تطبيق التنسيق الذكي فقط إذا كان مفعلاً
+    if (enableAutoFormatting ?? true) {
+      // OpenRouter لا يحتوي على _applySmartFormatting، لذا نعيد النص كما هو
+      return response;
+    } else {
+      return response;
+    }
   }
+
 }
 
 class OpenRouterModel {
@@ -328,6 +297,11 @@ class OpenRouterModel {
   final int maxTokens;
   final int contextLength;
   final String provider;
+  final bool isFree;
+  final String tokens;
+  final List<String> features;
+  final String speed;
+  final String quality;
 
   OpenRouterModel({
     required this.id,
@@ -336,10 +310,32 @@ class OpenRouterModel {
     required this.maxTokens,
     required this.contextLength,
     required this.provider,
+    this.isFree = false,
+    this.tokens = '',
+    this.features = const [],
+    this.speed = 'متوسط',
+    this.quality = 'جيد',
   });
 
   @override
-  String toString() => '$name ($provider)';
+  String toString() => '$name ($provider)${isFree ? " - مجاني" : ""}';
+  
+  /// تحويل إلى Map للعرض في الواجهة
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'maxTokens': maxTokens,
+      'contextLength': contextLength,
+      'provider': provider,
+      'isFree': isFree,
+      'tokens': tokens,
+      'features': features,
+      'speed': speed,
+      'quality': quality,
+    };
+  }
 }
 
 class OpenRouterException implements Exception {

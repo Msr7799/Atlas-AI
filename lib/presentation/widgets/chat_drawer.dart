@@ -1,11 +1,11 @@
+import 'settings_dialog.dart';
+import 'chat_export_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/theme_provider.dart';
-import '../providers/chat_selection_provider.dart';
 import '../../data/models/message_model.dart';
-import 'chat_export_dialog.dart';
-import 'settings_dialog.dart';
+import '../providers/chat_selection_provider.dart';
 
 class ChatDrawer extends StatelessWidget {
   const ChatDrawer({super.key});
@@ -97,6 +97,7 @@ class ChatDrawer extends StatelessWidget {
                           chatProvider,
                           true,
                           selectionProvider,
+                          selectionProvider.getSelectedMessages(chatProvider.messages),
                         );
                         Navigator.pop(context);
                       },
@@ -106,8 +107,9 @@ class ChatDrawer extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.download_outlined),
                     title: const Text('تصدير جميع المحادثات'),
-                    onTap: () {
-                      _showExportDialog(context, chatProvider, false, null);
+                    onTap: () async {
+                      final allMessages = await chatProvider.getAllMessagesFromAllSessions();
+                      _showExportDialog(context, chatProvider, false, null, allMessages);
                       Navigator.pop(context);
                     },
                   ),
@@ -129,20 +131,74 @@ class ChatDrawer extends StatelessWidget {
 
           const Divider(),
 
+          // Storage Note
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.storage,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'الحد الأقصى للمحادثات المحفوظة: 50 محادثة أو 100 ميجا',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Sessions List
           Expanded(
             child: Consumer<ChatProvider>(
               builder: (context, chatProvider, child) {
+                // عرض محادثة فارغة بدلاً من infinite loop خطير
                 if (chatProvider.sessions.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.history, size: 48, color: Colors.grey),
-                        SizedBox(height: 16),
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        const SizedBox(height: 16),
                         Text(
                           'لا توجد محادثات محفوظة',
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'ابدأ محادثة جديدة لحفظها',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            await chatProvider.loadSessions();
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('إعادة تحميل'),
                         ),
                       ],
                     ),
@@ -209,50 +265,84 @@ class ChatDrawer extends StatelessWidget {
     ChatSessionModel session,
     ChatProvider chatProvider,
   ) {
-    return Card(
+    final isCurrentSession = session.id == chatProvider.currentSessionId;
+    
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: isCurrentSession 
+          ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+          : null,
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.primary.withOpacity(0.1),
+          backgroundColor: isCurrentSession 
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.primaryContainer,
           child: Icon(
-            Icons.chat,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
+            isCurrentSession ? Icons.chat_bubble : Icons.chat_bubble_outline,
+            color: isCurrentSession 
+              ? Theme.of(context).colorScheme.onPrimary
+              : Theme.of(context).colorScheme.onPrimaryContainer,
           ),
         ),
         title: Text(
           session.title,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          _formatDate(session.updatedAt),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          style: TextStyle(
+            fontWeight: isCurrentSession ? FontWeight.bold : FontWeight.normal,
           ),
         ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _formatDate(session.createdAt),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            if (isCurrentSession)
+              Text(
+                '● الجلسة الحالية',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+          ],
+        ),
         trailing: PopupMenuButton<String>(
-          onSelected: (value) {
+          onSelected: (value) async {
             switch (value) {
+              case 'rename':
+                _showRenameDialog(context, session, chatProvider);
+                break;
               case 'delete':
                 _showDeleteConfirmation(context, session.id, chatProvider);
                 break;
-              case 'rename':
-                _showRenameDialog(context, session, chatProvider);
+              case 'export':
+                await _showSessionExportDialog(context, session, chatProvider);
                 break;
             }
           },
           itemBuilder: (context) => [
             const PopupMenuItem(
+              value: 'export',
+              child: Row(
+                children: [
+                  Icon(Icons.download, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text('تصدير الجلسة', style: TextStyle(color: Colors.blue)),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
               value: 'rename',
               child: Row(
                 children: [
-                  Icon(Icons.edit, size: 18),
+                  Icon(Icons.edit),
                   SizedBox(width: 8),
                   Text('إعادة تسمية'),
                 ],
@@ -262,7 +352,7 @@ class ChatDrawer extends StatelessWidget {
               value: 'delete',
               child: Row(
                 children: [
-                  Icon(Icons.delete, size: 18, color: Colors.red),
+                  Icon(Icons.delete, color: Colors.red),
                   SizedBox(width: 8),
                   Text('حذف', style: TextStyle(color: Colors.red)),
                 ],
@@ -270,9 +360,21 @@ class ChatDrawer extends StatelessWidget {
             ),
           ],
         ),
-        onTap: () {
-          chatProvider.loadSession(session.id);
-          Navigator.pop(context);
+        onTap: () async {
+          print('🔄 [DRAWER] محاولة تحميل الجلسة: ${session.title}');
+          try {
+            await chatProvider.loadSession(session.id);
+            Navigator.pop(context);
+            print('✅ [DRAWER] تم تحميل الجلسة بنجاح');
+          } catch (e) {
+            print('❌ [DRAWER] خطأ في تحميل الجلسة: $e');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('خطأ في تحميل المحادثة: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         },
       ),
     );
@@ -397,19 +499,15 @@ class ChatDrawer extends StatelessWidget {
     ChatProvider chatProvider,
     bool exportSelected,
     ChatSelectionProvider? selectionProvider,
+    List<MessageModel> messagesToExport,
   ) {
-    List<MessageModel> messagesToExport;
     String dialogTitle;
 
     if (exportSelected && selectionProvider != null) {
       // تصدير الرسائل المحددة
-      messagesToExport = chatProvider.messages
-          .where((msg) => selectionProvider.selectedMessageIds.contains(msg.id))
-          .toList();
       dialogTitle = 'تصدير الرسائل المحددة (${messagesToExport.length})';
     } else {
       // تصدير جميع الرسائل
-      messagesToExport = chatProvider.messages;
       dialogTitle = 'تصدير جميع المحادثات';
     }
 
@@ -451,5 +549,44 @@ class ChatDrawer extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// عرض حوار تصدير جلسة محددة
+  Future<void> _showSessionExportDialog(
+    BuildContext context,
+    ChatSessionModel session,
+    ChatProvider chatProvider,
+  ) async {
+    try {
+      // تحميل رسائل الجلسة المحددة
+      final sessionMessages = await chatProvider.getSessionMessages(session.id);
+      
+      if (!context.mounted) return;
+      
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
+            child: ChatExportDialog(
+              messages: sessionMessages,
+              chatTitle: '${session.title} - ${_formatDate(session.createdAt)}',
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('خطأ في تحميل الجلسة للتصدير: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

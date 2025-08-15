@@ -489,7 +489,7 @@ final gptgodModels = ApiKeyManager.getFreeModels('gptgod');
 final modelInfo = ApiKeyManager.getModelInfo('groq', 'llama3-8b-8192');
 
 // الحصول على قائمة أسماء النماذج فقط
-final modelIds = ApiKeyManager.getFreeModelIds('groq');
+final model = ApiKeyManager.getFreemodels('groq');
 ```
 
 ### Tooltip للنماذج

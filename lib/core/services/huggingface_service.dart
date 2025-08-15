@@ -2,48 +2,43 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'base_api_service.dart';
+import 'package:flutter/foundation.dart';
 import '../../data/models/message_model.dart';
 
-class HuggingFaceService {
+class HuggingFaceService extends BaseApiService {
   static final HuggingFaceService _instance = HuggingFaceService._internal();
   factory HuggingFaceService() => _instance;
   HuggingFaceService._internal();
 
-  late final Dio _dio;
-  String _apiKey =
-      ''; // Restored _apiKey field since it's used in updateApiKey method
-  bool _isInitialized = false;
+  String _apiKey = '';
 
-  void initialize() {
-    if (_isInitialized) return; // منع التهيئة المتكررة
+  @override
+  Future<void> initialize() async {
+    if (isInitialized) return; // منع التهيئة المتكررة
 
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: 'https://api-inference.huggingface.co',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Atlas-AI/1.0',
-        },
-        connectTimeout: const Duration(seconds: 45),
-        receiveTimeout: const Duration(seconds: 120),
-        sendTimeout: const Duration(seconds: 45),
-      ),
+    // استخدام BaseApiService.initializeBase
+    initializeBase(
+      serviceName: 'HuggingFace',
+      baseUrl: 'https://api-inference.huggingface.co',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Atlas-AI/1.0',
+      },
+      connectTimeout: const Duration(seconds: 45),
+      receiveTimeout: const Duration(seconds: 120),
+      sendTimeout: const Duration(seconds: 45),
     );
 
-    _dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (object) => print('[HUGGINGFACE API] $object'),
-      ),
-    );
-
-    _dio.interceptors.add(
+    // إضافة معالج أخطاء مخصص لـ HuggingFace
+    dio.interceptors.add(
       InterceptorsWrapper(
         onError: (error, handler) {
-          print(
+          if (kDebugMode) {
+            print(
             '[HUGGINGFACE ERROR] Type: ${error.type}, Message: ${error.message}',
           );
+          }
           if (error.type == DioExceptionType.connectionTimeout) {
             handler.reject(
               DioException(
@@ -67,14 +62,13 @@ class HuggingFaceService {
         },
       ),
     );
-
-    _isInitialized = true; // تأكيد التهيئة
   }
 
   /// تحديث مفتاح API
-  void updateApiKey(String newApiKey) {
+  @override
+  void updateApiKey(String newApiKey, {String prefix = 'Bearer'}) {
     _apiKey = newApiKey;
-    _dio.options.headers['Authorization'] = 'Bearer $_apiKey';
+    super.updateApiKey(newApiKey, prefix: prefix);
   }
 
   /// الحصول على مفتاح API الحالي
@@ -126,25 +120,18 @@ class HuggingFaceService {
         contextLength: 2048,
       ),
       HuggingFaceModel(
-        id: 'tiiuae/falcon-7b-instruct',
-        name: 'Falcon 7B Instruct',
-        description: 'نموذج Falcon 7B تعليمي',
-        maxTokens: 4096,
-        contextLength: 4096,
-      ),
-      HuggingFaceModel(
-        id: 'tiiuae/falcon-40b-instruct',
-        name: 'Falcon 40B Instruct',
-        description: 'نموذج Falcon 40B تعليمي',
-        maxTokens: 4096,
-        contextLength: 4096,
+        id: 'microsoft/DialoGPT-large',
+        name: 'DialoGPT Large',
+        description: 'نموذج DialoGPT كبير الحجم',
+        maxTokens: 2048,
+        contextLength: 2048,
       ),
     ];
   }
 
   Future<Stream<String>> sendMessageStream({
     required List<MessageModel> messages,
-    required String modelId,
+    required String model,
     double? temperature,
     int? maxTokens,
     String? systemPrompt,
@@ -166,11 +153,11 @@ class HuggingFaceService {
         'options': {'wait_for_model': true},
       };
 
-      print('[HUGGINGFACE] Sending request to model: $modelId');
-      print('[HUGGINGFACE] Request data: ${jsonEncode(requestData)}');
+      if (kDebugMode) print('[HUGGINGFACE] Sending request to model: $model');
+      if (kDebugMode) print('[HUGGINGFACE] Request data: ${jsonEncode(requestData)}');
 
-      final response = await _dio.post(
-        '/models/$modelId',
+      final response = await dio.post(
+        '/models/$model',
         data: requestData,
         options: Options(
           responseType: ResponseType.stream,
@@ -180,7 +167,7 @@ class HuggingFaceService {
 
       return _parseStreamResponse(response.data);
     } on DioException catch (e) {
-      print('[HUGGINGFACE DIO ERROR] Type: ${e.type}, Message: ${e.message}');
+      if (kDebugMode) print('[HUGGINGFACE DIO ERROR] Type: ${e.type}, Message: ${e.message}');
 
       switch (e.type) {
         case DioExceptionType.connectionTimeout:
@@ -227,7 +214,7 @@ class HuggingFaceService {
           );
       }
     } catch (e) {
-      print('[HUGGINGFACE GENERAL ERROR] $e');
+      if (kDebugMode) print('[HUGGINGFACE GENERAL ERROR] $e');
       throw HuggingFaceException('فشل في إرسال الرسالة لـ Hugging Face: $e');
     }
   }
@@ -291,14 +278,16 @@ class HuggingFaceService {
                 yield generatedText;
               }
             } catch (e) {
-              print(
+              if (kDebugMode) {
+                print(
                 '[HUGGINGFACE PARSE ERROR] Failed to parse: $data, Error: $e',
               );
+              }
             }
           }
         }
       } catch (e) {
-        print('[HUGGINGFACE ENCODING ERROR] Failed to decode chunk: $e');
+        if (kDebugMode) print('[HUGGINGFACE ENCODING ERROR] Failed to decode chunk: $e');
         continue;
       }
     }
@@ -306,15 +295,16 @@ class HuggingFaceService {
 
   Future<String> sendMessage({
     required List<MessageModel> messages,
-    required String modelId,
+    required String model,
     double? temperature,
     int? maxTokens,
     String? systemPrompt,
     List<String>? attachedFiles,
+    bool? enableAutoFormatting, // إضافة معامل للتحكم في التنسيق
   }) async {
     final stream = await sendMessageStream(
       messages: messages,
-      modelId: modelId,
+      model: model,
       temperature: temperature,
       maxTokens: maxTokens,
       systemPrompt: systemPrompt,
@@ -327,8 +317,13 @@ class HuggingFaceService {
     }
 
     final rawResponse = buffer.toString();
-    // تطبيق التنسيق الذكي على الرد النهائي
-    return _applySmartFormatting(rawResponse);
+    
+    // تطبيق التنسيق الذكي فقط إذا كان مفعلاً
+    if (enableAutoFormatting ?? true) {
+      return _applySmartFormatting(rawResponse);
+    } else {
+      return rawResponse;
+    }
   }
 
   // خوارزميات ذكية لتحسين ردود النماذج
@@ -492,8 +487,9 @@ class HuggingFaceService {
     return content;
   }
 
+  @override
   void dispose() {
-    _dio.close();
+    dio.close();
   }
 }
 

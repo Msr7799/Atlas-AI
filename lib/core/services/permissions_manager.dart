@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 
 class PermissionsManager {
   static final PermissionsManager _instance = PermissionsManager._internal();
@@ -126,31 +127,31 @@ class PermissionsManager {
       final status = await permission.status;
 
       if (status.isGranted) {
-        print('[PERMISSIONS] ✅ إذن $name: مُمنوح');
+        if (kDebugMode) print('[PERMISSIONS] ✅ إذن $name: مُمنوح');
         return true;
       }
 
       if (status.isDenied) {
-        print('[PERMISSIONS] ⚠️ إذن $name: مرفوض، جار طلب الإذن...');
+        if (kDebugMode) print('[PERMISSIONS] ⚠️ إذن $name: مرفوض، جار طلب الإذن...');
         final newStatus = await permission.request();
 
         if (newStatus.isGranted) {
-          print('[PERMISSIONS] ✅ إذن $name: تم منحه');
+          if (kDebugMode) print('[PERMISSIONS] ✅ إذن $name: تم منحه');
           return true;
         } else {
-          print('[PERMISSIONS] ❌ إذن $name: مرفوض من المستخدم');
+          if (kDebugMode) print('[PERMISSIONS] ❌ إذن $name: مرفوض من المستخدم');
           return false;
         }
       }
 
       if (status.isPermanentlyDenied) {
-        print('[PERMISSIONS] 🚫 إذن $name: مرفوض نهائياً');
+        if (kDebugMode) print('[PERMISSIONS] 🚫 إذن $name: مرفوض نهائياً');
         return false;
       }
 
       return false;
     } catch (e) {
-      print('[PERMISSIONS] ❌ خطأ في فحص إذن $name: $e');
+      if (kDebugMode) print('[PERMISSIONS] ❌ خطأ في فحص إذن $name: $e');
       return false;
     }
   }
@@ -160,7 +161,7 @@ class PermissionsManager {
     try {
       return await openAppSettings();
     } catch (e) {
-      print('[PERMISSIONS] خطأ في فتح إعدادات التطبيق: $e');
+      if (kDebugMode) print('[PERMISSIONS] خطأ في فتح إعدادات التطبيق: $e');
       return false;
     }
   }
@@ -171,7 +172,7 @@ class PermissionsManager {
       final status = await permission.status;
       return status.isGranted;
     } catch (e) {
-      print('[PERMISSIONS] خطأ في فحص الإذن: $e');
+      if (kDebugMode) print('[PERMISSIONS] خطأ في فحص الإذن: $e');
       return false;
     }
   }
@@ -182,7 +183,7 @@ class PermissionsManager {
       final status = await permission.request();
       return status.isGranted;
     } catch (e) {
-      print('[PERMISSIONS] خطأ في طلب الإذن: $e');
+      if (kDebugMode) print('[PERMISSIONS] خطأ في طلب الإذن: $e');
       return false;
     }
   }
@@ -214,7 +215,7 @@ class PermissionsManager {
         }
       }
     } catch (e) {
-      print('[PERMISSIONS] خطأ في فحص جميع الأذونات: $e');
+      if (kDebugMode) print('[PERMISSIONS] خطأ في فحص جميع الأذونات: $e');
     }
 
     return permissions;
@@ -222,9 +223,9 @@ class PermissionsManager {
 
   /// طباعة تقرير الأذونات
   Future<void> printPermissionsReport() async {
-    print('\n═══════════════════════════════════════');
-    print('📋 ATLAS AI - PERMISSIONS REPORT');
-    print('═══════════════════════════════════════');
+    if (kDebugMode) print('\n═══════════════════════════════════════');
+    if (kDebugMode) print('📋 ATLAS AI - PERMISSIONS REPORT');
+    if (kDebugMode) print('═══════════════════════════════════════');
 
     final permissions = await checkAllPermissions();
 
@@ -238,10 +239,10 @@ class PermissionsManager {
           ? '🚫'
           : '❓';
 
-      print('$icon ${entry.key}: ${_getStatusText(status)}');
+      if (kDebugMode) print('$icon ${entry.key}: ${_getStatusText(status)}');
     }
 
-    print('═══════════════════════════════════════\n');
+    if (kDebugMode) print('═══════════════════════════════════════\n');
   }
 
   String _getStatusText(PermissionStatus status) {

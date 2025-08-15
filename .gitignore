@@ -57,10 +57,16 @@ config.md
 # Analysis files
 anaylze.md
 
-
 docs/
+
 .vscode/
 
 scripts/
 
-UX_IMPROVEMENT_REPORT.md
+test/
+
+chat_history.db
+
+analysis_diagrams/
+
+test-bahraini-dataset.txt

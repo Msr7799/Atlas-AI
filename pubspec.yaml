@@ -1,4 +1,4 @@
-name: atlas_ai
+name: atlas
 description: "Atlas AI - AI Assistant with Arabic Language Support - Developed by Mohamed S AL-Romaihi"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -31,6 +31,8 @@ dependencies:
   flutter:
     sdk: flutter
   
+  # Use with the CupertinoIcons class for iOS style icons.
+
   # إضافة دعم اللغة العربية والترجمة
   flutter_localizations:
     sdk: flutter
@@ -46,8 +48,14 @@ dependencies:
   # إزالة dio لتقليل حجم الحزمة
   dio: ^5.3.4
   
+  # Cryptography for API key encryption
+  crypto: ^3.0.3
+  
   # Local Storage
   shared_preferences: ^2.2.2
+  
+  # Image Selection
+  image_picker: ^1.0.4
   
   # Permissions & Device Info
   permission_handler: ^11.3.1
@@ -100,7 +108,7 @@ dependencies:
   
   # Voice & Speech
   speech_to_text: ^7.2.0
-  flutter_tts: ^3.8.5
+  flutter_tts: ^3.8.5 
   
   # Icons & Animations - إزالة lottie لتقليل الحجم
   # lottie: ^2.7.0
@@ -108,6 +116,7 @@ dependencies:
   # Utilities
   uuid: ^4.1.0
   json_annotation: ^4.8.1
+  url_launcher: ^6.2.4
   
   # MCP Integration
   web_socket_channel: ^2.4.0
@@ -121,6 +130,11 @@ dev_dependencies:
   json_serializable: ^6.7.1
   build_runner: ^2.4.7
   flutter_launcher_icons: ^0.14.4
+  
+
+  # Test dependencies
+  mockito: ^5.4.2
+  sqflite_common_ffi: ^2.3.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -138,11 +152,15 @@ flutter:
     - assets/icons/
     - assets/icons/app_icon1.png
     - assets/icons/ATLAS_icon2.png
+    - assets/icons/no-bg-icon.png
+    - assets/icons/no-bg-icon1.png
+    - assets/icons/ball_ani.gif
+    - assets/icons/neon_chat_icon2.gif
+    - assets/icons/gif_icon.gif
     # إزالة الأصول غير الضرورية
     # - assets/sounds/
     - assets/data/
     - assets/data/specialized_datasets/
-    - assets/data/specialized_datasets/bahraini-dataset.txt
     - .env
     # إزالة config.md
     # - config.md
@@ -175,15 +193,35 @@ flutter:
 
   # الخطوط المخصصة للتطبيق
   fonts:
-    - family: Cairo
-      fonts:
-        - asset: assets/fonts/Cairo-Regular.ttf
-          weight: 400
     - family: Uthmanic
       fonts:
         - asset: assets/fonts/uthmanic_hafs.ttf
+    # خطوط عربية جديدة - Amiri Family
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri/Amiri-Regular.ttf
           weight: 400
-
+        - asset: assets/fonts/Amiri/Amiri-Bold.ttf
+          weight: 700
+    # خطوط عربية جديدة - Scheherazade New Family  
+    - family: Scheherazade_New
+      fonts:
+        - asset: assets/fonts/Scheherazade_New/ScheherazadeNew-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Scheherazade_New/ScheherazadeNew-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Scheherazade_New/ScheherazadeNew-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Scheherazade_New/ScheherazadeNew-Bold.ttf
+          weight: 700
+    
+    
+    
+    - family: Boutros
+      fonts: 
+        - asset: assets/fonts/BoutrosNewsH1-Bold.ttf
+          weight: 700
+ 
 # تكوين أيقونة التطبيق لجميع المنصات
 flutter_launcher_icons:
   android: true

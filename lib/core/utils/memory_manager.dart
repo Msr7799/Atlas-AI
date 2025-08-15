@@ -78,39 +78,158 @@ class MemoryManager {
 
 /// مزيج لتحسين إدارة الذاكرة في StatefulWidget
 mixin MemoryOptimizedMixin<T extends StatefulWidget> on State<T> {
-  final MemoryManager _memoryManager = MemoryManager();
+  // استخدام instance منفصل لكل widget بدلاً من singleton
+  final Map<String, dynamic> _localResources = {};
+  final Map<String, VoidCallback> _localDisposers = {};
+  final Set<String> _disposedKeys = {}; // تتبع ما تم تنظيفه بالفعل
+  bool _isDisposed = false;
 
   @override
   void dispose() {
-    _memoryManager.clearAll();
+    if (!_isDisposed) {
+      _disposeLocalResources();
+      _isDisposed = true;
+    }
     super.dispose();
+  }
+
+  /// تنظيف الموارد المحلية فقط
+  void _disposeLocalResources() {
+    try {
+      for (final key in List.from(_localDisposers.keys)) {
+        if (_disposedKeys.contains(key)) {
+          continue; // تم تنظيفه بالفعل
+        }
+        
+        final disposer = _localDisposers[key];
+        if (disposer != null) {
+          try {
+            disposer();
+            _disposedKeys.add(key); // تمييز أنه تم تنظيفه
+            if (kDebugMode) {
+              print('تم تنظيف المورد المحلي: $key');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('خطأ في تنظيف المورد $key: $e');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('خطأ في تنظيف الموارد المحلية: $e');
+      }
+    } finally {
+      _localResources.clear();
+      _localDisposers.clear();
+      _disposedKeys.clear();
+    }
   }
 
   /// تسجيل AnimationController
   void registerAnimationController(String key, AnimationController controller) {
-    _memoryManager.registerResource(key, controller, () {
-      controller.dispose();
-    });
+    if (_isDisposed) return;
+    
+    // تنظيف المورد السابق إذا كان موجوداً
+    _removeLocalResource(key);
+    
+    _localResources[key] = controller;
+    _localDisposers[key] = () {
+      try {
+        controller.dispose();
+      } catch (e) {
+        if (kDebugMode) {
+          print('خطأ في تنظيف AnimationController: $e');
+        }
+      }
+    };
+    
+    if (kDebugMode) {
+      print('تم تسجيل AnimationController: $key');
+    }
   }
 
   /// تسجيل TextEditingController
   void registerTextController(String key, TextEditingController controller) {
-    _memoryManager.registerResource(key, controller, () {
+    if (_isDisposed) return;
+    
+    _removeLocalResource(key);
+    
+    _localResources[key] = controller;
+    _localDisposers[key] = () {
       controller.dispose();
-    });
+    };
+    
+    if (kDebugMode) {
+      print('تم تسجيل TextEditingController: $key');
+    }
   }
 
   /// تسجيل ScrollController
   void registerScrollController(String key, ScrollController controller) {
-    _memoryManager.registerResource(key, controller, () {
-      controller.dispose();
-    });
+    if (_isDisposed) return;
+    
+    _removeLocalResource(key);
+    
+    _localResources[key] = controller;
+    _localDisposers[key] = () {
+      if (controller.hasClients) {
+        controller.dispose();
+      }
+    };
+    
+    if (kDebugMode) {
+      print('تم تسجيل ScrollController: $key');
+    }
   }
 
   /// تسجيل FocusNode
   void registerFocusNode(String key, FocusNode node) {
-    _memoryManager.registerResource(key, node, () {
+    if (_isDisposed) return;
+    
+    _removeLocalResource(key);
+    
+    _localResources[key] = node;
+    _localDisposers[key] = () {
       node.dispose();
-    });
+    };
+    
+    if (kDebugMode) {
+      print('تم تسجيل FocusNode: $key');
+    }
+  }
+
+  /// إزالة مورد محلي
+  void _removeLocalResource(String key) {
+    if (_disposedKeys.contains(key)) {
+      return; // تم تنظيفه بالفعل
+    }
+    
+    final disposer = _localDisposers[key];
+    if (disposer != null) {
+      try {
+        disposer();
+        _disposedKeys.add(key); // تمييز أنه تم تنظيفه
+      } catch (e) {
+        if (kDebugMode) {
+          print('خطأ في إزالة المورد $key: $e');
+        }
+      }
+      _localDisposers.remove(key);
+    }
+    _localResources.remove(key);
+  }
+
+  /// الحصول على مورد محلي
+  T? getLocalResource<T>(String key) {
+    if (_isDisposed) return null;
+    final resource = _localResources[key];
+    return resource is T ? resource : null;
+  }
+
+  /// التحقق من وجود مورد محلي
+  bool hasLocalResource(String key) {
+    return !_isDisposed && _localResources.containsKey(key);
   }
 } 
