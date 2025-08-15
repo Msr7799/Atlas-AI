@@ -39,7 +39,7 @@ Atlas AI is a sophisticated AI assistant application built with Flutter, featuri
         <img src="assets/icons/screenshot5.png" width="180" height="370" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
       </td>
       <td align="center" style="padding: 50px;">
-        <img src="assets/icons/screenshot6.png" width="180" height="370" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
+        <img src="assets/icons/screenshot6.png" width="180" height="370" style="border-radius: 11px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" />
       </td>
     </tr>
   </table>
