@@ -1,6 +1,6 @@
 # Atlas AI Advanced Features
 
-![alt text](assets/icons/app_icon4.png?width=100&height=100)
+![alt text](assets/icons/app_icon4.png?width=50&height=50)
 [![Read in Arabic](https://img.shields.io/badge/Read%20in%20Arabic-white?style=for-the-badge&logo=readme&logoColor=black)](FEATURES-ar.md)
 
 ## ✨ Complete Feature Overview
