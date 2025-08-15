@@ -1,191 +1,512 @@
-# Atlas AI - تطبيق الذكاء الاصطناعي العربي المتقدم
+# Atlas AI - Advanced AI Assistant
 
-## 🚀 نظرة عامة
+![alt text](assets/icons/atlas2.png)
+[![Flutter Version](https://img.shields.io/badge/Flutter-3.8.1+-blue.svg)](https://flutter.dev/)
+[![Dart Version](https://img.shields.io/badge/Dart-3.8.1+-blue.svg)](https://dart.dev/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Developer](https://img.shields.io/badge/Developer-Mohamed%20S%20AL--Romaihi-blue.svg)](mailto:alromaihi2224@gmail.com)
+[![GitHub ♥️](https://img.shields.io/badge/♥️%20GitHub-gray?style=flat-square&logo=github&logoColor=white)](https://github.com/Msr7799/Atlas-AI)
 
-Atlas AI هو تطبيق Flutter متقدم للذكاء الاصطناعي باللغة العربية، يوفر واجهة مستخدم متجاوبة وميزات متقدمة للتفاعل مع نماذج الذكاء الاصطناعي المختلفة.
+[![Releases](https://img.shields.io/badge/Releases-green?style=for-the-badge&logo=github)](https://github.com/Msr7799/Atlas-AI/releases)
 
-## ✨ الميزات الرئيسية
+## Overview
 
-### 🤖 نماذج الذكاء الاصطناعي المدعومة
-- **Groq**: نماذج سريعة ومجانية (Llama 3.1, Mixtral)
-- **GPTGod**: نماذج OpenAI المجانية (GPT-3.5 Turbo, GPT-4o Mini)
-- **OpenRouter**: نماذج متعددة (GPT-4, Claude, Gemini)
-- **HuggingFace**: نماذج مفتوحة المصدر
 
-### 🎨 واجهة مستخدم متقدمة
-- تصميم متجاوب يعمل على جميع الأجهزة
-- دعم كامل للغة العربية
-- واجهة مستخدم حديثة وسهلة الاستخدام
-- نظام ألوان قابل للتخصيص
+[![Read in Arabic](https://img.shields.io/badge/Read%20in%20Arabic-%E2%9C%85-white?style=for-the-badge&logo=readme&logoColor=white)](README-ar.md)
 
-### 🔧 ميزات متقدمة
-- **تحليل الصور والفيديو**: دعم Qwen2-VL للرؤية الحاسوبية
-- **البحث على الإنترنت**: تكامل مع Tavily
-- **تدريب النماذج**: إمكانية تدريب النماذج المحلية
-- **تصدير المحادثات**: حفظ وتصدير المحادثات
-- **إدارة المفاتيح**: إدارة آمنة لمفاتيح API
 
-## 🆕 التحسينات الجديدة في حوار معلومات النماذج
+Atlas AI is a sophisticated AI assistant application built with Flutter, featuring native Arabic language support and advanced conversational capabilities. The application integrates multiple AI models and provides a seamless, cross-platform experience with modern UI design and robust performance optimizations.
 
-### 📊 إحصائيات شاملة
-- عرض إجمالي عدد النماذج المتاحة
-- تصنيف النماذج (مجانية/مدفوعة)
-- إحصائيات مرئية مع ألوان مميزة
 
-### 🔍 البحث والتصفية
-- **بحث متقدم**: البحث في أسماء النماذج والوصف والمميزات
-- **تصفية ذكية**: تصفية حسب السرعة، الجودة، النوع
-- **تبويبات منظمة**: عرض منفصل للنماذج المجانية والمدفوعة
+## ✨ Key Features
 
-### 📋 مقارنة النماذج
-- **اختيار متعدد**: تحديد عدة نماذج للمقارنة
-- **جدول مقارنة تفصيلي**: عرض جميع المعايير جنباً إلى جنب
-- **تفاعل سلس**: انقر طويلاً لاختيار النماذج
+[![Features](https://img.shields.io/badge/Features-%E2%9C%85-white?style=for-the-badge&logo=readme&logoColor=white)](FEATURES.md)
 
-### 📤 تصدير البيانات
-- **تصدير قائمة النماذج**: نسخ قائمة منسقة إلى الحافظة
-- **عرض النص المصدر**: إمكانية عرض النص المصدر في نافذة منفصلة
-- **تنسيق Markdown**: تصدير بتنسيق قابل للقراءة
 
-### 🎯 نسخ المعرفات
-- **نسخ سريع**: انقر لنسخ معرف النموذج
-- **إشعارات تفاعلية**: تأكيد النسخ مع عرض المعرف
-- **تلميحات واضحة**: إرشادات للمستخدم حول كيفية الاستخدام
+<img src="assets/icons/app_icon.png" width="150" height="150" />
 
-## 🛠️ التقنيات المستخدمة
+### 🤖 **Multi-Model AI Integration**
+- **Groq Models**: 10 different models including Llama 3.1, Mixtral, and Gemma
+- **GPTGod Service**: 17 advanced models with GPT-4 support
+- **Tavily Search**: Real-time web search integration
+- **Hugging Face**: Access to open-source models
+- **Local AI**: Offline model support
 
-### Frontend
-- **Flutter**: إطار العمل الرئيسي
-- **Provider**: إدارة الحالة
-- **Responsive Design**: تصميم متجاوب
-- **Material Design**: تصميم Material
+### 🌐 **Language Support**
+- **Native Arabic Support**: Full RTL layout and Arabic language processing
+- **Multi-language Interface**: English and Arabic UI
+- **Localized Content**: Context-aware responses in Arabic
 
-### Backend & Services
-- **Groq API**: نماذج سريعة
-- **OpenAI API**: نماذج متقدمة
-- **HuggingFace API**: نماذج مفتوحة المصدر
-- **Tavily API**: البحث على الإنترنت
+### 🎨 **Modern User Interface**
+- **Material Design 3**: Modern, responsive design system
+- **Dark/Light Mode**: Dynamic theming with user preferences
+- **Cross-Platform**: Consistent experience across all platforms
+- **Accessibility**: Full accessibility support
+### 🔧 **Advanced Capabilities**
+- **Fine-Tuning Advisor**: Intelligent model training recommendations
 
-### Database & Storage
-- **SQLite**: قاعدة البيانات المحلية
-- **SharedPreferences**: إعدادات المستخدم
-- **File System**: تخزين الملفات
+[![MCP Setup](https://img.shields.io/badge/MCP_Setup-%E2%9C%85-white?style=for-the-badge&logo=readme&logoColor=white)](mcp.md)
 
-## 📱 التثبيت والتشغيل
+- **MCP Integration**: Model Context Protocol for enhanced memory 
+- **Voice Input**: Speech-to-text functionality
+- **Chat Export**: Multiple export formats (JSON, CSV, TXT)
+- **Performance Optimization**: Advanced memory and resource management
 
-### المتطلبات
-- Flutter SDK 3.0+
-- Dart 3.0+
+### 🔐 **Security & Privacy**
+- **API Key Management**: Secure key storage and management
+- **Local Data Storage**: SQLite database with encryption
+- **Permission Management**: Granular access controls
+- **Privacy-First**: No data sent to external servers without consent
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Flutter SDK 3.8.1 or higher
+- Dart SDK 3.8.1 or higher
 - Android Studio / VS Code
 - Git
 
-### خطوات التثبيت
-```bash
-# استنساخ المشروع
-git clone https://github.com/your-username/atlas-ai.git
-cd atlas-ai
+### Installation
 
-# تثبيت التبعيات
-flutter pub get
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/msr7799/Atlas-AI.git
+   cd Atlas-AI
+   ```
 
-# تشغيل التطبيق
-flutter run
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Configure environment variables**
+   ```bash
+   cp example_.env .env
+   # Edit .env file with your API keys (optional - app includes default keys)
+   ```
+
+4. **Run the application**
+   ```bash
+   flutter run
+   ```
+
+## 📱 Platform Support
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Android | ✅ | Full support |
+| iOS | ✅ | Full support |
+| Windows | ✅ | Full support |
+| Linux | ✅ | Full support |
+| Web | ✅ | Limited features |
+
+## 🏗️ Project Structure
+
+```
+lib/
+├── main.dart                    # Application entry point
+├── core/                        # Core business logic
+│   ├── services/               # AI and platform services
+│   ├── performance/           # Performance optimization
+│   ├── theme/                # UI theming
+│   └── utils/               # Utility functions
+├── data/                      # Data layer
+│   ├── models/              # Data models
+│   ├── repositories/        # Data repositories
+│   └── datasources/        # Data sources
+└── presentation/            # UI layer
+    ├── pages/              # Application screens
+    ├── widgets/           # Reusable UI components
+    └── providers/        # State management
 ```
 
-### إعداد مفاتيح API
-1. انسخ ملف `.env.example` إلى `.env`
-2. أضف مفاتيح API الخاصة بك:
-```env
-GROQ_API_KEY=your_groq_key
-GPTGOD_API_KEY=your_gptgod_key
-TAVILY_API_KEY=your_tavily_key
-HUGGINGFACE_API_KEY=your_huggingface_key
-```
+## 🔧 Configuration
 
-## 🎯 كيفية استخدام حوار معلومات النماذج
+### API Keys Setup
 
-### الوصول للحوار
-1. افتح التطبيق
-2. اذهب إلى إعدادات API
-3. انقر على "عرض النماذج المتاحة"
+The application comes with default API keys for immediate use. For production or heavy usage, configure your own keys:
 
-### الميزات المتاحة
-- **البحث**: اكتب في شريط البحث للعثور على نماذج محددة
-- **التصفية**: استخدم القائمة المنسدلة لتصفية النماذج
-- **المقارنة**: انقر طويلاً على النماذج لاختيارها للمقارنة
-- **النسخ**: انقر على أي نموذج لنسخ معرفه
-- **التصدير**: انقر على زر التصدير لنسخ قائمة النماذج
+1. Copy `example_.env` to `.env`
+2. Add your API keys:
+   ```
+   GROQ_API_KEY=your_groq_key
+   GPTGOD_API_KEY=your_gptgod_key
+   TAVILY_API_KEY=your_tavily_key
+   ```
 
-### التبويبات
-- **الكل**: عرض جميع النماذج
-- **مجاني**: عرض النماذج المجانية فقط
-- **مدفوع**: عرض النماذج المدفوعة فقط
+### Available AI Models
 
-## 🔧 التخصيص
+#### Groq Models (10 available)
+- Llama 3.1 8B - Fast, balanced model
+- Llama 3.1 70B - High-quality responses
+- Mixtral 8x7B - Excellent reasoning
+- Gemma 9B - Efficient processing
 
-### إضافة نماذج جديدة
-```dart
-// في lib/core/config/app_config.dart
-static const Map<String, List<Map<String, dynamic>>> freeModels = {
-  'your_service': [
-    {
-      'id': 'your-model-id',
-      'name': 'Your Model Name',
-      'description': 'Model description',
-      'features': ['feature1', 'feature2'],
-      'speed': 'سريع',
-      'quality': 'ممتاز',
-      'context': '128K tokens',
-    },
-  ],
-};
-```
+#### GPTGod Models (17 available)
+- GPT-4 Turbo - Latest OpenAI model
+- Claude 3 Opus - Anthropic's flagship
+- Gemini Pro - Google's advanced model
 
-### تخصيص الألوان
-```dart
-// في lib/core/theme/app_theme.dart
-class AppTheme {
-  static const Color primaryColor = Colors.blue;
-  static const Color accentColor = Colors.green;
-  // ... المزيد من الألوان
-}
-```
+## 🎯 Usage
 
-## 📊 إحصائيات المشروع
+### Basic Chat
+1. Launch the application
+2. Select your preferred AI model
+3. Start conversing in Arabic or English
 
-- **عدد النماذج المدعومة**: 15+ نموذج
-- **عدد الخدمات**: 4 خدمات رئيسية
-- **اللغات المدعومة**: العربية والإنجليزية
-- **المنصات المدعومة**: Android, iOS, Web, Desktop
+### Voice Input
+1. Tap the microphone button
+2. Speak your message
+3. The app will transcribe and process your speech
 
-## 🤝 المساهمة
+### Model Training
+1. Navigate to Model Training page
+2. Configure training parameters
+3. Upload your training data
+4. Monitor training progress
 
-نرحب بمساهماتكم! يرجى اتباع الخطوات التالية:
+### Export Conversations
+1. Open chat drawer
+2. Select "Export Chat"
+3. Choose format (JSON/CSV/TXT)
+4. Save to device
 
-1. Fork المشروع
-2. إنشاء فرع جديد للميزة
-3. إجراء التغييرات
-4. إضافة اختبارات
-5. إنشاء Pull Request
+## 🤝 Contributing
 
-## 📄 الترخيص
+We welcome contributions! Please follow these steps:
 
-هذا المشروع مرخص تحت رخصة MIT. راجع ملف `LICENSE` للتفاصيل.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📞 الدعم
+### Development Guidelines
 
-- **GitHub Issues**: للإبلاغ عن الأخطاء
-- **Discord**: للمناقشات والدعم
-- **Email**: للاستفسارات العامة
+- Follow Flutter/Dart best practices
+- Maintain Arabic language support
+- Write comprehensive tests
+- Update documentation
+- Ensure cross-platform compatibility
 
-## 🔄 التحديثات القادمة
+## 📄 License
 
-- [ ] دعم المزيد من نماذج الذكاء الاصطناعي
-- [ ] تحسين واجهة المستخدم
-- [ ] إضافة ميزات تحليل متقدمة
-- [ ] دعم المزيد من اللغات
-- [ ] تحسين الأداء والاستقرار
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Developer
+
+**Mohamed S AL-Romaihi**
+- 📧 Email: alromaihi2224@gmail.com
+- 🌐 GitHub: [GitHub Profile](https://github.com/Msr7799)
+
+## 🐛 Bug Reports & Feature Requests
+
+If you encounter any issues or have suggestions for improvements:
+
+📧 **Email**: alromaihi2224@gmail.com
+
+Please include:
+- Device/Platform information
+- Steps to reproduce the issue
+- Expected vs actual behavior
+- Screenshots (if applicable)
+
+## 🙏 Acknowledgments
+
+- Flutter team for the amazing framework
+- AI model providers (Groq, OpenAI, Anthropic)
+- Open-source community contributors
+- Arabic language processing community
 
 ---
 
-**Atlas AI** - تطبيق الذكاء الاصطناعي العربي المتقدم 🚀
+**Atlas AI** - Empowering conversations with intelligent AI assistance
+
+Built with ❤️ by Mohamed S AL-Romaihi
+- Advanced animations and visual effects
+- Dark and light mode support
+- Interactive chat interface with file support
+
+### 🔧 **Advanced Developer Tools**
+- Tavily API integration for smart search
+- MCP system for advanced memory
+- Specialized data analysis support
+- Developer debug panel
+
+### 📱 **Multi-Platform**
+- Full support for Android, iOS, Web, Linux, Windows, macOS
+- Responsive for all screen sizes
+- Optimized performance across platforms
+
+## 🚀 Quick Start
+
+### System Requirements
+
+```bash
+# Flutter SDK
+Flutter 3.8.1 or newer
+Dart 3.8.1 or newer
+
+# Additional tools
+Git
+Node.js (for MCP services)
+```
+
+### Installation
+
+1. **Clone the project:**
+```bash
+git clone https://github.com/Msr7799/Fine_tuning_AI.git
+cd Fine_tuning_AI
+```
+
+2. **Install dependencies:**
+```bash
+flutter pub get
+```
+
+3. **Set environment variables:**
+```bash
+# Create .env file in root
+cp .env.example .env
+
+# Edit and add your API keys
+GROQ_API_KEY=your_groq_api_key_here
+TAVILY_API_KEY=your_tavily_api_key_here
+TRAVILY_URL_API_PAIRED=your_mcp_endpoint_here
+```
+
+4. **Run the app:**
+```bash
+# For Android/iOS
+flutter run
+
+# For Web
+flutter run -d chrome
+
+# For Desktop
+flutter run -d linux   # or windows or macos
+```
+
+## 🏗️ Project Architecture
+
+```
+lib/
+├── 🔧 core/                    # Core logic
+│   ├── config/                 # App configuration
+│   │   └── app_config.dart
+│   ├── performance/            # Performance optimization
+│   │   ├── app_optimizer.dart
+│   │   ├── database_optimizer.dart
+│   │   ├── image_optimizer.dart
+│   │   ├── network_optimizer.dart
+│   │   ├── performance_optimizer.dart
+│   │   └── performance_report.dart
+│   ├── services/               # Core services
+│   │   ├── api_key_manager.dart
+│   │   ├── chat_export_service.dart
+│   │   ├── fine_tuning_advisor_service.dart
+│   │   ├── gptgod_service.dart
+│   │   ├── groq_service.dart
+│   │   ├── lazy_service_initializer.dart
+│   │   ├── mcp_service.dart
+│   │   ├── model_training_service.dart
+│   │   ├── prompt_enhancer_service.dart
+│   │   ├── simple_model_training_service.dart
+│   │   └── tavily_service.dart
+│   ├── theme/                  # Theme system
+│   │   ├── app_theme.dart
+│   │   └── unified_theme.dart
+│   ├── utils/                  # Utilities
+│   │   ├── asset_optimizer.dart
+│   │   ├── memory_manager.dart
+│   │   ├── performance_monitor.dart
+│   │   └── speech_stub.dart
+│   └── widgets/                # Core widgets
+│       └── optimized_widgets.dart
+├── 💾 data/                    # Data layer
+│   ├── datasources/            # Data sources
+│   │   └── database_helper.dart
+│   ├── models/                 # Data models
+│   │   ├── attachment_model.dart
+│   │   ├── message_model.dart
+│   │   ├── message_model.g.dart
+│   │   └── thinking_process_model.dart
+│   └── repositories/           # Data repositories
+│       └── chat_repository.dart
+├── � presentation/            # Presentation layer
+│   ├── pages/                  # App pages
+│   │   ├── api_settings_page.dart
+│   │   ├── main_chat_page.dart
+│   │   └── model_training_page.dart
+│   ├── providers/              # State providers
+│   │   ├── chat_provider.dart
+│   │   ├── chat_selection_provider.dart
+│   │   ├── prompt_enhancer_provider.dart
+│   │   ├── settings_provider.dart
+│   │   ├── theme_provider.dart
+│   │   └── training_provider.dart
+│   └── widgets/               # UI components
+│       ├── attachment_preview.dart
+│       ├── chat_drawer.dart
+│       ├── chat_export_dialog.dart
+│       ├── debug_panel.dart
+│       ├── message_bubble.dart
+│       ├── prompt_enhancement_dialog.dart
+│       ├── settings_dialog.dart
+│       ├── thinking_process_widget.dart
+│       ├── training_config_widget.dart
+│       ├── training_logs_widget.dart
+│       └── training_progress_widget.dart
+└── main.dart                   # App entry point
+```
+
+## 🛠️ Technologies Used
+
+### 📱 **App Development**
+- **Flutter 3.8.1+** - Main framework
+- **Dart 3.8.1+** - Programming language
+- **Provider** - State management
+- **Dio** - Advanced HTTP requests
+
+### 🤖 **Artificial Intelligence**
+- **Groq API** - Advanced language models
+- **Tavily API** - Smart search and extraction
+- **MCP Protocol** - Model context protocol
+
+### 💾 **Database**
+- **SQLite** - Local database
+- **Shared Preferences** - Settings storage
+- **File System** - File management
+
+### 🎨 **UI**
+- **Material Design 3** - Design system
+- **Google Fonts** - Diverse fonts
+- **Lottie** - Animations
+- **Flutter Animate** - Advanced effects
+
+## 📖 Usage Guide
+
+### 💬 **Smart Chat**
+1. Type your message in the text field
+2. Attach files if needed
+3. Press send for a smart reply
+4. Use special commands like `/help` for assistance
+
+### 🔧 **Advanced Training**
+```
+/finetune [task type] - Start advanced training session
+/analyze [file] - Analyze data for training
+/optimize [params] - Optimize the model
+```
+
+### 🎨 **UI Customization**
+- Change theme from settings (light/dark)
+- Choose custom colors from palette
+- Adjust font size and type
+
+### 🔍 **Smart Search**
+```
+/search [query] - Smart web search
+/crawl [url] - Extract website content
+/extract [text] - Extract specific info
+```
+
+## ⚙️ Advanced Settings
+
+### 🔑 **API Keys**
+
+Get your API keys from:
+- [Groq Console](https://console.groq.com/) - AI models
+- [Tavily API](https://tavily.com/) - Smart search
+
+### 🐳 **Docker Deployment**
+
+```dockerfile
+# Example Dockerfile
+FROM cirrusci/flutter:stable
+
+WORKDIR /app
+COPY . .
+
+RUN flutter pub get
+RUN flutter build web
+
+EXPOSE 8080
+CMD ["flutter", "run", "-d", "web-server", "--web-port", "8080"]
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. **Fork** the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to your branch (`git push origin feature/amazing-feature`)
+5. Open a **Pull Request**
+
+### 📋 **Contribution Guidelines**
+
+- Follow the [Dart Style Guide](https://dart.dev/guides/language/effective-dart/style)
+- Write tests for new features
+- Update documentation as needed
+- Use clear variable names
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+flutter test
+
+# Tests with coverage report
+flutter test --coverage
+
+# Integration tests
+flutter test integration_test/
+
+# Code quality analysis
+flutter analyze
+```
+
+## 📊 Performance
+
+- **Startup time:** < 2 seconds
+- **Memory usage:** < 100 MB
+- **App size:** 
+  - Android: ~25 MB
+  - iOS: ~30 MB
+  - Web: ~5 MB (compressed)
+
+## 🔒 Security
+
+- Local data encryption
+- Secure API keys
+- No sensitive data stored
+- HTTPS connections only
+
+## 📝 License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgements
+
+- [Flutter Team](https://flutter.dev/) - Awesome framework
+- [Groq](https://groq.com/) - Advanced AI models
+- [Tavily](https://tavily.com/) - Smart search service
+- [Material Design](https://material.io/) - Design system
+
+## 📞 Contact
+
+- **Developer:** Mohamed S AL-Romaihi
+- **Email:** [alromaihi2224@gmail.com](mailto:alromaihi2224@gmail.com)
+- **GitHub:** [@Msr7799](https://github.com/Msr7799)
+- **Repository:** [Atlas-AI](https://github.com/Msr7799/Atlas-AI.git)
+
+---
+
+<div align="center">
+  <h3>Made with ❤️ in the Arab world</h3>
+  <p>If you like this project, don't forget to give it a ⭐!</p>
+</div>

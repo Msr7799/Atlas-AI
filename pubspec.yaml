@@ -157,6 +157,12 @@ flutter:
     - assets/icons/ball_ani.gif
     - assets/icons/neon_chat_icon2.gif
     - assets/icons/gif_icon.gif
+    - assets/icons/screenshot1.png
+    - assets/icons/screenshot2.png
+    - assets/icons/screenshot3.png
+    - assets/icons/screenshot4.png
+    - assets/icons/screenshot5.png
+    - assets/icons/screenshot6.png
     # إزالة الأصول غير الضرورية
     # - assets/sounds/
     - assets/data/
