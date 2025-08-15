@@ -1,5 +1,6 @@
 # ميزات Atlas AI الجديدة
-![alt text](assets/icons/app_icon4.png?raw=true&width=100&height=100)
+
+<img src="assets/icons/app_icon11.png" alt="Atlas AI Icon" style="width: 600px; height: 360px; border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);">)
 [![Read in English](https://img.shields.io/badge/Read%20in%20English-red?style=for-the-badge&logo=readme)](FEATURES.md)
 
 ## 🔑 نظام إدارة API Keys المحسن

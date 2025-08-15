@@ -132,20 +132,110 @@ Atlas AI هو تطبيق مساعد ذكي متطور مبني بـ Flutter، ي
 
 ```
 lib/
-├── main.dart                    # نقطة دخول التطبيق
-├── core/                        # منطق العمل الأساسي
-│   ├── services/               # خدمات الذكاء الاصطناعي والمنصة
-│   ├── performance/           # تحسين الأداء
-│   ├── theme/                # ثيمات واجهة المستخدم
-│   └── utils/               # دوال مساعدة
-├── data/                      # طبقة البيانات
-│   ├── models/              # نماذج البيانات
-│   ├── repositories/        # مستودعات البيانات
-│   └── datasources/        # مصادر البيانات
-└── presentation/            # طبقة واجهة المستخدم
-    ├── pages/              # شاشات التطبيق
-    ├── widgets/           # مكونات واجهة المستخدم القابلة للإعادة
-    └── providers/        # إدارة الحالة
+├── 🔧 core/                    # النواة الأساسية
+│   ├── config/                 # إعدادات التطبيق
+│   │   └── app_config.dart
+│   ├── lifecycle/              # إدارة دورة حياة التطبيق
+│   │   └── app_lifecycle_observer.dart
+│   ├── monitoring/             # مراقبة التطبيق
+│   │   └── app_monitor.dart
+│   ├── performance/            # تحسينات الأداء
+│   │   ├── app_optimizer.dart
+│   │   ├── database_optimizer.dart
+│   │   ├── image_optimizer.dart
+│   │   ├── network_optimizer.dart
+│   │   ├── performance_manager.dart
+│   │   ├── performance_optimizer.dart
+│   │   └── performance_report.dart
+│   ├── services/               # الخدمات الأساسية
+│   │   ├── advanced_model_training_service.dart
+│   │   ├── api_key_manager.dart
+│   │   ├── base_ai_service.dart
+│   │   ├── base_api_service.dart
+│   │   ├── chat_export_service.dart
+│   │   ├── enhanced_mcp_service.dart
+│   │   ├── fine_tuning_advisor_service.dart
+│   │   ├── gptgod_service.dart
+│   │   ├── groq_service.dart
+│   │   ├── huggingface_service.dart
+│   │   ├── lazy_service_initializer.dart
+│   │   ├── local_ai_service.dart
+│   │   ├── mcp_service.dart
+│   │   ├── openrouter_service.dart
+│   │   ├── permissions_manager.dart
+│   │   ├── prompt_enhancer_service.dart
+│   │   ├── speech_service.dart
+│   │   ├── tavily_service.dart
+│   │   └── unified_ai_service.dart
+│   ├── theme/                  # نظام الثيمات
+│   │   └── app_theme.dart
+│   ├── utils/                  # أدوات مساعدة
+│   │   ├── app_utils.dart
+│   │   ├── asset_optimizer.dart
+│   │   ├── logger.dart
+│   │   ├── memory_manager.dart
+│   │   ├── network_checker.dart
+│   │   ├── performance_monitor.dart
+│   │   └── responsive_helper.dart
+│   └── widgets/                # عناصر النواة
+│       └── optimized_widgets.dart
+├── 💾 data/                    # طبقة البيانات
+│   ├── datasources/            # مصادر البيانات
+│   │   ├── chat_history.db
+│   │   └── database_helper.dart
+│   ├── models/                 # نماذج البيانات
+│   │   ├── message_model.dart
+│   │   └── message_model.g.dart
+│   └── repositories/           # مستودعات البيانات
+│       └── chat_repository.dart
+├── 🎨 presentation/            # طبقة العرض
+│   ├── constants/              # ثوابت واجهة المستخدم
+│   │   └── ui_constants.dart
+│   ├── pages/                  # صفحات التطبيق
+│   │   ├── advanced_model_training_page.dart
+│   │   ├── api_settings_page.dart
+│   │   ├── main_chat_page_enhanced.dart
+│   │   └── splash_screen.dart
+│   ├── providers/              # مزودي الحالة
+│   │   ├── chat_provider.dart
+│   │   ├── chat_selection_provider.dart
+│   │   ├── prompt_enhancer_provider.dart
+│   │   ├── settings_provider.dart
+│   │   ├── theme_provider.dart
+│   │   └── training_provider.dart
+│   └── widgets/               # مكونات واجهة المستخدم
+│       ├── animated_suggestions_dropdown.dart
+│       ├── api_debug_panel.dart
+│       ├── attachment_preview.dart
+│       ├── chat_app_bar.dart
+│       ├── chat_drawer.dart
+│       ├── chat_export_dialog.dart
+│       ├── chat_floating_buttons.dart
+│       ├── chat_input_widget.dart
+│       ├── chat_message_list.dart
+│       ├── chat_search_header.dart
+│       ├── compact_message_bubble.dart
+│       ├── debug_panel.dart
+│       ├── enhanced/           # العناصر المحسنة
+│       │   ├── chat_app_bar.dart
+│       │   ├── chat_input_area.dart
+│       │   ├── chat_message_list.dart
+│       │   └── chat_welcome_screen.dart
+│       ├── language_selector_widget.dart
+│       ├── message_bubble.dart
+│       ├── models_info_dialog.dart
+│       ├── prompt_enhancement_dialog.dart
+│       ├── search_status_widget.dart
+│       ├── settings/           # عناصر الإعدادات
+│       │   ├── api_keys_section.dart
+│       │   ├── compact_settings_dialog.dart
+│       │   └── settings_sections.dart
+│       ├── settings_dialog.dart
+│       ├── thinking_process_widget.dart
+│       ├── training/           # عناصر التدريب
+│       │   └── unified_training_widget.dart
+│       └── voice_input_button.dart
+└── main.dart                   # نقطة دخول التطبيق
 ```
 
 ## 🔧 التكوين
