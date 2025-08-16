@@ -24,8 +24,8 @@ class PerformanceManager {
   final Map<String, int> _operationCounts = {};
   
   // === متغيرات الذاكرة ===
-  final int _peakMemoryUsage = 0;
-  final int _currentMemoryUsage = 0;
+  int _peakMemoryUsage = 0;
+  int _currentMemoryUsage = 0;
   
   // === متغيرات الشبكة ===
   final Map<String, List<Duration>> _networkLatencies = {};
@@ -180,7 +180,18 @@ class PerformanceManager {
     try {
       PaintingBinding.instance.imageCache.clear();
       PaintingBinding.instance.imageCache.clearLiveImages();
-      _imageCache.clear();
+      
+      // تنظيف ذكي للكاش المحلي بناءً على الحد الأقصى
+      if (_imageCache.length > _maxImageCacheSize) {
+        final keysToRemove = _imageCache.keys.take(_imageCache.length - _maxImageCacheSize);
+        for (final key in keysToRemove) {
+          _imageCache.remove(key);
+        }
+        if (kDebugMode) print('🗑️ Trimmed image cache to $_maxImageCacheSize items');
+      } else {
+        _imageCache.clear();
+      }
+      
       if (kDebugMode) print('✅ Image cache cleared');
     } catch (e) {
       if (kDebugMode) print('❌ Error clearing image cache: $e');
@@ -345,6 +356,10 @@ class PerformanceManager {
       _cacheNetworkResponse(cacheKey, response);
       return response;
     } catch (e) {
+      // تسجيل خطأ الشبكة
+      final instance = PerformanceManager();
+      instance._networkErrors[url] = (instance._networkErrors[url] ?? 0) + 1;
+      
       return await _retryNetworkRequest(() => http.get(
         Uri.parse(url),
         headers: {
@@ -361,8 +376,21 @@ class PerformanceManager {
   static Future<http.Response> _retryNetworkRequest(
     Future<http.Response> Function() request,
   ) async {
+    final startTime = DateTime.now();
     await Future.delayed(const Duration(seconds: 1));
-    return await request();
+    
+    try {
+      final response = await request();
+      
+      // تسجيل زمن الاستجابة
+      final instance = PerformanceManager();
+      final latency = DateTime.now().difference(startTime);
+      instance._networkLatencies.putIfAbsent('retry_request', () => []).add(latency);
+      
+      return response;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   /// حفظ الاستجابة في الذاكرة المؤقتة
@@ -452,11 +480,39 @@ class PerformanceManager {
       
       await cleanup();
       
+      // تنظيف جميع البيانات المؤقتة
+      _timers.clear();
+      _measurements.clear();
+      _performanceLog.clear();
+      _networkCache.clear();
+      _networkCacheTimestamps.clear();
+      _imageCache.clear();
+      
       _isInitialized = false;
+      _isAppActive = false;
       
       if (kDebugMode) print('✅ Safe shutdown completed');
     } catch (e) {
       if (kDebugMode) print('❌ Error in safe shutdown: $e');
+    }
+  }
+
+  /// إضافة دالة dispose للـ instance
+  void dispose() {
+    try {
+      // تنظيف البيانات المحلية للـ instance
+      _operationStartTimes.clear();
+      _operationDurations.clear();
+      _operationCounts.clear();
+      _networkLatencies.clear();
+      _networkErrors.clear();
+      _aiResponseTimes.clear();
+      _aiSuccessCount.clear();
+      _aiErrorCount.clear();
+      
+      if (kDebugMode) print('✅ PerformanceManager instance disposed');
+    } catch (e) {
+      if (kDebugMode) print('❌ Error disposing PerformanceManager instance: $e');
     }
   }
 
@@ -474,11 +530,54 @@ class PerformanceManager {
     }
   }
 
+  // === دوال الذاكرة ===
+
+  /// تحديث استخدام الذاكرة
+  void updateMemoryUsage() {
+    try {
+      // محاكاة قراءة استخدام الذاكرة (يمكن ربطها بـ ProcessInfo في المستقبل)
+      final currentUsage = (PerformanceManager.imageCacheSize / 1024 / 1024).round(); // تحويل إلى MB
+      _currentMemoryUsage = currentUsage;
+      
+      if (currentUsage > _peakMemoryUsage) {
+        _peakMemoryUsage = currentUsage;
+      }
+      
+      if (kDebugMode) {
+        print('📊 Memory usage updated: Current: ${_currentMemoryUsage}MB, Peak: ${_peakMemoryUsage}MB');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ Error updating memory usage: $e');
+    }
+  }
+
+  /// الحصول على استخدام الذاكرة الحالي
+  int get currentMemoryUsage => _currentMemoryUsage;
+
+  /// الحصول على ذروة استخدام الذاكرة
+  int get peakMemoryUsage => _peakMemoryUsage;
+
   // === دوال AI ===
 
   /// تسجيل استجابة AI
   static void recordAIResponse(String serviceName, Duration responseTime, bool isSuccess) {
-    // يمكن إضافة منطق تسجيل استجابة AI هنا
+    final instance = PerformanceManager();
+    
+    // تسجيل وقت الاستجابة
+    instance._aiResponseTimes.putIfAbsent(serviceName, () => []).add(responseTime);
+    
+    // تسجيل النجاح/الفشل
+    if (isSuccess) {
+      instance._aiSuccessCount[serviceName] = (instance._aiSuccessCount[serviceName] ?? 0) + 1;
+    } else {
+      instance._aiErrorCount[serviceName] = (instance._aiErrorCount[serviceName] ?? 0) + 1;
+    }
+    
+    // تنظيف البيانات القديمة (الاحتفاظ بآخر 100 قياس)
+    if (instance._aiResponseTimes[serviceName]!.length > 100) {
+      instance._aiResponseTimes[serviceName]!.removeAt(0);
+    }
+    
     if (kDebugMode) {
       print('🤖 AI Response: $serviceName - ${responseTime.inMilliseconds}ms - ${isSuccess ? "Success" : "Failed"}');
     }

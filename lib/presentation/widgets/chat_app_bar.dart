@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/chat_selection_provider.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 /// شريط العلوي المخصص لصفحة المحادثة
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -92,7 +93,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () {
             selectionProvider.disableSelectionMode();
           },
-          tooltip: 'إلغاء التحديد',
+          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء التحديد' : 'Cancel Selection',
         ),
         // تحديد الكل / إلغاء تحديد الكل
         IconButton(
@@ -114,8 +115,8 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             }
           },
           tooltip: selectionProvider.selectedMessageIds.isEmpty
-              ? 'تحديد الكل'
-              : 'إلغاء تحديد الكل',
+              ? (Localizations.localeOf(context).languageCode == 'ar' ? 'تحديد الكل' : 'Select All')
+              : (Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء تحديد الكل' : 'Deselect All'),
         ),
         // عرض عدد المحدد
         Container(

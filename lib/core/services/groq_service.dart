@@ -16,7 +16,6 @@ class GroqService extends BaseApiService {
 
   final _uuid = Uuid();
 
-  @override
   Future<void> initialize() async {
     if (isInitialized) return; // منع التهيئة المتكررة
 
@@ -248,13 +247,17 @@ class GroqService extends BaseApiService {
       // تسجيل الاستخدام
       await ApiKeyManager.recordApiUsage('groq', isSuccess: true);
 
-      final response = await dio.post(
-        AppConfig.groqChatEndpoint,
-        data: requestData,
-        options: Options(
-          responseType: ResponseType.stream,
-          headers: {'Accept': 'text/event-stream'},
+      final response = await _makeRequestWithRetry(
+        () => dio.post(
+          AppConfig.groqChatEndpoint,
+          data: requestData,
+          options: Options(
+            responseType: ResponseType.stream,
+            headers: {'Accept': 'text/event-stream'},
+          ),
         ),
+        maxRetries: 2,
+        shouldSwitchKey: true,
       );
 
       return _parseStreamResponse(response.data);

@@ -17,7 +17,9 @@ import 'presentation/providers/training_provider.dart';
 import 'presentation/pages/main_chat_page_enhanced.dart';
 import 'presentation/providers/chat_selection_provider.dart';
 import 'presentation/providers/prompt_enhancer_provider.dart';
+import 'presentation/providers/language_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'generated/l10n/app_localizations.dart';
 
 // === استيراد الملفات الجديدة المدمجة ===
 
@@ -53,37 +55,43 @@ void main() async {
           }
         }
         
-        // === تهيئة الخدمات الجديدة ===
-        try {
-          await PerformanceManager.initialize();
-          if (kDebugMode) {
-            print('✅ PerformanceManager initialized successfully');
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('⚠️ فشل في تهيئة PerformanceManager: $e');
-          }
-        }
+        // === تهيئة الخدمات بشكل متوازي ===
+        final initializationFutures = <Future<void>>[];
         
-        try {
-          AppMonitor.initialize();
-          if (kDebugMode) {
-            print('✅ AppMonitor initialized successfully');
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('⚠️ فشل في تهيئة AppMonitor: $e');
-          }
-        }
+        // إضافة المهام المتوازية
+        initializationFutures.add(
+          PerformanceManager.initialize().catchError((e) {
+            if (kDebugMode) {
+              print('⚠️ فشل في تهيئة PerformanceManager: $e');
+            }
+          }),
+        );
         
+        initializationFutures.add(
+          Future.sync(() => AppMonitor.initialize()).catchError((e) {
+            if (kDebugMode) {
+              print('⚠️ فشل في تهيئة AppMonitor: $e');
+            }
+          }),
+        );
+        
+        initializationFutures.add(
+          LazyServiceInitializer().initializeServices().catchError((e) {
+            if (kDebugMode) {
+              print('⚠️ فشل في تهيئة LazyServiceInitializer: $e');
+            }
+          }),
+        );
+        
+        // تنفيذ جميع المهام بشكل متوازي
         try {
-          await LazyServiceInitializer().initializeServices();
+          await Future.wait(initializationFutures);
           if (kDebugMode) {
-            print('✅ LazyServiceInitializer initialized successfully');
+            print('✅ All services initialized successfully (parallel)');
           }
         } catch (e) {
           if (kDebugMode) {
-            print('⚠️ فشل في تهيئة LazyServiceInitializer: $e');
+            print('⚠️ Some services failed during parallel initialization: $e');
           }
         }
         
@@ -144,20 +152,19 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TrainingProvider()),
         ChangeNotifierProvider(create: (_) => PromptEnhancerProvider()),
         ChangeNotifierProvider(create: (_) => ChatSelectionProvider()),
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+      child: Consumer2<ThemeProvider, LanguageProvider>(
+        builder: (context, themeProvider, languageProvider, child) {
           return MaterialApp(
             title: 'Atlas AI',
             debugShowCheckedModeBanner: false,
-            // دعم اللغة العربية والاتجاه الصحيح
-            locale: const Locale('ar'),
-            supportedLocales: const [
-              Locale('ar'), // العربية
-              Locale('en'), // الإنجليزية
-            ],
-            // إضافة delegates للترجمة ودعم اللغة العربية
+            // دعم اللغة العربية والإنجليزية مع الاتجاه الصحيح
+            locale: languageProvider.currentLocale,
+            supportedLocales: LanguageProvider.supportedLocales,
+            // إضافة delegates للترجمة ودعم اللغة العربية والإنجليزية
             localizationsDelegates: const [
+              AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,

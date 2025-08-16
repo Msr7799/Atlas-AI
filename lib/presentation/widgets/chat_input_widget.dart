@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/prompt_enhancer_provider.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 /// ويدجت الإدخال المحسن للمحادثة
 class ChatInputWidget extends StatefulWidget {
@@ -91,7 +92,7 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
                       size: 20,
                     ),
                     onPressed: widget.onVoiceInputTap,
-                    tooltip: 'إدخال صوتي',
+                    tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إدخال صوتي' : 'Voice Input',
                   ),
                 ),
               ),
@@ -175,8 +176,8 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
       PromptEnhancerProvider enhancerProvider) {
     return InputDecoration(
       hintText: enhancerProvider.isEnhancing
-          ? 'جاري تحسين النص...'
-          : 'اكتب رسالتك هنا...',
+          ? (Localizations.localeOf(context).languageCode == 'ar' ? 'جاري تحسين النص...' : 'Enhancing text...')
+          : (Localizations.localeOf(context).languageCode == 'ar' ? 'اكتب رسالتك هنا...' : 'Type your message here...'),
       hintStyle: TextStyle(
         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
         fontSize: 16,
@@ -216,7 +217,7 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
         onPressed: enhancerProvider.isEnhancing
             ? null
             : () => _showEnhanceDialog(enhancerProvider),
-        tooltip: 'تحسين البرومبت',
+        tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'تحسين البرومبت' : 'Enhance Prompt',
       ),
     );
   }
@@ -230,7 +231,7 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
         size: 20,
       ),
       onPressed: widget.onAttachmentTap,
-      tooltip: 'إرفاق ملف',
+      tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إرفاق ملف' : 'Attach File',
     );
   }
 
@@ -253,7 +254,7 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
             widget.onSendMessage(text);
           }
         },
-        tooltip: 'إرسال الرسالة',
+        tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إرسال الرسالة' : 'Send Message',
       ),
     );
   }

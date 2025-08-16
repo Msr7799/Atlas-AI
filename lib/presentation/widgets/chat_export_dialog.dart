@@ -4,6 +4,7 @@ import '../providers/chat_selection_provider.dart';
 import '../../data/models/message_model.dart';
 import '../../core/utils/responsive_helper.dart';
 import '../../core/services/chat_export_service.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 class ChatExportDialog extends StatefulWidget {
   final List<MessageModel> messages;
@@ -24,16 +25,16 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
   String _exportType = 'full'; // 'full', 'selected', 'all'
   bool _isExporting = false;
 
-  final Map<String, String> _formats = {
-    'json': 'JSON (للبرمجة)',
-    'txt': 'نص عادي',
+  Map<String, String> get _formats => {
+    'json': Localizations.localeOf(context).languageCode == 'ar' ? 'JSON (للبرمجة)' : 'JSON (for programming)',
+    'txt': Localizations.localeOf(context).languageCode == 'ar' ? 'نص عادي' : 'Plain Text',
     'markdown': 'Markdown',
   };
 
-  final Map<String, String> _exportTypes = {
-    'full': 'المحادثة الكاملة',
-    'selected': 'الرسائل المحددة فقط',
-    'all': 'جميع المحادثات',
+  Map<String, String> get _exportTypes => {
+    'full': Localizations.localeOf(context).languageCode == 'ar' ? 'المحادثة الكاملة' : 'Full Conversation',
+    'selected': Localizations.localeOf(context).languageCode == 'ar' ? 'الرسائل المحددة فقط' : 'Selected Messages Only',
+    'all': Localizations.localeOf(context).languageCode == 'ar' ? 'جميع المحادثات' : 'All Conversations',
   };
 
   @override
@@ -48,7 +49,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
             mobile: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.95,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
-              minWidth: 280, // حد أدنى للعرض لضمان سهولة الاستخدام
+              minWidth: 280, // حد أدنى للعرض لضمان سهولة الاستخدام // Minimum width to ensure usability
             ),
             tablet: const BoxConstraints(maxWidth: 600, maxHeight: 700),
             desktop: const BoxConstraints(maxWidth: 800, maxHeight: 800),
@@ -126,7 +127,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'تصدير المحادثة',
+                  Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير المحادثة' : 'Export Conversation',
                   style: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(
                       context,
@@ -141,7 +142,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                   ),
                 ),
                 Text(
-                  'حفظ ومشاركة المحادثات',
+                  Localizations.localeOf(context).languageCode == 'ar' ? 'حفظ ومشاركة المحادثات' : 'Save and share conversations',
                   style: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(
                       context,
@@ -251,7 +252,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                     ),
                   ),
                   Text(
-                    'إحصائيات المحادثة',
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'إحصائيات المحادثة' : 'Conversation Statistics',
                     style: TextStyle(
                       fontSize: ResponsiveHelper.getResponsiveFontSize(
                         context,
@@ -273,17 +274,29 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                   desktop: 16,
                 ),
               ),
-              _buildStatRow('إجمالي الرسائل', '${stats['total_messages']}'),
-              _buildStatRow('رسائل المستخدم', '${stats['user_messages']}'),
-              _buildStatRow('رسائل المساعد', '${stats['assistant_messages']}'),
-              _buildStatRow('إجمالي الأحرف', '${stats['total_characters']}'),
               _buildStatRow(
-                'متوسط طول الرسالة',
-                '${stats['average_message_length']} حرف',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'إجمالي الرسائل' : 'Total Messages', 
+                '${stats['total_messages']}'
               ),
               _buildStatRow(
-                'مدة المحادثة',
-                '${stats['chat_duration_minutes']} دقيقة',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'رسائل المستخدم' : 'User Messages', 
+                '${stats['user_messages']}'
+              ),
+              _buildStatRow(
+                Localizations.localeOf(context).languageCode == 'ar' ? 'رسائل المساعد' : 'Assistant Messages', 
+                '${stats['assistant_messages']}'
+              ),
+              _buildStatRow(
+                Localizations.localeOf(context).languageCode == 'ar' ? 'إجمالي الأحرف' : 'Total Characters', 
+                '${stats['total_characters']}'
+              ),
+              _buildStatRow(
+                Localizations.localeOf(context).languageCode == 'ar' ? 'متوسط طول الرسالة' : 'Average Message Length',
+                Localizations.localeOf(context).languageCode == 'ar' ? '${stats['average_message_length']} حرف' : '${stats['average_message_length']} chars',
+              ),
+              _buildStatRow(
+                Localizations.localeOf(context).languageCode == 'ar' ? 'مدة المحادثة' : 'Conversation Duration',
+                Localizations.localeOf(context).languageCode == 'ar' ? '${stats['chat_duration_minutes']} دقيقة' : '${stats['chat_duration_minutes']} minutes',
               ),
             ],
           ),
@@ -338,7 +351,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'نوع التصدير',
+          Localizations.localeOf(context).languageCode == 'ar' ? 'نوع التصدير' : 'Export Type',
           style: TextStyle(
             fontSize: ResponsiveHelper.getResponsiveFontSize(
               context,
@@ -386,7 +399,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                   subtitle:
                       entry.key == 'selected' && !selectionProvider.hasSelection
                       ? Text(
-                          'يجب تحديد رسائل أولاً',
+                          Localizations.localeOf(context).languageCode == 'ar' ? 'يجب تحديد رسائل أولاً' : 'Must select messages first',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.error,
                             fontSize: 12,
@@ -407,7 +420,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'تنسيق الملف',
+          Localizations.localeOf(context).languageCode == 'ar' ? 'تنسيق الملف' : 'File Format',
           style: TextStyle(
             fontSize: ResponsiveHelper.getResponsiveFontSize(
               context,
@@ -469,11 +482,11 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
   String _getFormatDescription(String format) {
     switch (format) {
       case 'json':
-        return 'تنسيق مُنظم للبرمجة والتحليل';
+        return Localizations.localeOf(context).languageCode == 'ar' ? 'تنسيق مُنظم للبرمجة والتحليل' : 'Structured format for programming and analysis';
       case 'txt':
-        return 'نص بسيط قابل للقراءة';
+        return Localizations.localeOf(context).languageCode == 'ar' ? 'نص بسيط قابل للقراءة' : 'Simple readable text';
       case 'markdown':
-        return 'تنسيق Markdown مع هيكلة جميلة';
+        return Localizations.localeOf(context).languageCode == 'ar' ? 'تنسيق Markdown مع هيكلة جميلة' : 'Markdown format with beautiful structure';
       default:
         return '';
     }
@@ -506,7 +519,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                       size: ResponsiveHelper.getResponsiveIconSize(context),
                     ),
                     label: Text(
-                      'إلغاء',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel',
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -543,7 +556,9 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                             ),
                           ),
                     label: Text(
-                      _isExporting ? 'جاري الحفظ...' : 'حفظ',
+                      _isExporting 
+                        ? (Localizations.localeOf(context).languageCode == 'ar' ? 'جاري الحفظ...' : 'Saving...')
+                        : (Localizations.localeOf(context).languageCode == 'ar' ? 'حفظ' : 'Save'),
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -584,7 +599,9 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                             ),
                           ),
                     label: Text(
-                      _isExporting ? 'جاري المشاركة...' : 'مشاركة',
+                      _isExporting 
+                        ? (Localizations.localeOf(context).languageCode == 'ar' ? 'جاري المشاركة...' : 'Sharing...')
+                        : (Localizations.localeOf(context).languageCode == 'ar' ? 'مشاركة' : 'Share'),
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -612,7 +629,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                       size: ResponsiveHelper.getResponsiveIconSize(context),
                     ),
                     label: Text(
-                      'إلغاء',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel',
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -648,7 +665,9 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                             ),
                           ),
                     label: Text(
-                      _isExporting ? 'جاري الحفظ...' : 'حفظ',
+                      _isExporting 
+                        ? (Localizations.localeOf(context).languageCode == 'ar' ? 'جاري الحفظ...' : 'Saving...')
+                        : (Localizations.localeOf(context).languageCode == 'ar' ? 'حفظ' : 'Save'),
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -688,7 +707,9 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
                             ),
                           ),
                     label: Text(
-                      _isExporting ? 'جاري المشاركة...' : 'مشاركة',
+                      _isExporting 
+                        ? (Localizations.localeOf(context).languageCode == 'ar' ? 'جاري المشاركة...' : 'Sharing...')
+                        : (Localizations.localeOf(context).languageCode == 'ar' ? 'مشاركة' : 'Share'),
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -723,11 +744,11 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
           final selectionProvider = context.read<ChatSelectionProvider>();
           final selectedMessages = selectionProvider.getSelectedMessages(widget.messages);
           if (selectedMessages.isEmpty) {
-            throw Exception('لم يتم تحديد أي رسائل للتصدير');
+            throw Exception(Localizations.localeOf(context).languageCode == 'ar' ? 'لم يتم تحديد أي رسائل للتصدير' : 'No messages selected for export');
           }
           content = await ChatExportService.exportSingleChat(
             messages: selectedMessages,
-            chatTitle: '${widget.chatTitle} (رسائل محددة)',
+            chatTitle: Localizations.localeOf(context).languageCode == 'ar' ? '${widget.chatTitle} (رسائل محددة)' : '${widget.chatTitle} (Selected Messages)',
             format: _selectedFormat,
           );
           filename = '${widget.chatTitle}_selected';
@@ -735,7 +756,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
         case 'all':
           final selectionProvider = context.read<ChatSelectionProvider>();
           if (selectionProvider.availableChats.isEmpty) {
-            throw Exception('لا توجد محادثات متاحة للتصدير');
+            throw Exception(Localizations.localeOf(context).languageCode == 'ar' ? 'لا توجد محادثات متاحة للتصدير' : 'No conversations available for export');
           }
           content = await ChatExportService.exportMultipleChats(
             chats: selectionProvider.availableChats,
@@ -745,7 +766,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
           break;
         default:
           if (widget.messages.isEmpty) {
-            throw Exception('لا توجد رسائل للتصدير');
+            throw Exception(Localizations.localeOf(context).languageCode == 'ar' ? 'لا توجد رسائل للتصدير' : 'No messages to export');
           }
           content = await ChatExportService.exportSingleChat(
             messages: widget.messages,
@@ -764,7 +785,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم حفظ الملف في: $filePath'),
+            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم حفظ الملف في: $filePath' : 'File saved to: $filePath'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
           ),
@@ -775,7 +796,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل في حفظ الملف: $e'),
+            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'فشل في حفظ الملف: $e' : 'Failed to save file: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -803,11 +824,11 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
           final selectionProvider = context.read<ChatSelectionProvider>();
           final selectedMessages = selectionProvider.getSelectedMessages(widget.messages);
           if (selectedMessages.isEmpty) {
-            throw Exception('لم يتم تحديد أي رسائل للمشاركة');
+            throw Exception(Localizations.localeOf(context).languageCode == 'ar' ? 'لم يتم تحديد أي رسائل للمشاركة' : 'No messages selected for sharing');
           }
           content = await ChatExportService.exportSingleChat(
             messages: selectedMessages,
-            chatTitle: '${widget.chatTitle} (رسائل محددة)',
+            chatTitle: Localizations.localeOf(context).languageCode == 'ar' ? '${widget.chatTitle} (رسائل محددة)' : '${widget.chatTitle} (Selected Messages)',
             format: _selectedFormat,
           );
           filename = '${widget.chatTitle}_selected';
@@ -815,7 +836,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
         case 'all':
           final selectionProvider = context.read<ChatSelectionProvider>();
           if (selectionProvider.availableChats.isEmpty) {
-            throw Exception('لا توجد محادثات متاحة للمشاركة');
+            throw Exception(Localizations.localeOf(context).languageCode == 'ar' ? 'لا توجد محادثات متاحة للمشاركة' : 'No conversations available for sharing');
           }
           content = await ChatExportService.exportMultipleChats(
             chats: selectionProvider.availableChats,
@@ -825,7 +846,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
           break;
         default:
           if (widget.messages.isEmpty) {
-            throw Exception('لا توجد رسائل للمشاركة');
+            throw Exception(Localizations.localeOf(context).languageCode == 'ar' ? 'لا توجد رسائل للمشاركة' : 'No messages to share');
           }
           content = await ChatExportService.exportSingleChat(
             messages: widget.messages,
@@ -848,7 +869,7 @@ class _ChatExportDialogState extends State<ChatExportDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل في مشاركة الملف: $e'),
+            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'فشل في مشاركة الملف: $e' : 'Failed to share file: $e'),
             backgroundColor: Colors.red,
           ),
         );

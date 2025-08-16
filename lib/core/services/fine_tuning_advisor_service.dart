@@ -17,9 +17,11 @@ class FineTuningAdvisorService {
   Map<String, dynamic>? _fineTuningDataset;
 
   // تحميل قاعدة البيانات الشاملة للتدريب المتقدم
+  // Load comprehensive database for advanced training
   Future<void> initialize() async {
     try {
       // تحميل بيانات التدريب المتخصصة
+      // Load specialized training data
       final datasetString = await rootBundle.loadString(
         'assets/data/specialized_datasets/fine_Tuning.json',
       );
@@ -27,6 +29,7 @@ class FineTuningAdvisorService {
       _fineTuningKnowledgeBase = _getAdvancedPythonKnowledgeBase();
 
       // تحقق من تحميل البيانات بنجاح
+      // Verify successful data loading
       final cellsCount = _fineTuningDataset?['cells']?.length ?? 0;
       if (kDebugMode) {
         print(
@@ -35,6 +38,7 @@ class FineTuningAdvisorService {
       }
 
       // استخراج أمثلة الكود للتحقق
+      // Extract code examples for verification
       if (_fineTuningDataset != null) {
         final cells = _fineTuningDataset?['cells'] as List?;
         final codeCells =
@@ -46,13 +50,14 @@ class FineTuningAdvisorService {
         }
       }
     } catch (e) {
-      if (kDebugMode) print('[FINE_TUNING_ADVISOR] ❌ Could not load dataset: $e');
-      if (kDebugMode) print('[FINE_TUNING_ADVISOR] 🔄 Using fallback knowledge base');
+      if (kDebugMode) print('[FINE_TUNING_ADVISOR] ❌ Could not load dataset / لا يمكن تحميل البيانات: $e');
+      if (kDebugMode) print('[FINE_TUNING_ADVISOR] 🔄 Using fallback knowledge base / استخدام قاعدة المعرفة الاحتياطية');
       _fineTuningKnowledgeBase = _getAdvancedPythonKnowledgeBase();
     }
   }
 
   // قاعدة المعرفة المتقدمة للبرمجة بالبايثون والتدريب المتقدم
+  // Advanced knowledge base for Python programming and advanced training
   String _getAdvancedPythonKnowledgeBase() {
     return '''
 === قاعدة المعرفة المتقدمة للبرمجة بالبايثون والتدريب المتقدم ===
@@ -230,6 +235,7 @@ class FineTuningAdvisorService {
   }
 
   // بناء النظام التعليمي المتخصص
+  // Build specialized educational system
   String _buildSpecializedSystemPrompt() {
     return '''
 You are an AI assistant specialized in advanced Python programming and Fine-Tuning techniques, with deep expertise in machine learning and artificial intelligence.
@@ -266,6 +272,7 @@ Important Instructions:
   }
 
   // تقييم مستوى المهارات البرمجية والتدريب المتقدم
+  // Assess programming skills and advanced training level
   Future<ProgrammingSkillAssessmentModel> assessProgrammingLevel(
     List<String> responses,
   ) async {
@@ -301,11 +308,12 @@ Important Instructions:
 
       return ProgrammingSkillAssessmentModel.fromAIResponse(response);
     } catch (e) {
-      throw Exception('فشل في تقييم المهارات البرمجية: $e');
+      throw Exception('فشل في تقييم المهارات البرمجية / Failed to assess programming skills: $e');
     }
   }
 
   // تقديم المشورة المتخصصة في البرمجة والتدريب المتقدم
+  // Provide specialized advice in programming and advanced training
   Future<String> provideAdvancedProgrammingAdvice({
     required List<MessageModel> messages,
     String? specificTopic,
@@ -314,6 +322,7 @@ Important Instructions:
   }) async {
     try {
       // إضافة السياق من الـ dataset المتاح
+      // Add context from available dataset
       String datasetContext = '';
       if (_fineTuningDataset != null) {
         final cells = _fineTuningDataset?['cells'] as List?;
@@ -323,6 +332,7 @@ Important Instructions:
 
           if (specificTopic != null) {
             // البحث عن خلايا ذات صلة بالموضوع المطلوب
+            // Search for cells related to requested topic
             relevantCells = cells
                 .where((cell) {
                   if (cell['cell_type'] == 'code' && cell['source'] != null) {
@@ -344,6 +354,7 @@ Important Instructions:
                 .toList();
           } else {
             // استخراج أمثلة عامة متنوعة
+            // Extract diverse general examples
             relevantCells = cells
                 .where(
                   (cell) =>
@@ -355,14 +366,14 @@ Important Instructions:
 
           if (relevantCells.isNotEmpty) {
             datasetContext =
-                '📊 **أمثلة عملية من قاعدة البيانات المتخصصة:**\n\n';
+                '📊 **أمثلة عملية من قاعدة البيانات المتخصصة / Practical examples from specialized database:**\n\n';
             for (var i = 0; i < relevantCells.length; i++) {
               final cell = relevantCells[i];
               final source = cell['source'];
               if (source is List && source.isNotEmpty) {
                 final codeText = source.join('');
                 datasetContext +=
-                    '**مثال ${i + 1}:**\n```python\n${codeText.length > 1000 ? '${codeText.substring(0, 1000)}...' : codeText}\n```\n\n';
+                    '**مثال / Example ${i + 1}:**\n```python\n${codeText.length > 1000 ? '${codeText.substring(0, 1000)}...' : codeText}\n```\n\n';
               }
             }
             datasetContext += '---\n\n';
@@ -375,21 +386,21 @@ Important Instructions:
         if (specificTopic != null)
           MessageModel(
             id: 'topic_context',
-            content: 'الموضوع المحدد: $specificTopic',
+            content: 'الموضوع المحدد / Specific topic: $specificTopic',
             role: MessageRole.user,
             timestamp: DateTime.now(),
           ),
         if (skillLevel != null)
           MessageModel(
             id: 'skill_context',
-            content: 'مستوى المهارة: $skillLevel',
+            content: 'مستوى المهارة / Skill level: $skillLevel',
             role: MessageRole.user,
             timestamp: DateTime.now(),
           ),
         if (projectType != null)
           MessageModel(
             id: 'project_context',
-            content: 'نوع المشروع: $projectType',
+            content: 'نوع المشروع / Project type: $projectType',
             role: MessageRole.user,
             timestamp: DateTime.now(),
           ),
@@ -411,11 +422,12 @@ Important Instructions:
 
       return response;
     } catch (e) {
-      throw Exception('فشل في إنشاء خطة التدريب: $e');
+      throw Exception('فشل في إنشاء خطة التدريب / Failed to create training plan: $e');
     }
   }
 
   // تتبع التقدم في التعلم وتحليل الأداء البرمجي
+  // Track learning progress and analyze programming performance
   Future<LearningProgressReportModel> trackLearningProgress({
     required String userId,
     required List<LearningProgressEntryModel> entries,
@@ -469,11 +481,12 @@ Important Instructions:
 
       return LearningProgressReportModel.fromAIResponse(response);
     } catch (e) {
-      throw Exception('فشل في تحليل التقدم التعليمي: $e');
+      throw Exception('فشل في تحليل التقدم التعليمي / Failed to analyze learning progress: $e');
     }
   }
 
   // اختبار الوصول لقاعدة البيانات
+  // Test database access
   bool get isDatasetLoaded => _fineTuningDataset != null;
 
   int get datasetSize => _fineTuningDataset?['cells']?.length ?? 0;
@@ -499,6 +512,7 @@ Important Instructions:
 }
 
 // نماذج البيانات المساعدة للبرمجة والتدريب المتقدم
+// Helper data models for programming and advanced training
 class ProgrammingSkillAssessmentModel {
   final String skillLevel;
   final List<String> strongAreas;
@@ -518,11 +532,12 @@ class ProgrammingSkillAssessmentModel {
 
   factory ProgrammingSkillAssessmentModel.fromAIResponse(String response) {
     // تحليل الاستجابة وإنشاء النموذج
+    // Analyze response and create model
     return ProgrammingSkillAssessmentModel(
-      skillLevel: 'متوسط', // استخراج من الاستجابة
+      skillLevel: 'متوسط', // استخراج من الاستجابة // Extract from response
       strongAreas: ['PyTorch', 'Data Processing'],
       improvementAreas: ['Fine-Tuning', 'Model Optimization'],
-      recommendations: ['دراسة Transformers', 'ممارسة Fine-Tuning'],
+      recommendations: ['دراسة Transformers', 'ممارسة Fine-Tuning'], // Study Transformers, Practice Fine-Tuning
       learningPlan: response,
       suggestedProjects: ['Image Classification', 'Text Analysis'],
     );
@@ -552,16 +567,16 @@ class FineTuningPlanModel {
 
   factory FineTuningPlanModel.fromAIResponse(String response) {
     return FineTuningPlanModel(
-      shortTermGoals: ['إتقان PyTorch Basics', 'فهم Transformers'],
-      longTermGoals: ['إتقان Fine-Tuning المتقدم', 'تطوير نماذج مخصصة'],
+      shortTermGoals: ['إتقان PyTorch Basics', 'فهم Transformers'], // Master PyTorch Basics, Understand Transformers
+      longTermGoals: ['إتقان Fine-Tuning المتقدم', 'تطوير نماذج مخصصة'], // Master Advanced Fine-Tuning, Develop Custom Models
       dailyPractice: {
-        'صباح': ['قراءة Documentation', 'كتابة كود'],
+        'صباح': ['قراءة Documentation', 'كتابة كود'], // Morning: Read Documentation, Write Code
       },
       weeklyProjects: {
-        'أسبوعي': ['مشروع Fine-Tuning', 'تحسين النماذج'],
+        'أسبوعي': ['مشروع Fine-Tuning', 'تحسين النماذج'], // Weekly: Fine-Tuning Project, Model Optimization
       },
-      timeline: '3 أشهر',
-      progressIndicators: ['دقة النماذج', 'سرعة التدريب'],
+      timeline: '3 أشهر', // 3 months
+      progressIndicators: ['دقة النماذج', 'سرعة التدريب'], // Model Accuracy, Training Speed
       datasets: ['MNIST', 'CIFAR-10', 'Custom Dataset'],
       models: ['SigLIP 2', 'ViT', 'ResNet'],
     );
@@ -610,10 +625,10 @@ class LearningProgressReportModel {
   factory LearningProgressReportModel.fromAIResponse(String response) {
     return LearningProgressReportModel(
       analysis: response,
-      improvements: ['تحسن في PyTorch', 'فهم أفضل للـ Fine-Tuning'],
-      challenges: ['تحسين الأداء', 'إدارة الذاكرة'],
-      recommendations: ['المزيد من الممارسة', 'دراسة حالات متقدمة'],
-      planAdjustments: 'التركيز على مشاريع أكثر تعقيد',
+      improvements: ['تحسن في PyTorch', 'فهم أفضل للـ Fine-Tuning'], // Improved in PyTorch, Better Understanding of Fine-Tuning
+      challenges: ['تحسين الأداء', 'إدارة الذاكرة'], // Performance Optimization, Memory Management
+      recommendations: ['المزيد من الممارسة', 'دراسة حالات متقدمة'], // More Practice, Study Advanced Cases
+      planAdjustments: 'التركيز على مشاريع أكثر تعقيد', // Focus on More Complex Projects
       skillMetrics: {'pytorch': 0.8, 'fine_tuning': 0.6, 'optimization': 0.7},
       completedProjects: ['Image Classification', 'Model Fine-Tuning'],
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/api_key_manager.dart';
 import '../../providers/chat_provider.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 class ApiKeysSection extends StatefulWidget {
   const ApiKeysSection({super.key});
@@ -15,11 +16,11 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
   final Map<String, bool> _obscureText = {};
   final Map<String, bool> _isLoading = {};
 
-  final List<Map<String, dynamic>> _apiServices = [
+  List<Map<String, dynamic>> _getApiServices(BuildContext context) => [
     {
       'id': 'groq',
       'name': 'Groq',
-      'description': 'نماذج Llama و Mixtral السريعة',
+      'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نماذج Llama و Mixtral السريعة' : 'Fast Llama & Mixtral models',
       'icon': Icons.flash_on,
       'color': Colors.orange,
       'envKey': 'GROQ_API_KEY',
@@ -28,7 +29,7 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
     {
       'id': 'gptgod',
       'name': 'GPTGod',
-      'description': 'GPT-4o و Claude-3.5',
+      'description': Localizations.localeOf(context).languageCode == 'ar' ? 'GPT-4o و Claude-3.5' : 'GPT-4o & Claude-3.5',
       'icon': Icons.auto_awesome,
       'color': Colors.purple,
       'envKey': 'GPTGOD_API_KEY',
@@ -37,7 +38,7 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
     {
       'id': 'openrouter',
       'name': 'OpenRouter',
-      'description': 'مجموعة واسعة من النماذج',
+      'description': Localizations.localeOf(context).languageCode == 'ar' ? 'مجموعة واسعة من النماذج' : 'Wide range of models',
       'icon': Icons.router,
       'color': Colors.blue,
       'envKey': 'OPEN_ROUTER_API',
@@ -46,7 +47,7 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
     {
       'id': 'huggingface',
       'name': 'HuggingFace',
-      'description': 'نماذج مفتوحة المصدر',
+      'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نماذج مفتوحة المصدر' : 'Open source models',
       'icon': Icons.hub,
       'color': Colors.yellow,
       'envKey': 'HUGGINGFACE_API_KEY',
@@ -55,7 +56,7 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
     {
       'id': 'tavily',
       'name': 'Tavily',
-      'description': 'البحث في الإنترنت',
+      'description': Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في الإنترنت' : 'Internet search',
       'icon': Icons.search,
       'color': Colors.green,
       'envKey': 'TAVILY_API_KEY',
@@ -64,7 +65,7 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
     {
       'id': 'localai',
       'name': 'LocalAI / Ollama',
-      'description': 'نماذج محلية للخصوصية الكاملة',
+      'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نماذج محلية للخصوصية الكاملة' : 'Local models for complete privacy',
       'icon': Icons.computer,
       'color': Colors.teal,
       'envKey': 'LOCALAI_URL',
@@ -81,7 +82,8 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
   }
 
   void _initializeControllers() {
-    for (final service in _apiServices) {
+    final services = _getApiServices(context);
+    for (final service in services) {
       final id = service['id'] as String;
       _controllers[id] = TextEditingController();
       _obscureText[id] = true;
@@ -90,7 +92,8 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
   }
 
   Future<void> _loadApiKeys() async {
-    for (final service in _apiServices) {
+    final services = _getApiServices(context);
+    for (final service in services) {
       final id = service['id'] as String;
       try {
         final apiKey = await ApiKeyManager.getApiKey(id);
@@ -98,7 +101,7 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
           _controllers[id]?.text = apiKey;
         }
       } catch (e) {
-        print('خطأ في تحميل مفتاح $id: $e');
+        print('Error loading key $id: $e');
       }
     }
   }
@@ -121,7 +124,7 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم حفظ مفتاح $serviceId بنجاح'),
+            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم حفظ مفتاح $serviceId بنجاح' : '$serviceId key saved successfully'),
             backgroundColor: Colors.green,
           ),
         );
@@ -130,7 +133,7 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في حفظ مفتاح $serviceId: $e'),
+            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ في حفظ مفتاح $serviceId: $e' : 'Error saving $serviceId key: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -149,16 +152,16 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '🔑 مفاتيح API',
+        Text(
+          Localizations.localeOf(context).languageCode == 'ar' ? '🔑 مفاتيح API' : '🔑 API Keys',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'أدخل مفاتيح API الخاصة بك للوصول إلى النماذج المختلفة',
+        Text(
+          Localizations.localeOf(context).languageCode == 'ar' ? 'أدخل مفاتيح API الخاصة بك للوصول إلى النماذج المختلفة' : 'Enter your API keys to access different models',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey,
@@ -167,7 +170,7 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
         const SizedBox(height: 16),
         
         // قائمة الخدمات
-        ...(_apiServices.map((service) => _buildServiceCard(service))),
+        ...(_getApiServices(context).map((service) => _buildServiceCard(service))),
         
         const SizedBox(height: 16),
         
@@ -179,29 +182,37 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.blue.withOpacity(0.3)),
           ),
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(Icons.info, color: Colors.blue, size: 20),
-                  SizedBox(width: 8),
+                  const Icon(Icons.info, color: Colors.blue, size: 20),
+                  const SizedBox(width: 8),
                   Text(
-                    'معلومات مهمة',
-                    style: TextStyle(
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'معلومات مهمة' : 'Important Information',
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.blue,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
-                '• يمكنك استخدام ملف .env لتخزين المفاتيح\n'
-                '• المفاتيح محفوظة بشكل آمن ومشفر\n'
-                '• يمكن استخدام عدة مفاتيح للخدمة الواحدة\n'
-                '• التطبيق يختار أفضل خدمة تلقائياً',
-                style: TextStyle(fontSize: 12),
+                Localizations.localeOf(context).languageCode == 'ar' 
+                    ? '• يمكنك استخدام ملف .env لتخزين المفاتيح\n'
+                      '• المفاتيح محفوظة بشكل آمن ومشفر\n'
+                      '• يمكن استخدام عدة مفاتيح للخدمة الواحدة\n'
+                      '• التطبيق يختار أفضل خدمة تلقائياً'
+                    : '• You can use .env file to store keys\n'
+                      '• Keys are stored securely and encrypted\n'
+                      '• Multiple keys can be used per service\n'
+                      '• App automatically chooses best service',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
               ),
             ],
           ),
@@ -259,8 +270,8 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
                                 color: Colors.red.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Text(
-                                'مطلوب',
+                              child: Text(
+                                Localizations.localeOf(context).languageCode == 'ar' ? 'مطلوب' : 'Required',
                                 style: TextStyle(
                                   color: Colors.red,
                                   fontSize: 10,
@@ -276,8 +287,8 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
                                 color: Colors.green.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Text(
-                                'محلي',
+                              child: Text(
+                                Localizations.localeOf(context).languageCode == 'ar' ? 'محلي' : 'Local',
                                 style: TextStyle(
                                   color: Colors.green,
                                   fontSize: 10,
@@ -311,8 +322,12 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
                     obscureText: !isLocal && (_obscureText[id] ?? true),
                     decoration: InputDecoration(
                       hintText: isLocal
-                          ? 'أدخل عنوان URL للخادم المحلي (مثل: http://localhost:11434)'
-                          : 'أدخل مفتاح $name API',
+                          ? (Localizations.localeOf(context).languageCode == 'ar' 
+                              ? 'أدخل عنوان URL للخادم المحلي (مثل: http://localhost:11434)'
+                              : 'Enter local server URL (e.g.: http://localhost:11434)')
+                          : (Localizations.localeOf(context).languageCode == 'ar' 
+                              ? 'أدخل مفتاح $name API'
+                              : 'Enter $name API key'),
                       border: const OutlineInputBorder(),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -369,7 +384,9 @@ class _ApiKeysSectionState extends State<ApiKeysSection> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'تأكد من تشغيل Ollama أو LocalAI على جهازك',
+                          Localizations.localeOf(context).languageCode == 'ar' 
+                              ? 'تأكد من تشغيل Ollama أو LocalAI على جهازك'
+                              : 'Make sure Ollama or LocalAI is running on your device',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.blue[700],

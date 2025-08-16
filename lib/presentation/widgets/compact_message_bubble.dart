@@ -7,6 +7,7 @@ import '../providers/settings_provider.dart';
 import '../../data/models/message_model.dart';
 import '../providers/chat_selection_provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 
 class CompactMessageBubble extends StatelessWidget {
@@ -172,13 +173,13 @@ class CompactMessageBubble extends StatelessWidget {
                                       ClipboardData(text: message.content),
                                     );
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('تم نسخ النص'),
+                                      SnackBar(
+                                        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم نسخ النص' : 'Text copied'),
                                         duration: Duration(seconds: 1),
                                       ),
                                     );
                                   },
-                                  tooltip: 'نسخ النص',
+                                  tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'نسخ النص' : 'Copy Text',
                                 ),
                                 Text(
                                   _formatTime(message.timestamp),
@@ -240,7 +241,7 @@ class CompactMessageBubble extends StatelessWidget {
           onTapLink: (text, href, title) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('تم النقر على الرابط: $href'),
+                content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم النقر على الرابط: $href' : 'Link clicked: $href'),
                 duration: const Duration(seconds: 2),
               ),
             );

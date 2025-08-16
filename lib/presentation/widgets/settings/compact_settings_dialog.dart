@@ -20,8 +20,8 @@ class CompactSettingsDialog extends StatelessWidget {
               children: [
                 const Icon(Icons.settings, size: 28),
                 const SizedBox(width: 12),
-                const Text(
-                  'الإعدادات',
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ar' ? 'الإعدادات' : 'Settings',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
@@ -56,16 +56,16 @@ class CompactSettingsDialog extends StatelessWidget {
               children: [
                 TextButton.icon(
                   icon: const Icon(Icons.refresh),
-                  label: const Text('إعادة تعيين'),
+                  label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة تعيين' : 'Reset'),
                   onPressed: () => _showResetDialog(context),
                 ),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.save),
-                  label: const Text('حفظ'),
+                  label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حفظ' : 'Save'),
                   onPressed: () {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('تم حفظ الإعدادات')),
+                      SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم حفظ الإعدادات' : 'Settings saved')),
                     );
                   },
                 ),
@@ -81,23 +81,23 @@ class CompactSettingsDialog extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إعادة تعيين الإعدادات'),
-        content: const Text('هل تريد إعادة تعيين جميع الإعدادات للقيم الافتراضية؟'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة تعيين الإعدادات' : 'Reset Settings'),
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'هل تريد إعادة تعيين جميع الإعدادات للقيم الافتراضية؟' : 'Do you want to reset all settings to default values?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
           TextButton(
             onPressed: () {
               // إعادة تعيين الإعدادات
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم إعادة تعيين الإعدادات')),
+                SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم إعادة تعيين الإعدادات' : 'Settings reset')),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            child: const Text('إعادة تعيين'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة تعيين' : 'Reset'),
           ),
         ],
       ),
@@ -136,11 +136,11 @@ class QuickSettingsPanel extends StatelessWidget {
           ),
         ],
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'إعدادات سريعة',
+            Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات سريعة' : 'Quick Settings',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 16),

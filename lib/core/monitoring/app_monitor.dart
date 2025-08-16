@@ -250,8 +250,6 @@ class AppMonitor {
 
   /// تسجيل frame
   void recordFrame(String widgetName) {
-    final now = DateTime.now();
-    
     if (_frameTimes.containsKey(widgetName)) {
       _frameTimes[widgetName]!.add(Duration.zero); // يمكن تحسين هذا
     } else {

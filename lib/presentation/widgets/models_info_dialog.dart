@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/utils/responsive_helper.dart';
 import '../../core/services/api_key_manager.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 class ModelsInfoDialog extends StatefulWidget {
   const ModelsInfoDialog({super.key});
@@ -122,7 +123,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
                       ),
                     ),
                     child: Text(
-                      'إغلاق',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'إغلاق' : 'Close',
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -175,7 +176,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'النماذج المتاحة',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'النماذج المتاحة' : 'Available Models',
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(
                     context,
@@ -187,7 +188,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
                 ),
               ),
               Text(
-                'اكتشف النماذج المجانية والمدفوعة',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'اكتشف النماذج المجانية والمدفوعة' : 'Discover free and paid models',
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(
                     context,
@@ -213,7 +214,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
             ),
           ),
           onPressed: () => _exportModelsList(context),
-          tooltip: 'تصدير قائمة النماذج',
+          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير قائمة النماذج' : 'Export Models List',
         ),
         IconButton(
           icon: Icon(
@@ -235,7 +236,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
     final allModels = _getAllModels();
     final buffer = StringBuffer();
     
-    buffer.writeln('قائمة النماذج المتاحة في Atlas AI');
+    buffer.writeln(Localizations.localeOf(context).languageCode == 'ar' ? 'قائمة النماذج المتاحة في Atlas AI' : 'Available Models in Atlas AI');
     buffer.writeln('=' * 50);
     buffer.writeln('');
     
@@ -258,20 +259,28 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
       
       for (final model in serviceModels) {
         buffer.writeln('### ${model['name'] ?? model['id']}');
-        buffer.writeln('**المعرف:** `${model['id']}`');
-        buffer.writeln('**الوصف:** ${model['description'] ?? ''}');
-        buffer.writeln('**السرعة:** ${model['speed'] ?? ''}');
-        buffer.writeln('**الجودة:** ${model['quality'] ?? ''}');
-        buffer.writeln('**السياق:** ${model['context'] ?? ''}');
+        if (Localizations.localeOf(context).languageCode == 'ar') {
+          buffer.writeln('**المعرف:** `${model['id']}`');
+          buffer.writeln('**الوصف:** ${model['description'] ?? ''}');
+          buffer.writeln('**السرعة:** ${model['speed'] ?? ''}');
+          buffer.writeln('**الجودة:** ${model['quality'] ?? ''}');
+          buffer.writeln('**السياق:** ${model['context'] ?? ''}');
+        } else {
+          buffer.writeln('**ID:** `${model['id']}`');
+          buffer.writeln('**Description:** ${model['description'] ?? ''}');
+          buffer.writeln('**Speed:** ${model['speed'] ?? ''}');
+          buffer.writeln('**Quality:** ${model['quality'] ?? ''}');
+          buffer.writeln('**Context:** ${model['context'] ?? ''}');
+        }
         
         if (model['features'] != null) {
-          buffer.writeln('**المميزات:** ${model['features'].join(', ')}');
+          buffer.writeln(Localizations.localeOf(context).languageCode == 'ar' ? '**المميزات:** ${model['features'].join(', ')}' : '**Features:** ${model['features'].join(', ')}');
         }
         
         if (model['requiresKey'] == true) {
-          buffer.writeln('**النوع:** مدفوع (يتطلب مفتاح API)');
+          buffer.writeln(Localizations.localeOf(context).languageCode == 'ar' ? '**النوع:** مدفوع (يتطلب مفتاح API)' : '**Type:** Paid (requires API key)');
         } else {
-          buffer.writeln('**النوع:** مجاني');
+          buffer.writeln(Localizations.localeOf(context).languageCode == 'ar' ? '**النوع:** مجاني' : '**Type:** Free');
         }
         
         buffer.writeln('');
@@ -292,7 +301,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
             SizedBox(width: 8),
             Expanded(
               child: Text(
-                'تم تصدير قائمة النماذج إلى الحافظة',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'تم تصدير قائمة النماذج إلى الحافظة' : 'Models list exported to clipboard',
                 style: TextStyle(fontSize: 14),
               ),
             ),
@@ -305,7 +314,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
           borderRadius: BorderRadius.circular(8),
         ),
         action: SnackBarAction(
-          label: 'عرض',
+          label: Localizations.localeOf(context).languageCode == 'ar' ? 'عرض' : 'View',
           textColor: Colors.white,
           onPressed: () => _showExportedModels(context, modelsText),
         ),
@@ -317,7 +326,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('قائمة النماذج المصدرة'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'قائمة النماذج المصدرة' : 'Exported Models List'),
         content: SizedBox(
           width: double.maxFinite,
           height: MediaQuery.of(context).size.height * 0.6,
@@ -334,7 +343,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('إغلاق'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إغلاق' : 'Close'),
           ),
         ],
       ),
@@ -357,7 +366,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
                     });
                   },
                   decoration: InputDecoration(
-                    hintText: 'البحث في النماذج...',
+                    hintText: Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في النماذج...' : 'Search models...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -383,10 +392,10 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
               DropdownButton<String>(
                 value: _selectedFilter,
                 items: [
-                  DropdownMenuItem(value: 'all', child: Text('الكل')),
-                  DropdownMenuItem(value: 'fast', child: Text('سريع')),
-                  DropdownMenuItem(value: 'quality', child: Text('جودة عالية')),
-                  DropdownMenuItem(value: 'free', child: Text('مجاني')),
+                  DropdownMenuItem(value: 'all', child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الكل' : 'All')),
+                  DropdownMenuItem(value: 'fast', child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'سريع' : 'Fast')),
+                  DropdownMenuItem(value: 'quality', child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'جودة عالية' : 'High Quality')),
+                  DropdownMenuItem(value: 'free', child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مجاني' : 'Free')),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -412,7 +421,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${_selectedModelsForComparison.length} نموذج محدد للمقارنة',
+                      Localizations.localeOf(context).languageCode == 'ar' ? '${_selectedModelsForComparison.length} نموذج محدد للمقارنة' : '${_selectedModelsForComparison.length} models selected for comparison',
                       style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.w500,
@@ -423,7 +432,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
                     onPressed: _selectedModelsForComparison.length >= 2 
                         ? () => _showComparisonDialog(context)
                         : null,
-                    child: Text('مقارنة'),
+                    child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مقارنة' : 'Compare'),
                   ),
                   TextButton(
                     onPressed: () {
@@ -431,7 +440,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
                         _selectedModelsForComparison.clear();
                       });
                     },
-                    child: Text('مسح'),
+                    child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مسح' : 'Clear'),
                   ),
                 ],
               ),
@@ -452,7 +461,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('مقارنة النماذج'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مقارنة النماذج' : 'Models Comparison'),
         content: SizedBox(
           width: double.maxFinite,
           height: MediaQuery.of(context).size.height * 0.7,
@@ -463,7 +472,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('إغلاق'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إغلاق' : 'Close'),
           ),
         ],
       ),
@@ -484,52 +493,54 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
         TableRow(
           decoration: BoxDecoration(color: Colors.grey[100]),
           children: [
-            _buildTableHeader(context, 'المعيار'),
+            _buildTableHeader(context, Localizations.localeOf(context).languageCode == 'ar' ? 'المعيار' : 'Criteria'),
             ...models.map((model) => _buildTableHeader(context, model['name'] ?? model['id'])),
           ],
         ),
         // Model ID
         TableRow(
           children: [
-            _buildTableCell(context, 'معرف النموذج', isHeader: true),
+            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'معرف النموذج' : 'Model ID', isHeader: true),
             ...models.map((model) => _buildTableCell(context, model['id'] ?? '')),
           ],
         ),
         // Service
         TableRow(
           children: [
-            _buildTableCell(context, 'الخدمة', isHeader: true),
+            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'الخدمة' : 'Service', isHeader: true),
             ...models.map((model) => _buildTableCell(context, _getServiceName(model['service']))),
           ],
         ),
         // Speed
         TableRow(
           children: [
-            _buildTableCell(context, 'السرعة', isHeader: true),
+            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'السرعة' : 'Speed', isHeader: true),
             ...models.map((model) => _buildTableCell(context, model['speed'] ?? '')),
           ],
         ),
         // Quality
         TableRow(
           children: [
-            _buildTableCell(context, 'الجودة', isHeader: true),
+            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'الجودة' : 'Quality', isHeader: true),
             ...models.map((model) => _buildTableCell(context, model['quality'] ?? '')),
           ],
         ),
         // Context
         TableRow(
           children: [
-            _buildTableCell(context, 'السياق', isHeader: true),
+            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'السياق' : 'Context', isHeader: true),
             ...models.map((model) => _buildTableCell(context, model['context'] ?? '')),
           ],
         ),
         // Type
         TableRow(
           children: [
-            _buildTableCell(context, 'النوع', isHeader: true),
+            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'النوع' : 'Type', isHeader: true),
             ...models.map((model) => _buildTableCell(
               context, 
-              _isFreeModel(model) ? 'مجاني' : 'مدفوع',
+              _isFreeModel(model) 
+                ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مجاني' : 'Free')
+                : (Localizations.localeOf(context).languageCode == 'ar' ? 'مدفوع' : 'Paid'),
               color: _isFreeModel(model) ? Colors.green : Colors.amber,
             )),
           ],
@@ -537,7 +548,7 @@ class _ModelsInfoDialogState extends State<ModelsInfoDialog>
         // Features
         TableRow(
           children: [
-            _buildTableCell(context, 'المميزات', isHeader: true),
+            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'المميزات' : 'Features', isHeader: true),
             ...models.map((model) => _buildTableCell(
               context, 
               (model['features'] as List<dynamic>?)?.join(', ') ?? '',

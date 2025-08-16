@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/responsive_helper.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 class SearchStatusWidget extends StatelessWidget {
   final String status;
@@ -108,7 +109,7 @@ class SearchStatusWidget extends StatelessWidget {
   }
 }
 
-// إصدار مختصر للحالات البسيطة
+// Simple version for basic cases
 class SimpleSearchStatusWidget extends StatelessWidget {
   final String message;
   final IconData? icon;

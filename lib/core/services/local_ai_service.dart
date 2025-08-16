@@ -245,8 +245,7 @@ class LocalAIService extends BaseAIService {
     }
   }
 
-  /// تطبيق التنسيق الذكي على النص (تجاوز من BaseAIService)
-  @override
+  /// تطبيق التنسيق الذكي على النص (دالة محلية)
   String _applySmartFormatting(String content) {
     // LocalAI لا يحتاج تنسيق إضافي - إعادة النص كما هو
     return content;

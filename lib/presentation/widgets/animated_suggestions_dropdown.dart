@@ -21,58 +21,97 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
   late AnimationController _contentController;
 
   // قائمة الأسئلة المقترحة مقسمة لفئات - كل سؤال 5 كلمات بالضبط
-  final List<Map<String, dynamic>> _suggestedQuestions = [
-    {
-      'category': '💻 البرمجة والتطوير',
-      'questions': [
-        'اكتب كود بايثون لحل مشكلة',
-        'ساعدني بإصلاح خطأ جافاسكريبت',
-        'اشرح مفهوم البرمجة كائنية التوجه',
-        'أنشئ تطبيق فلتر بسيط ومتقدم',
-        'راجع وحسن هذا الكود المكتوب',
-      ],
-    },
-    {
-      'category': '🔍 البحث والمعلومات',
-      'questions': [
-        'ابحث عن آخر أخبار التقنية',
-        'ما أفضل ممارسات تطوير التطبيقات؟',
-        'اشرح تقنية الذكاء الاصطناعي بوضوح',
-        'كيف تعمل تقنية البلوك تشين؟',
-        'أعطني معلومات عن لغة البرمجة',
-      ],
-    },
-    {
-      'category': '⚙️ المساعدة والإعدادات',
-      'questions': [
-        'ساعدني بضبط إعدادات هذا البرنامج',
-        'كيف أغير لون وشكل الواجهة؟',
-        'اشرح كيفية استخدام الصوت والنطق',
-        'كيف أحفظ واسترجع المحادثات السابقة؟',
-        'ما طريقة تغيير الخط والحجم؟',
-      ],
-    },
-    {
-      'category': '📋 التحليل والترجمة',
-      'questions': [
-        'حلل هذا النص وأعطني الملخص',
-        'اقترح نصائح مفيدة للإنتاجية اليومية',
-        'ترجم هذا النص للغة العربية',
-        'اكتب مقال احترافي عن موضوع',
-        'صحح واعدل قواعد هذا النص',
-      ],
-    },
-  ];
+  // List of suggested questions divided into categories - each question exactly 5 words
+  List<Map<String, dynamic>> _getSuggestedQuestions(BuildContext context) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    return [
+      {
+        'category': isArabic ? '💻 البرمجة والتطوير' : '💻 Programming & Development',
+        'questions': isArabic ? [
+          'اكتب كود بايثون لحل مشكلة',
+          'ساعدني بإصلاح خطأ جافاسكريبت',
+          'اشرح مفهوم البرمجة كائنية التوجه',
+          'أنشئ تطبيق فلتر بسيط ومتقدم',
+          'راجع وحسن هذا الكود المكتوب',
+        ] : [
+          'Write Python code to solve problem',
+          'Help me fix JavaScript error',
+          'Explain object-oriented programming concept clearly',
+          'Create simple and advanced Flutter app',
+          'Review and improve this written code',
+        ],
+      },
+      {
+        'category': isArabic ? '🔍 البحث والمعلومات' : '🔍 Search & Information',
+        'questions': isArabic ? [
+          'ابحث عن آخر أخبار التقنية',
+          'ما أفضل ممارسات تطوير التطبيقات؟',
+          'اشرح تقنية الذكاء الاصطناعي بوضوح',
+          'كيف تعمل تقنية البلوك تشين؟',
+          'أعطني معلومات عن لغة البرمجة',
+        ] : [
+          'Search for latest technology news',
+          'What are best app development practices?',
+          'Explain artificial intelligence technology clearly',
+          'How does blockchain technology work?',
+          'Give me information about programming language',
+        ],
+      },
+      {
+        'category': isArabic ? '⚙️ المساعدة والإعدادات' : '⚙️ Help & Settings',
+        'questions': isArabic ? [
+          'ساعدني بضبط إعدادات هذا البرنامج',
+          'كيف أغير لون وشكل الواجهة؟',
+          'اشرح كيفية استخدام الصوت والنطق',
+          'كيف أحفظ واسترجع المحادثات السابقة؟',
+          'ما طريقة تغيير الخط والحجم؟',
+        ] : [
+          'Help me configure this program settings',
+          'How to change interface color and style?',
+          'Explain how to use voice and speech',
+          'How to save and retrieve previous conversations?',
+          'What is the way to change font and size?',
+        ],
+      },
+      {
+        'category': isArabic ? '📋 التحليل والترجمة' : '📋 Analysis & Translation',
+        'questions': isArabic ? [
+          'حلل هذا النص وأعطني الملخص',
+          'اقترح نصائح مفيدة للإنتاجية اليومية',
+          'ترجم هذا النص للغة العربية',
+          'اكتب مقال احترافي عن موضوع',
+          'صحح واعدل قواعد هذا النص',
+        ] : [
+          'Analyze this text and give me summary',
+          'Suggest useful tips for daily productivity',
+          'Translate this text to Arabic language',
+          'Write professional article about topic',
+          'Correct and edit this text grammar',
+        ],
+      },
+    ];
+  }
 
   // الأسئلة المختصرة للعرض الافتراضي - كل سؤال 5 كلمات
-  final List<String> _quickQuestions = [
-    'اكتب لي كود بايثون متقدم',
-    'ابحث عن آخر الأخبار التقنية',
-    'كيف أغير لون الواجهة بسهولة؟',
-    'ترجم هذا النص للغة العربية',
-    'ساعدني بحل مشكلة برمجية',
-    'اشرح مفهوم الذكاء الاصطناعي بوضوح',
-  ];
+  // Short questions for default display - each question 5 words
+  List<String> _getQuickQuestions(BuildContext context) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    return isArabic ? [
+      'اكتب لي كود بايثون متقدم',
+      'ابحث عن آخر الأخبار التقنية',
+      'كيف أغير لون الواجهة بسهولة؟',
+      'ترجم هذا النص للغة العربية',
+      'ساعدني بحل مشكلة برمجية',
+      'اشرح مفهوم الذكاء الاصطناعي بوضوح',
+    ] : [
+      'Write advanced Python code for me',
+      'Search for latest technical news',
+      'How to change interface color easily?',
+      'Translate this text to Arabic language',
+      'Help me solve programming problem',
+      'Explain artificial intelligence concept clearly',
+    ];
+  }
 
   @override
   void initState() {
@@ -113,7 +152,7 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
       spacing: 8,
       runSpacing: 8,
       alignment: WrapAlignment.center,
-      children: _quickQuestions
+      children: _getQuickQuestions(context)
           .asMap()
           .entries
           .map((entry) => _buildSuggestionChip(
@@ -140,6 +179,7 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
             ),
             child: Container(
               // إضافة حد أقصى للارتفاع لتفعيل السحب
+              // Add maximum height to enable scrolling
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(context).size.height * 0.6,
               ),
@@ -148,7 +188,7 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
                 child: Column(
                   children: [
                     const SizedBox(height: 16),
-                    ..._suggestedQuestions.asMap().entries.map((categoryEntry) {
+                    ..._getSuggestedQuestions(context).asMap().entries.map((categoryEntry) {
                       final categoryIndex = categoryEntry.key;
                       final categoryData = categoryEntry.value;
                       
@@ -157,7 +197,7 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // عنوان الفئة
+                            // عنوان الفئة // Category title
                             Text(
                               categoryData['category'],
                               style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -165,29 +205,26 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
                                 color: Theme.of(context).colorScheme.primary,
                                 // استخدام خط المظهر المحدد
                                 fontFamily: Theme.of(context).textTheme.titleSmall?.fontFamily,
-                          ),
-                        ).animate(delay: (categoryIndex * 200).ms)
-                         .fadeIn(duration: 300.ms)
-                         .slideX(begin: -0.3, end: 0),
+                              ),
+                            ).animate(delay: (categoryIndex * 200).ms)
+                             .fadeIn(duration: 300.ms)
+                             .slideX(begin: -0.3, end: 0),
                         
                         const SizedBox(height: 8),
                         
                             // أزرار الأسئلة للفئة - مع عرض ثابت ومتسق
+                            // Question buttons for category - with consistent fixed width
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
-                              alignment: WrapAlignment.center,
-                              children: (categoryData['questions'] as List<String>)
-                                  .asMap()
-                                  .entries
-                                  .map((questionEntry) {
+                              children: (categoryData['questions'] as List<String>).asMap().entries.map((questionEntry) {
                                 final questionIndex = questionEntry.key;
                                 final question = questionEntry.value;
                                 
                                 return _buildSuggestionChip(
                                   question,
                                   delay: (categoryIndex * 5 + questionIndex + 1) * 100,
-                                  isConsistent: true, // عرض متسق للأزرار
+                                  isConsistent: true, // عرض متسق للأزرار // Consistent display for buttons
                                 );
                               }).toList(),
                             ),
@@ -208,6 +245,7 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
   Widget _buildSuggestionChip(String text, {int delay = 0, bool isExpanded = false, bool isConsistent = false}) {
     return SizedBox(
       // عرض ثابت ومتسق للأزرار عند isConsistent = true
+      // Fixed and consistent width for buttons when isConsistent = true
       width: isConsistent ? 200 : null,
       child: ActionChip(
         label: Text(
@@ -215,6 +253,7 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontSize: isExpanded ? 13 : 12,
             // استخدام الخط المختار من الإعدادات
+            // Use the selected font from settings
             fontFamily: Theme.of(context).textTheme.bodySmall?.fontFamily,
           ),
           maxLines: isConsistent ? 2 : 1,
@@ -268,11 +307,14 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _isExpanded ? 'إخفاء الأسئلة' : 'عرض المزيد من الأسئلة',
+                    _isExpanded 
+                        ? (Localizations.localeOf(context).languageCode == 'ar' ? 'إخفاء الأسئلة' : 'Hide Questions')
+                        : (Localizations.localeOf(context).languageCode == 'ar' ? 'عرض المزيد من الأسئلة' : 'Show More Questions'),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                       // التأكد من استخدام الخط المحدد
+                      // Ensure using the specified font
                       fontFamily: Theme.of(context).textTheme.labelMedium?.fontFamily,
                     ),
                   ),
@@ -299,18 +341,22 @@ class _AnimatedSuggestionsDropdownState extends State<AnimatedSuggestionsDropdow
     return LayoutBuilder(
       builder: (context, constraints) {
         // تحديد ما إذا كانت الشاشة صغيرة
+        // Determine if the screen is small
         final isSmallScreen = constraints.maxWidth < 600;
         
         return Column(
           children: [
             // الأسئلة السريعة (تظهر دائماً)
+            // Quick questions (always visible)
             _buildQuickSuggestions(),
             
             // زر الـ Dropdown (يظهر فقط في الشاشات الصغيرة أو عندما نريد المزيد)
+            // Dropdown button (shows only on small screens or when we want more)
             if (isSmallScreen || !_isExpanded)
               _buildDropdownButton(),
             
             // الأسئلة المفصلة (تظهر عند التوسيع)
+            // Detailed questions (appear when expanded)
             _buildExpandedSuggestions(),
           ],
         );

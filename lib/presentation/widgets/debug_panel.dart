@@ -26,7 +26,7 @@ class DebugPanel extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'لوحة التشخيص',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'لوحة التشخيص' : 'Debug Panel',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -49,42 +49,42 @@ class DebugPanel extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // App Info
-                      _buildSection(context, 'معلومات التطبيق', [
-                        'الاسم: ${AppConfig.appName}',
-                        'الإصدار: ${AppConfig.version}',
-                        'النموذج الافتراضي: ${AppConfig.defaultModel}',
-                        'درجة الحرارة: ${AppConfig.defaultTemperature}',
-                        'الحد الأقصى للرموز: ${AppConfig.defaultMaxTokens}',
+                      _buildSection(context, Localizations.localeOf(context).languageCode == 'ar' ? 'معلومات التطبيق' : 'App Information', [
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'الاسم: ${AppConfig.appName}' : 'Name: ${AppConfig.appName}',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'الإصدار: ${AppConfig.version}' : 'Version: ${AppConfig.version}',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'النموذج الافتراضي: ${AppConfig.defaultModel}' : 'Default Model: ${AppConfig.defaultModel}',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'درجة الحرارة: ${AppConfig.defaultTemperature}' : 'Temperature: ${AppConfig.defaultTemperature}',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'الحد الأقصى للرموز: ${AppConfig.defaultMaxTokens}' : 'Max Tokens: ${AppConfig.defaultMaxTokens}',
                       ]),
 
                       const SizedBox(height: 16),
 
                       // Current Settings
-                      _buildSection(context, 'الإعدادات الحالية', [
-                        'النموذج: ${settingsProvider.selectedModel}',
-                        'درجة الحرارة: ${settingsProvider.temperature}',
-                        'الحد الأقصى للرموز: ${settingsProvider.maxTokens}',
-                        'الاستجابة المتدفقة: ${settingsProvider.streamResponse ? "مفعل" : "معطل"}',
-                        'البحث في الويب: ${settingsProvider.enableWebSearch ? "مفعل" : "معطل"}',
-                        'خوادم MCP: ${settingsProvider.enableMcpServers ? "مفعل" : "معطل"}',
-                        'المعالجة التلقائية للنص: ${settingsProvider.enableAutoTextFormatting ? "مفعل" : "معطل"}',
+                      _buildSection(context, Localizations.localeOf(context).languageCode == 'ar' ? 'الإعدادات الحالية' : 'Current Settings', [
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'النموذج' : 'Model'}: ${settingsProvider.selectedModel}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'درجة الحرارة' : 'Temperature'}: ${settingsProvider.temperature}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'الحد الأقصى للرموز' : 'Max Tokens'}: ${settingsProvider.maxTokens}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'الاستجابة المتدفقة' : 'Stream Response'}: ${settingsProvider.streamResponse ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مفعل' : 'Enabled') : (Localizations.localeOf(context).languageCode == 'ar' ? 'معطل' : 'Disabled')}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في الويب' : 'Web Search'}: ${settingsProvider.enableWebSearch ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مفعل' : 'Enabled') : (Localizations.localeOf(context).languageCode == 'ar' ? 'معطل' : 'Disabled')}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'خوادم MCP' : 'MCP Servers'}: ${settingsProvider.enableMcpServers ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مفعل' : 'Enabled') : (Localizations.localeOf(context).languageCode == 'ar' ? 'معطل' : 'Disabled')}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'المعالجة التلقائية للنص' : 'Auto Text Formatting'}: ${settingsProvider.enableAutoTextFormatting ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مفعل' : 'Enabled') : (Localizations.localeOf(context).languageCode == 'ar' ? 'معطل' : 'Disabled')}',
                       ]),
 
                       const SizedBox(height: 16),
 
                       // Chat Status
-                      _buildSection(context, 'حالة المحادثة', [
-                        'عدد الرسائل: ${chatProvider.messages.length}',
-                        'عدد الجلسات: ${chatProvider.sessions.length}',
-                        'عدد المرفقات: ${chatProvider.attachments.length}',
-                        'وضع التشخيص: ${chatProvider.debugMode ? "مفعل" : "معطل"}',
-                        'يكتب الآن: ${chatProvider.isTyping ? "نعم" : "لا"}',
-                        'يفكر الآن: ${chatProvider.isThinking ? "نعم" : "لا"}',
+                      _buildSection(context, Localizations.localeOf(context).languageCode == 'ar' ? 'حالة المحادثة' : 'Chat Status', [
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'عدد الرسائل' : 'Message Count'}: ${chatProvider.messages.length}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'عدد الجلسات' : 'Session Count'}: ${chatProvider.sessions.length}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'عدد المرفقات' : 'Attachment Count'}: ${chatProvider.attachments.length}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'وضع التشخيص' : 'Debug Mode'}: ${chatProvider.debugMode ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مفعل' : 'Enabled') : (Localizations.localeOf(context).languageCode == 'ar' ? 'معطل' : 'Disabled')}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'يكتب الآن' : 'Is Typing'}: ${chatProvider.isTyping ? (Localizations.localeOf(context).languageCode == 'ar' ? 'نعم' : 'Yes') : (Localizations.localeOf(context).languageCode == 'ar' ? 'لا' : 'No')}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'يفكر الآن' : 'Is Thinking'}: ${chatProvider.isThinking ? (Localizations.localeOf(context).languageCode == 'ar' ? 'نعم' : 'Yes') : (Localizations.localeOf(context).languageCode == 'ar' ? 'لا' : 'No')}',
                       ]),
                       const SizedBox(height: 16),
-                      _buildSection(context, 'حالة مفاتيح API', [
-                        'Groq API: ${AppConfig.groqApiKey.isNotEmpty ? "متوفر" : "غير متوفر"}',
-                        'Tavily API: ${AppConfig.tavilyApiKey.isNotEmpty ? "متوفر" : "غير متوفر"}',
+                      _buildSection(context, Localizations.localeOf(context).languageCode == 'ar' ? 'حالة مفاتيح API' : 'API Key Status', [
+                        'Groq API: ${AppConfig.groqApiKey.isNotEmpty ? (Localizations.localeOf(context).languageCode == 'ar' ? 'متوفر' : 'Available') : (Localizations.localeOf(context).languageCode == 'ar' ? 'غير متوفر' : 'Not Available')}',
+                        'Tavily API: ${AppConfig.tavilyApiKey.isNotEmpty ? (Localizations.localeOf(context).languageCode == 'ar' ? 'متوفر' : 'Available') : (Localizations.localeOf(context).languageCode == 'ar' ? 'غير متوفر' : 'Not Available')}',
                       ]),
 
                       const SizedBox(height: 16),
@@ -98,18 +98,18 @@ class DebugPanel extends StatelessWidget {
                       _buildPermissionsSection(context),
 
                       const SizedBox(height: 16),
-                      _buildSection(context, 'حالة خوادم MCP', [
-                        'خادم الذاكرة: ${settingsProvider.mcpServerStatus["memory"] == true ? "مفعل" : "معطل"}',
-                        'التفكير التسلسلي: ${settingsProvider.mcpServerStatus["sequential-thinking"] == true ? "مفعل" : "معطل"}',
+                      _buildSection(context, Localizations.localeOf(context).languageCode == 'ar' ? 'حالة خوادم MCP' : 'MCP Server Status', [
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'خادم الذاكرة' : 'Memory Server'}: ${settingsProvider.mcpServerStatus["memory"] == true ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مفعل' : 'Enabled') : (Localizations.localeOf(context).languageCode == 'ar' ? 'معطل' : 'Disabled')}',
+                        '${Localizations.localeOf(context).languageCode == 'ar' ? 'التفكير التسلسلي' : 'Sequential Thinking'}: ${settingsProvider.mcpServerStatus["sequential-thinking"] == true ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مفعل' : 'Enabled') : (Localizations.localeOf(context).languageCode == 'ar' ? 'معطل' : 'Disabled')}',
                       ]),
                       const SizedBox(height: 16),
                       if (chatProvider.currentThinking != null)
-                        _buildSection(context, 'عملية التفكير الحالية', [
-                          'عدد الخطوات: ${chatProvider.currentThinking!.steps.length}',
-                          'مكتملة: ${chatProvider.currentThinking!.isComplete ? "نعم" : "لا"}',
-                          'بدأت في: ${_formatDateTime(chatProvider.currentThinking!.startedAt)}',
+                        _buildSection(context, Localizations.localeOf(context).languageCode == 'ar' ? 'عملية التفكير الحالية' : 'Current Thinking Process', [
+                          '${Localizations.localeOf(context).languageCode == 'ar' ? 'عدد الخطوات' : 'Step Count'}: ${chatProvider.currentThinking!.steps.length}',
+                          '${Localizations.localeOf(context).languageCode == 'ar' ? 'مكتملة' : 'Is Complete'}: ${chatProvider.currentThinking!.isComplete ? (Localizations.localeOf(context).languageCode == 'ar' ? 'نعم' : 'Yes') : (Localizations.localeOf(context).languageCode == 'ar' ? 'لا' : 'No')}',
+                          '${Localizations.localeOf(context).languageCode == 'ar' ? 'بدأت في' : 'Started At'}: ${_formatDateTime(chatProvider.currentThinking!.startedAt)}',
                           if (chatProvider.currentThinking!.completedAt != null)
-                            'انتهت في: ${_formatDateTime(chatProvider.currentThinking!.completedAt!)}',
+                            '${Localizations.localeOf(context).languageCode == 'ar' ? 'انتهت في' : 'Completed At'}: ${_formatDateTime(chatProvider.currentThinking!.completedAt!)}',
                         ]),
                       const SizedBox(height: 16),
                       if (chatProvider.systemPrompt != null)
@@ -213,7 +213,7 @@ class DebugPanel extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => _runNetworkDiagnostics(context),
                     icon: const Icon(Icons.play_arrow),
-                    label: const Text('تشغيل فحص الشبكة'),
+                    label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تشغيل فحص الشبكة' : 'Run Network Check'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -266,7 +266,7 @@ class DebugPanel extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => _checkAllPermissions(context),
                     icon: const Icon(Icons.fact_check),
-                    label: const Text('فحص الأذونات'),
+                    label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'فحص الأذونات' : 'Check Permissions'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                       foregroundColor: Theme.of(
@@ -280,7 +280,7 @@ class DebugPanel extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => _requestAllPermissions(context),
                     icon: const Icon(Icons.assignment_turned_in),
-                    label: const Text('طلب الأذونات'),
+                    label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'طلب الأذونات' : 'Request Permissions'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -424,7 +424,7 @@ class DebugPanel extends StatelessWidget {
 
     try {
       final permissionsManager = PermissionsManager();
-      await permissionsManager.checkAndRequestAllPermissions();
+      await permissionsManager.checkAndRequestAllPermissions(context);
       final permissions = await permissionsManager.checkAllPermissions();
 
       // إغلاق مؤشر التحميل

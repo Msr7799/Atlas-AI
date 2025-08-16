@@ -13,6 +13,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/services/speech_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../providers/prompt_enhancer_provider.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 
 /// منطقة الإدخال المحسنة
@@ -126,17 +127,17 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     
         _buildToolButton(
           icon: Icons.attach_file ,
-          tooltip: 'إرفاق ملف',
+          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إرفاق ملف' : 'Attach File',
           onPressed: pickImage,
         ),
         _buildToolButton(
           icon: Icons.search,
-          tooltip: 'البحث في الويب',
+          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في الويب' : 'Web Search',
           onPressed: _showSearchDialog,
         ),
         _buildToolButton(
           icon: Icons.language,
-          tooltip: 'تغيير لغة التعرف على الصوت',
+          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'تغيير لغة التعرف على الصوت' : 'Change Speech Recognition Language',
           onPressed: _showLanguageSelector,
         ),
         _buildVoiceToggleButton(),
@@ -328,8 +329,10 @@ class _ChatInputAreaState extends State<ChatInputArea> {
 
         return Tooltip(
           message: speechEnabled
-              ? (isListening ? 'إيقاف التسجيل' : 'بدء التسجيل الصوتي')
-              : 'الصوت غير متاح',
+              ? (isListening 
+                  ? (Localizations.localeOf(context).languageCode == 'ar' ? 'إيقاف التسجيل' : 'Stop Recording')
+                  : (Localizations.localeOf(context).languageCode == 'ar' ? 'بدء التسجيل الصوتي' : 'Start Voice Recording'))
+              : (Localizations.localeOf(context).languageCode == 'ar' ? 'الصوت غير متاح' : 'Voice Not Available'),
           child: Container(
             width: 28.0,
             height: 28.0,
@@ -398,8 +401,10 @@ class _ChatInputAreaState extends State<ChatInputArea> {
 
         return Tooltip(
           message: speechEnabled
-              ? (isListening ? 'إيقاف التسجيل' : 'بدء التسجيل الصوتي')
-              : 'الصوت غير متاح',
+              ? (isListening 
+                  ? (Localizations.localeOf(context).languageCode == 'ar' ? 'إيقاف التسجيل' : 'Stop Recording')
+                  : (Localizations.localeOf(context).languageCode == 'ar' ? 'بدء التسجيل الصوتي' : 'Start Voice Recording'))
+              : (Localizations.localeOf(context).languageCode == 'ar' ? 'الصوت غير متاح' : 'Voice Not Available'),
           child: GestureDetector(
             onTap: speechEnabled ? _toggleVoiceInput : null,
             child: Container(
@@ -833,19 +838,19 @@ class _ChatInputAreaState extends State<ChatInputArea> {
             const SizedBox(width: 10),
             _buildCompactToolButton(
               icon: Icons.attach_file,
-              tooltip: 'إرفاق ملف',
+              tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إرفاق ملف' : 'Attach File',
               onPressed: pickImage,
             ),
             const SizedBox(width: 10),
             _buildCompactToolButton(
               icon: Icons.search,
-              tooltip: 'البحث في الويب',
+              tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في الويب' : 'Web Search',
               onPressed: _showSearchDialog,
             ),
             const SizedBox(width: 10),
             _buildCompactToolButton(
               icon: Icons.language,
-              tooltip: 'تغيير لغة التعرف على الصوت',
+              tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'تغيير لغة التعرف على الصوت' : 'Change Speech Recognition Language',
               onPressed: _showLanguageSelector,
             ),
             const SizedBox(width: 10),
@@ -1103,7 +1108,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     if (attachedImages.length >= 3) {
       // أظهر رسالة للمستخدم أن الحد الأقصى 3 صور
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('يمكنك إرفاق 3 صور كحد أقصى')),
+        SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'يمكنك إرفاق 3 صور كحد أقصى' : 'You can attach a maximum of 3 images')),
       );
       return;
     }
@@ -1121,7 +1126,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       final ext = image.name.split('.').last.toLowerCase();
       if (!['png', 'jpg', 'jpeg'].contains(ext)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('الملف يجب أن يكون صورة PNG أو JPG أو JPEG')),
+          SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الملف يجب أن يكون صورة PNG أو JPG أو JPEG' : 'File must be a PNG, JPG or JPEG image')),
         );
         return;
       }
@@ -1132,7 +1137,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
         if (bytes > maxSize) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('حجم الصورة كبير جداً. الحد الأقصى هو 5MB'),
+              content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حجم الصورة كبير جداً. الحد الأقصى هو 5MB' : 'Image size is too large. Maximum is 5MB'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -1143,7 +1148,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في قراءة حجم الصورة: $e'),
+            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ في قراءة حجم الصورة: $e' : 'Error reading image size: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1181,9 +1186,13 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('البحث في الويب'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في الويب' : 'Web Search'),
         content: TextField(
-          decoration: const InputDecoration(hintText: 'أدخل استعلام البحث...'),
+          decoration: InputDecoration(
+            hintText: Localizations.localeOf(context).languageCode == 'ar' 
+                ? 'أدخل استعلام البحث...' 
+                : 'Enter search query...'
+          ),
           onSubmitted: (query) {
             Navigator.pop(context);
             context.read<ChatProvider>().searchWeb(query);
@@ -1192,7 +1201,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
         ],
       ),
@@ -1220,7 +1229,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     if (currentText.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى إدخال نص أولاً لتحسينه')),
+          SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'يرجى إدخال نص أولاً لتحسينه' : 'Please enter text first to enhance it')),
         );
       }
       return;
@@ -1271,9 +1280,9 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       } else if (enhancerProvider.error != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('خطأ في تحسين النص: يرجى المحاولة مرة أخرى'),
+            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ في تحسين النص: يرجى المحاولة مرة أخرى' : 'Error enhancing text: Please try again'),
             action: SnackBarAction(
-              label: 'إعادة المحاولة',
+              label: Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة المحاولة' : 'Retry',
               onPressed: _enhancePrompt,
             ),
           ),
@@ -1282,7 +1291,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ غير متوقع: $e')),
+          SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ غير متوقع: $e' : 'Unexpected error: $e')),
         );
       }
     }
@@ -1314,15 +1323,23 @@ class _ChatInputAreaState extends State<ChatInputArea> {
   /// الحصول على نص التلميح
   String _getHintText(PromptEnhancerProvider enhancerProvider) {
     if (enhancerProvider.isEnhancing) {
-      return 'جاري تحسين البرومبت باستخدام الذكاء الاصطناعي...';
+      return Localizations.localeOf(context).languageCode == 'ar' 
+          ? 'جاري تحسين البرومبت باستخدام الذكاء الاصطناعي...' 
+          : 'Enhancing prompt using AI...';
     }
     if (widget.chatState.isListening) {
-      return 'أستمع...';
+      return Localizations.localeOf(context).languageCode == 'ar' 
+          ? 'أستمع...' 
+          : 'Listening...';
     }
     if (_isDesktop()) {
-      return 'أكتب أي شي يدور في خاطرك...';
+      return Localizations.localeOf(context).languageCode == 'ar' 
+          ? 'أكتب أي شي يدور في خاطرك...' 
+          : 'Type anything on your mind...';
     }
-    return 'أتحفني بأي شي يدور في خاطرك...';
+    return Localizations.localeOf(context).languageCode == 'ar' 
+        ? 'أتحفني بأي شي يدور في خاطرك...' 
+        : 'Share anything on your mind...';
   }
 }
 

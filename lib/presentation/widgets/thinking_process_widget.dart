@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../data/models/message_model.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 class ThinkingProcessWidget extends StatelessWidget {
   final ThinkingProcessModel thinkingProcess;
@@ -62,7 +63,7 @@ class ThinkingProcessWidget extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'عملية التفكير',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'عملية التفكير' : 'Thinking Process',
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -79,7 +80,7 @@ class ThinkingProcessWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      thinkingProcess.isComplete ? 'مكتملة' : 'جارية',
+                      thinkingProcess.isComplete ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مكتملة' : 'Complete') : (Localizations.localeOf(context).languageCode == 'ar' ? 'جارية' : 'In Progress'),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: thinkingProcess.isComplete 
                             ? Colors.green.shade700
@@ -127,7 +128,7 @@ class ThinkingProcessWidget extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'اكتملت في ${_formatDuration(thinkingProcess.completedAt!.difference(thinkingProcess.startedAt))}',
+                            Localizations.localeOf(context).languageCode == 'ar' ? 'اكتملت في ${_formatDuration(thinkingProcess.completedAt!.difference(thinkingProcess.startedAt), context)}' : 'Completed in ${_formatDuration(thinkingProcess.completedAt!.difference(thinkingProcess.startedAt), context)}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface.withOpacity(0.6),
                             ),
@@ -215,7 +216,7 @@ class ThinkingProcessWidget extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        'تنقيح للخطوة ${step.revisesStep}',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'تنقيح للخطوة ${step.revisesStep}' : 'Revision of step ${step.revisesStep}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: Colors.orange.shade600,
                           fontStyle: FontStyle.italic,
@@ -247,13 +248,14 @@ class ThinkingProcessWidget extends StatelessWidget {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}';
   }
 
-  String _formatDuration(Duration duration) {
+  String _formatDuration(Duration duration, BuildContext context) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     if (duration.inSeconds < 60) {
-      return '${duration.inSeconds} ثانية';
+      return isArabic ? '${duration.inSeconds} ثانية' : '${duration.inSeconds} seconds';
     } else if (duration.inMinutes < 60) {
-      return '${duration.inMinutes} دقيقة';
+      return isArabic ? '${duration.inMinutes} دقيقة' : '${duration.inMinutes} minutes';
     } else {
-      return '${duration.inHours} ساعة و ${duration.inMinutes % 60} دقيقة';
+      return isArabic ? '${duration.inHours} ساعة و ${duration.inMinutes % 60} دقيقة' : '${duration.inHours} hours and ${duration.inMinutes % 60} minutes';
     }
   }
 }

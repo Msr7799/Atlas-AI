@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/services/speech_service.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 /// Widget لاختيار لغة التعرف على الصوت
 class LanguageSelectorWidget extends StatefulWidget {
@@ -81,7 +82,7 @@ class _LanguageSelectorWidgetState extends State<LanguageSelectorWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'لغة التعرف على الصوت',
+                          Localizations.localeOf(context).languageCode == 'ar' ? 'لغة التعرف على الصوت' : 'Speech Recognition Language',
                           style: theme.textTheme.titleSmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
@@ -117,7 +118,7 @@ class _LanguageSelectorWidgetState extends State<LanguageSelectorWidget> {
                     // العربية
                     _buildLanguageSection(
                       context,
-                      'العربية واللهجات',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'العربية واللهجات' : 'Arabic & Dialects',
                       Icons.flag,
                       supportedLocales.entries
                           .where((entry) => entry.key.startsWith('ar'))
@@ -137,7 +138,7 @@ class _LanguageSelectorWidgetState extends State<LanguageSelectorWidget> {
                     // لغات أخرى
                     _buildLanguageSection(
                       context,
-                      'لغات أخرى',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'لغات أخرى' : 'Other Languages',
                       Icons.public,
                       supportedLocales.entries
                           .where((entry) => 
@@ -227,7 +228,7 @@ class _LanguageSelectorWidgetState extends State<LanguageSelectorWidget> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('تم تغيير اللغة إلى: $displayName'),
+                content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم تغيير اللغة إلى: $displayName' : 'Language changed to: $displayName'),
                 backgroundColor: theme.colorScheme.primary,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -241,7 +242,7 @@ class _LanguageSelectorWidgetState extends State<LanguageSelectorWidget> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('فشل في تغيير اللغة إلى: $displayName'),
+                content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'فشل في تغيير اللغة إلى: $displayName' : 'Failed to change language to: $displayName'),
                 backgroundColor: Colors.red,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -374,7 +375,7 @@ class LanguageSelectorDialog extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'اختيار لغة التعرف على الصوت',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'اختيار لغة التعرف على الصوت' : 'Select Speech Recognition Language',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/prompt_enhancer_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/responsive_helper.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 class PromptEnhancementDialog extends StatefulWidget {
   final PromptEnhancementResult result;
@@ -161,7 +162,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'محسن البرومبت الذكي',
+                  Localizations.localeOf(context).languageCode == 'ar' ? 'محسن البرومبت الذكي' : 'Smart Prompt Enhancer',
                   style: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(
                       context,
@@ -174,7 +175,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                   ),
                 ),
                 Text(
-                  'تم تحسين البرومبت باستخدام Llama3 8B',
+                  Localizations.localeOf(context).languageCode == 'ar' ? 'تم تحسين البرومبت باستخدام Llama3 8B' : 'Prompt enhanced using Llama3 8B',
                   style: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(
                       context,
@@ -238,7 +239,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
             ),
           ),
           Text(
-            'درجة الثقة في التحسين:',
+            Localizations.localeOf(context).languageCode == 'ar' ? 'درجة الثقة في التحسين:' : 'Enhancement Confidence Score:',
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: Theme.of(context).colorScheme.onSurface,
@@ -350,7 +351,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 desktop: 24,
               ),
             ),
-            text: 'مقارنة',
+            text: Localizations.localeOf(context).languageCode == 'ar' ? 'مقارنة' : 'Compare',
           ),
           Tab(
             icon: Icon(
@@ -362,7 +363,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 desktop: 24,
               ),
             ),
-            text: 'تحليل',
+            text: Localizations.localeOf(context).languageCode == 'ar' ? 'تحليل' : 'Analysis',
           ),
           Tab(
             icon: Icon(
@@ -374,7 +375,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 desktop: 24,
               ),
             ),
-            text: 'تعديل',
+            text: Localizations.localeOf(context).languageCode == 'ar' ? 'تعديل' : 'Edit',
           ),
         ],
       ),
@@ -394,7 +395,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
               children: [
                 Expanded(
                   child: _buildPromptCard(
-                    title: 'البرومبت الأصلي',
+                    title: Localizations.localeOf(context).languageCode == 'ar' ? 'البرومبت الأصلي' : 'Original Prompt',
                     content: widget.result.originalPrompt,
                     icon: Icons.edit_note,
                     color: Colors.grey,
@@ -410,7 +411,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 ),
                 Expanded(
                   child: _buildPromptCard(
-                    title: 'البرومبت المحسن',
+                    title: Localizations.localeOf(context).languageCode == 'ar' ? 'البرومبت المحسن' : 'Enhanced Prompt',
                     content: widget.result.enhancedPrompt,
                     icon: Icons.auto_fix_high,
                     color: Theme.of(context).colorScheme.primary,
@@ -423,7 +424,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 // Original Prompt
                 Expanded(
                   child: _buildPromptCard(
-                    title: 'البرومبت الأصلي',
+                    title: Localizations.localeOf(context).languageCode == 'ar' ? 'البرومبت الأصلي' : 'Original Prompt',
                     content: widget.result.originalPrompt,
                     icon: Icons.edit_note,
                     color: Colors.grey,
@@ -440,7 +441,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 // Enhanced Prompt
                 Expanded(
                   child: _buildPromptCard(
-                    title: 'البرومبت المحسن',
+                    title: Localizations.localeOf(context).languageCode == 'ar' ? 'البرومبت المحسن' : 'Enhanced Prompt',
                     content: widget.result.enhancedPrompt,
                     icon: Icons.auto_fix_high,
                     color: Theme.of(context).colorScheme.primary,
@@ -594,7 +595,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                       ),
                     ),
                     Text(
-                      'تحليل التحسينات',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'تحليل التحسينات' : 'Enhancement Analysis',
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -675,7 +676,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                       ),
                     ),
                     Text(
-                      'التحسينات المُطبقة',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'التحسينات المُطبقة' : 'Applied Enhancements',
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -781,7 +782,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 ),
               ),
               Text(
-                'تعديل مخصص',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'تعديل مخصص' : 'Custom Edit',
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(
                     context,
@@ -819,7 +820,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                 height: 1.5,
               ),
               decoration: InputDecoration(
-                hintText: 'قم بتعديل البرومبت كما تريد...',
+                hintText: Localizations.localeOf(context).languageCode == 'ar' ? 'قم بتعديل البرومبت كما تريد...' : 'Edit the prompt as you wish...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -873,7 +874,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                       size: ResponsiveHelper.getResponsiveIconSize(context),
                     ),
                     label: Text(
-                      'استخدام الأصلي',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'استخدام الأصلي' : 'Use Original',
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -918,8 +919,8 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                     ),
                     label: Text(
                       _tabController.index == 2
-                          ? 'استخدام المعدل'
-                          : 'استخدام المحسن',
+                          ? (Localizations.localeOf(context).languageCode == 'ar' ? 'استخدام المعدل' : 'Use Edited')
+                          : (Localizations.localeOf(context).languageCode == 'ar' ? 'استخدام المحسن' : 'Use Enhanced'),
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -956,7 +957,7 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                       size: ResponsiveHelper.getResponsiveIconSize(context),
                     ),
                     label: Text(
-                      'استخدام الأصلي',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'استخدام الأصلي' : 'Use Original',
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -1001,8 +1002,8 @@ class _PromptEnhancementDialogState extends State<PromptEnhancementDialog>
                     ),
                     label: Text(
                       _tabController.index == 2
-                          ? 'استخدام المعدل'
-                          : 'استخدام المحسن',
+                          ? (Localizations.localeOf(context).languageCode == 'ar' ? 'استخدام المعدل' : 'Use Edited')
+                          : (Localizations.localeOf(context).languageCode == 'ar' ? 'استخدام المحسن' : 'Use Enhanced'),
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,

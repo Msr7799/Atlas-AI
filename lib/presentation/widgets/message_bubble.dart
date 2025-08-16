@@ -6,6 +6,7 @@ import '../providers/settings_provider.dart';
 import '../../data/models/message_model.dart';
 import '../providers/chat_selection_provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 
 class MessageBubble extends StatelessWidget {
@@ -40,6 +41,7 @@ class MessageBubble extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Selection checkbox - يظهر في وضع التحديد فقط
+              // Selection checkbox - shows only in selection mode
               if (isSelectionMode)
                 Padding(
                   padding: const EdgeInsets.only(left: 8, top: 8),
@@ -77,6 +79,7 @@ class MessageBubble extends StatelessWidget {
               Expanded(
                 child: GestureDetector(
                   // الضغط الطويل لتفعيل وضع التحديد
+                  // Long press to activate selection mode
                   onLongPress: () {
                     if (!isSelectionMode) {
                       selectionProvider.toggleSelectionMode();
@@ -84,6 +87,7 @@ class MessageBubble extends StatelessWidget {
                     selectionProvider.selectMessage(message.id);
                   },
                   // النقر العادي فقط في وضع التحديد
+                  // Normal tap only in selection mode
                   onTap: isSelectionMode
                       ? () => selectionProvider.selectMessage(message.id)
                       : null,
@@ -118,9 +122,11 @@ class MessageBubble extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Model name header - لرسائل النموذج فقط
+                        // Model name header - for model messages only
                         if (!isUser) _buildModelHeader(context, theme),
                         
                         // Message content - مع دعم الاتجاه التلقائي
+                        // Message content - with automatic direction support
                         Padding(
                           padding: const EdgeInsets.all(16),
                           child: _buildMessageContent(
@@ -132,6 +138,7 @@ class MessageBubble extends StatelessWidget {
                         ),
 
                         // Thinking Process - عرض عملية التفكير مع سهم مرئي
+                        // Thinking Process - display thinking process with visual arrow
                         if (!isUser && message.thinkingProcess != null)
                           _buildThinkingIndicator(context, theme),
                           
@@ -139,8 +146,10 @@ class MessageBubble extends StatelessWidget {
                           ThinkingProcessWidget(
                             thinkingProcess: message.thinkingProcess!,
                             isExpanded: true, // ✅ مفتوح بشكل افتراضي ليراه المستخدم
+                            // ✅ Open by default for user to see
                             onToggleExpanded: () {
                               // يمكن إضافة منطق للتحكم في التوسيع/الطي هنا
+                              // Can add logic to control expand/collapse here
                             },
                           ),
 
@@ -170,13 +179,13 @@ class MessageBubble extends StatelessWidget {
                                       ClipboardData(text: message.content),
                                     );
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('تم نسخ النص'),
-                                        duration: Duration(seconds: 1),
+                                      SnackBar(
+                                        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم نسخ النص' : 'Text copied'),
+                                        duration: const Duration(seconds: 1),
                                       ),
                                     );
                                   },
-                                  tooltip: 'نسخ النص',
+                                  tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'نسخ النص' : 'Copy Text',
                                 ),
                                 Text(
                                   _formatTime(message.timestamp),
@@ -238,7 +247,7 @@ class MessageBubble extends StatelessWidget {
           onTapLink: (text, href, title) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('تم النقر على الرابط: $href'),
+                content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم النقر على الرابط: $href' : 'Link clicked: $href'),
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -833,14 +842,17 @@ class MessageBubble extends StatelessWidget {
     Color headerColor;
     
     // استخدام ألوان الثيم لجميع حالات الكود
+    // Use theme colors for all code cases
     if (theme.brightness == Brightness.light) {
       // الوضع النهاري - خلفية داكنة للكود لسهولة القراءة
+      // Light mode - dark background for code for better readability
       codeBackground = theme.colorScheme.inverseSurface;
       codeTextColor = theme.colorScheme.onInverseSurface;
       borderColor = theme.colorScheme.outline;
       headerColor = theme.colorScheme.surfaceContainerHighest;
     } else {
       // الوضع الليلي - استخدام ألوان الثيم مباشرة
+      // Dark mode - use theme colors directly
       codeBackground = theme.colorScheme.surface;
       codeTextColor = theme.colorScheme.onSurface;
       borderColor = theme.colorScheme.outline;
@@ -858,6 +870,7 @@ class MessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // شريط علوي مع اسم اللغة وزر النسخ
+          // Top bar with language name and copy button
           Container(
             padding: EdgeInsets.symmetric(
               horizontal: isTablet ? 16 : 12, 
@@ -897,7 +910,7 @@ class MessageBubble extends StatelessWidget {
                     Clipboard.setData(ClipboardData(text: codeContent.trim()));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('تم نسخ الكود'),
+                        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم نسخ الكود' : 'Code copied'),
                         duration: Duration(seconds: 1),
                         backgroundColor: theme.colorScheme.primary,
                       ),
@@ -917,10 +930,12 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
           // محتوى الكود (من اليسار لليمين)
+          // Code content (left to right)
           Container(
             padding: EdgeInsets.all(isTablet ? 20 : 16),
             child: Directionality(
               textDirection: TextDirection.ltr, // فرض اتجاه LTR للكود
+              // Force LTR direction for code
               child: SelectableText(
                 codeContent.trim(),
                 style: TextStyle(
@@ -942,8 +957,10 @@ class MessageBubble extends StatelessWidget {
 
 
   // دالة لتحديد اتجاه النص تلقائياً
+  // Function to automatically detect text direction
   TextDirection _detectTextDirection(String text) {
     // Regular expression للحروف العربية
+    // Regular expression for Arabic characters
     final arabicRegex = RegExp(
       r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]',
     );
@@ -953,6 +970,7 @@ class MessageBubble extends StatelessWidget {
     int englishCount = englishRegex.allMatches(text).length;
 
     // إذا كانت نسبة العربية أكبر، استخدم RTL
+    // If Arabic ratio is higher, use RTL
     if (arabicCount > englishCount) {
       return TextDirection.rtl;
     }
@@ -999,12 +1017,14 @@ class MessageBubble extends StatelessWidget {
       String textToProcess = remainingContent.substring(currentIndex);
 
       // البحث عن كود blocks
+      // Search for code blocks
       Match? codeBlockMatch = codeBlockRegex.firstMatch(textToProcess);
       Match? inlineCodeMatch = inlineCodeRegex.firstMatch(textToProcess);
       Match? boldMatch = boldRegex.firstMatch(textToProcess);
       Match? italicMatch = italicRegex.firstMatch(textToProcess);
 
       // العثور على أقرب match
+      // Find the closest match
       List<Match?> matches = [
         codeBlockMatch,
         inlineCodeMatch,
@@ -1015,6 +1035,7 @@ class MessageBubble extends StatelessWidget {
 
       if (matches.isEmpty) {
         // لا توجد تنسيقات أخرى - إضافة النص مع اتجاه مناسب
+        // No other formatting - add text with appropriate direction
         final text = textToProcess;
         spans.add(
           TextSpan(
@@ -1023,6 +1044,7 @@ class MessageBubble extends StatelessWidget {
               // استخدام الخط المختار من الإعدادات دائماً
               fontFamily: theme.textTheme.bodyMedium?.fontFamily,
               height: 1.5, // تحسين المسافة بين الأسطر للنص العربي
+              // Improve line spacing for Arabic text
             ),
           ),
         );
@@ -1034,6 +1056,7 @@ class MessageBubble extends StatelessWidget {
       )!;
 
       // إضافة النص قبل التنسيق
+      // Add text before formatting
       if (closestMatch.start > 0) {
         final text = textToProcess.substring(0, closestMatch.start);
         spans.add(
@@ -1049,16 +1072,19 @@ class MessageBubble extends StatelessWidget {
       }
 
       // إضافة النص المنسق
+      // Add formatted text
       if (closestMatch == codeBlockMatch) {
         final codeContent = closestMatch.group(2) ?? '';
         final language = closestMatch.group(1) ?? '';
 
         // تحديد لون الخلفية حسب الثيم
+        // Determine background color based on theme
         Color codeBackground;
         Color codeTextColor;
 
         if (theme.brightness == Brightness.light) {
           // النهار - خلفية داكنة للكود لسهولة القراءة
+          // Day - dark background for code for better readability
           codeBackground = theme.colorScheme.inverseSurface;
           codeTextColor = theme.colorScheme.onInverseSurface;
         } else {
@@ -1077,6 +1103,7 @@ class MessageBubble extends StatelessWidget {
               color: codeTextColor,
               height: 1.4,
               // فرض اتجاه من اليسار لليمين للكود فقط
+              // Force left-to-right direction for code only
               locale: const Locale('en', 'US'),
             ),
           ),
@@ -1085,15 +1112,18 @@ class MessageBubble extends StatelessWidget {
         final codeContent = closestMatch.group(1) ?? '';
 
         // تحديد لون الخلفية للكود المضمن
+        // Determine background color for inline code
         Color inlineCodeBackground;
         Color inlineCodeTextColor;
 
         if (theme.brightness == Brightness.light) {
           // النهار - خلفية داكنة للكود المضمن
+          // Day - dark background for inline code
           inlineCodeBackground = theme.colorScheme.inverseSurface;
           inlineCodeTextColor = theme.colorScheme.onInverseSurface;
         } else {
           // الليل - خلفية فاتحة للكود المضمن
+          // Night - light background for inline code
           inlineCodeBackground = theme.colorScheme.surfaceContainerHighest;
           inlineCodeTextColor = theme.colorScheme.onSurfaceVariant;
         }
@@ -1103,11 +1133,13 @@ class MessageBubble extends StatelessWidget {
             text: codeContent,
             style: TextStyle(
               // استخدام الخط المختار من الإعدادات مع fallback للكود المضمن
+              // Use selected font from settings with fallback for inline code
               fontFamily: theme.textTheme.bodyMedium?.fontFamily ?? 'monospace',
               backgroundColor: inlineCodeBackground,
               color: inlineCodeTextColor,
               height: 1.4,
               // فرض اتجاه من اليسار لليمين للكود المضمن
+              // Force left-to-right direction for inline code
               locale: const Locale('en', 'US'),
             ),
           ),
@@ -1149,6 +1181,7 @@ class MessageBubble extends StatelessWidget {
               text: content,
               style: TextStyle(
                 // استخدام الخط المختار من الإعدادات دائماً
+                // Always use the selected font from settings
                 fontFamily: theme.textTheme.bodyMedium?.fontFamily,
                 height: 1.5,
               ),
@@ -1158,6 +1191,7 @@ class MessageBubble extends StatelessWidget {
   }
 
   // دالة للتحقق من وجود نص عربي
+  // Function to check for Arabic text presence
   bool _containsArabic(String text) {
     final arabicRegex = RegExp(
       r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]',
@@ -1172,17 +1206,18 @@ class MessageBubble extends StatelessWidget {
     if (difference.inDays > 0) {
       return '${dateTime.day}/${dateTime.month}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}س';
+      return '${difference.inHours}س'; // hours
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}د';
+      return '${difference.inMinutes}د'; // minutes
     } else {
-      return 'الآن';
+      return 'الآن'; // now
     }
   }
   
 
   
   // الحصول على أيقونة اللغة
+  // Get language icon
   IconData _getLanguageIcon(String language) {
     switch (language.toLowerCase()) {
       case 'python':
@@ -1207,6 +1242,7 @@ class MessageBubble extends StatelessWidget {
   }
   
   // الحصول على اسم اللغة للعرض
+  // Get language display name
   String _getLanguageDisplayName(String language) {
     switch (language.toLowerCase()) {
       case 'python': return 'Python';
@@ -1225,8 +1261,9 @@ class MessageBubble extends StatelessWidget {
   }
 
   // بناء رأس النموذج مع مؤشر الحالة
+  // Build model header with status indicator
   Widget _buildModelHeader(BuildContext context, ThemeData theme) {
-    final modelName = message.metadata?['model'] ?? 'مجهول';
+    final modelName = message.metadata?['model'] ?? 'مجهول'; // unknown
     final serviceName = message.metadata?['service'] ?? '';
     final hasError = message.metadata?['type'] == 'connection_error';
     final isSuccess = !hasError && message.content.isNotEmpty;
@@ -1257,6 +1294,7 @@ class MessageBubble extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // مؤشر الحالة (أخضر للنجاح، أحمر للفشل)
+          // Status indicator (green for success, red for failure)
           Container(
             width: 8,
             height: 8,
@@ -1275,6 +1313,7 @@ class MessageBubble extends StatelessWidget {
           const SizedBox(width: 6),
           
           // اسم النموذج
+          // Model name
           Flexible(
             child: Text(
               '$modelName${serviceName.isNotEmpty ? ' ($serviceName)' : ''}',
@@ -1289,6 +1328,7 @@ class MessageBubble extends StatelessWidget {
           ),
           
           // أيقونة الحالة
+          // Status icon
           const SizedBox(width: 4),
           Icon(
             isSuccess ? Icons.check_circle_outline : Icons.error_outline,
@@ -1301,6 +1341,7 @@ class MessageBubble extends StatelessWidget {
   }
 
   // بناء مؤشر التفكير مع سهم متحرك
+  // Build thinking indicator with animated arrow
   Widget _buildThinkingIndicator(BuildContext context, ThemeData theme) {
     // تحديد لون النص بناءً على التباين الذكي
     final backgroundColor = theme.colorScheme.surface;
@@ -1315,12 +1356,14 @@ class MessageBubble extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // سهم متحرك للتفكير
+          // Animated arrow for thinking
           TweenAnimationBuilder<double>(
             duration: const Duration(seconds: 1),
             tween: Tween(begin: 0.0, end: 1.0),
             builder: (context, value, child) {
               return Transform.rotate(
                 angle: value * 6.28, // دورة كاملة
+                // Full rotation
                 child: Icon(
                   Icons.psychology,
                   size: 16,
@@ -1332,9 +1375,10 @@ class MessageBubble extends StatelessWidget {
           const SizedBox(width: 6),
           
           // نص التفكير
+          // Thinking text
           Flexible(
             child: Text(
-              '🧠 عملية التفكير',
+              '🧠 عملية التفكير', // Thinking process
               style: TextStyle(
                 fontSize: (theme.textTheme.bodySmall?.fontSize ?? 12) * 0.9,
                 fontFamily: theme.textTheme.bodyMedium?.fontFamily,
@@ -1345,6 +1389,7 @@ class MessageBubble extends StatelessWidget {
           ),
           
           // سهم للأسفل
+          // Down arrow
           const SizedBox(width: 4),
           Icon(
             Icons.keyboard_arrow_down,

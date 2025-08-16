@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -353,8 +354,33 @@ class DatabaseHelper {
 
   // Utility Methods
   Future<void> close() async {
-    final db = await database;
-    db.close();
+    try {
+      if (_database != null) {
+        await _database!.close();
+        _database = null;
+        if (kDebugMode) {
+          print('✅ [DATABASE] تم إغلاق قاعدة البيانات بنجاح');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ [DATABASE] خطأ في إغلاق قاعدة البيانات: $e');
+      }
+    }
+  }
+
+  /// إضافة دالة dispose للتنظيف الآمن
+  void dispose() {
+    try {
+      close();
+      if (kDebugMode) {
+        print('✅ [DATABASE] تم تنظيف DatabaseHelper بنجاح');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ [DATABASE] خطأ في تنظيف DatabaseHelper: $e');
+      }
+    }
   }
 
   Future<void> deleteDatabaseFile() async {

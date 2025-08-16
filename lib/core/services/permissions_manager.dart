@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 class PermissionsManager {
   static final PermissionsManager _instance = PermissionsManager._internal();
@@ -9,7 +11,7 @@ class PermissionsManager {
   PermissionsManager._internal();
 
   /// فحص وطلب جميع الأذونات المطلوبة
-  Future<Map<String, bool>> checkAndRequestAllPermissions() async {
+  Future<Map<String, bool>> checkAndRequestAllPermissions(BuildContext? context) async {
     final results = <String, bool>{};
 
     // أذونات التخزين
@@ -21,29 +23,32 @@ class PermissionsManager {
     // أذونات الكاميرا (اختيارية)
     results['camera'] = await _checkAndRequestPermission(
       Permission.camera,
-      'الكاميرا',
+      context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'الكاميرا' : 'Camera',
+      context,
     );
 
     // أذونات المايكروفون (اختيارية)
     results['microphone'] = await _checkAndRequestPermission(
       Permission.microphone,
-      'المايكروفون',
+      context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'المايكروفون' : 'Microphone',
+      context,
     );
 
     // أذونات الصور
-    results['photos'] = await _checkAndRequestPhotosPermission();
+    results['photos'] = await _checkAndRequestPhotosPermission(context);
 
     // أذونات التنبيهات
     results['notifications'] = await _checkAndRequestPermission(
       Permission.notification,
-      'التنبيهات',
+      context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'التنبيهات' : 'Notifications',
+      context,
     );
 
     return results;
   }
 
   /// فحص وطلب أذونات التخزين
-  Future<bool> _checkAndRequestStoragePermissions() async {
+  Future<bool> _checkAndRequestStoragePermissions([BuildContext? context]) async {
     if (Platform.isAndroid) {
       final deviceInfo = DeviceInfoPlugin();
       final androidInfo = await deviceInfo.androidInfo;
@@ -52,15 +57,18 @@ class PermissionsManager {
       if (androidInfo.version.sdkInt >= 33) {
         final images = await _checkAndRequestPermission(
           Permission.photos,
-          'الصور',
+          context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'الصور' : 'Photos',
+          context,
         );
         final videos = await _checkAndRequestPermission(
           Permission.videos,
-          'الفيديوهات',
+          context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'الفيديوهات' : 'Videos',
+          context,
         );
         final audio = await _checkAndRequestPermission(
           Permission.audio,
-          'الملفات الصوتية',
+          context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'الملفات الصوتية' : 'Audio Files',
+          context,
         );
 
         return images && videos && audio;
@@ -69,20 +77,26 @@ class PermissionsManager {
       else if (androidInfo.version.sdkInt >= 30) {
         return await _checkAndRequestPermission(
           Permission.manageExternalStorage,
-          'إدارة التخزين الخارجي',
+          context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'إدارة التخزين الخارجي' : 'Manage External Storage',
+          context,
         );
       }
       // Android 10 وأقل (API 29-)
       else {
         final read = await _checkAndRequestPermission(
           Permission.storage,
-          'قراءة التخزين',
+          context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'قراءة التخزين' : 'Storage Access',
+          context,
         );
         return read;
       }
     } else if (Platform.isIOS) {
       // iOS يستخدم أذونات منفصلة لكل نوع
-      return await _checkAndRequestPermission(Permission.photos, 'مكتبة الصور');
+      return await _checkAndRequestPermission(
+        Permission.photos, 
+        context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'مكتبة الصور' : 'Photo Library',
+        context,
+      );
     }
 
     return true; // للمنصات الأخرى
@@ -101,17 +115,29 @@ class PermissionsManager {
   }
 
   /// فحص وطلب أذونات الصور
-  Future<bool> _checkAndRequestPhotosPermission() async {
+  Future<bool> _checkAndRequestPhotosPermission([BuildContext? context]) async {
     if (Platform.isIOS) {
-      return await _checkAndRequestPermission(Permission.photos, 'مكتبة الصور');
+      return await _checkAndRequestPermission(
+        Permission.photos, 
+        context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'مكتبة الصور' : 'Photo Library',
+        context,
+      );
     } else if (Platform.isAndroid) {
       final deviceInfo = DeviceInfoPlugin();
       final androidInfo = await deviceInfo.androidInfo;
 
       if (androidInfo.version.sdkInt >= 33) {
-        return await _checkAndRequestPermission(Permission.photos, 'الصور');
+        return await _checkAndRequestPermission(
+          Permission.photos, 
+          context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'الصور' : 'Photos',
+          context,
+        );
       } else {
-        return await _checkAndRequestPermission(Permission.storage, 'التخزين');
+        return await _checkAndRequestPermission(
+          Permission.storage, 
+          context != null && Localizations.localeOf(context).languageCode == 'ar' ? 'التخزين' : 'Storage',
+          context,
+        );
       }
     }
 
@@ -122,36 +148,67 @@ class PermissionsManager {
   Future<bool> _checkAndRequestPermission(
     Permission permission,
     String name,
+    [BuildContext? context]
   ) async {
     try {
       final status = await permission.status;
 
       if (status.isGranted) {
-        if (kDebugMode) print('[PERMISSIONS] ✅ إذن $name: مُمنوح');
+        if (kDebugMode) {
+          final grantedMsg = context != null && Localizations.localeOf(context).languageCode == 'ar' 
+              ? '[PERMISSIONS] ✅ إذن $name: مُمنوح'
+              : '[PERMISSIONS] ✅ Permission $name: Granted';
+          print(grantedMsg);
+        }
         return true;
       }
 
       if (status.isDenied) {
-        if (kDebugMode) print('[PERMISSIONS] ⚠️ إذن $name: مرفوض، جار طلب الإذن...');
+        if (kDebugMode) {
+          final deniedMsg = context != null && Localizations.localeOf(context).languageCode == 'ar'
+              ? '[PERMISSIONS] ⚠️ إذن $name: مرفوض، جار طلب الإذن...'
+              : '[PERMISSIONS] ⚠️ Permission $name: Denied, requesting permission...';
+          print(deniedMsg);
+        }
         final newStatus = await permission.request();
 
         if (newStatus.isGranted) {
-          if (kDebugMode) print('[PERMISSIONS] ✅ إذن $name: تم منحه');
+          if (kDebugMode) {
+            final grantedMsg = context != null && Localizations.localeOf(context).languageCode == 'ar'
+                ? '[PERMISSIONS] ✅ إذن $name: تم منحه'
+                : '[PERMISSIONS] ✅ Permission $name: Granted';
+            print(grantedMsg);
+          }
           return true;
         } else {
-          if (kDebugMode) print('[PERMISSIONS] ❌ إذن $name: مرفوض من المستخدم');
+          if (kDebugMode) {
+            final rejectedMsg = context != null && Localizations.localeOf(context).languageCode == 'ar'
+                ? '[PERMISSIONS] ❌ إذن $name: مرفوض من المستخدم'
+                : '[PERMISSIONS] ❌ Permission $name: Rejected by user';
+            print(rejectedMsg);
+          }
           return false;
         }
       }
 
       if (status.isPermanentlyDenied) {
-        if (kDebugMode) print('[PERMISSIONS] 🚫 إذن $name: مرفوض نهائياً');
+        if (kDebugMode) {
+          final permanentlyDeniedMsg = context != null && Localizations.localeOf(context).languageCode == 'ar'
+              ? '[PERMISSIONS] 🚫 إذن $name: مرفوض نهائياً'
+              : '[PERMISSIONS] 🚫 Permission $name: Permanently denied';
+          print(permanentlyDeniedMsg);
+        }
         return false;
       }
 
       return false;
     } catch (e) {
-      if (kDebugMode) print('[PERMISSIONS] ❌ خطأ في فحص إذن $name: $e');
+      if (kDebugMode) {
+        final errorMsg = context != null && Localizations.localeOf(context).languageCode == 'ar'
+            ? '[PERMISSIONS] ❌ خطأ في فحص إذن $name: $e'
+            : '[PERMISSIONS] ❌ Error checking permission $name: $e';
+        print(errorMsg);
+      }
       return false;
     }
   }

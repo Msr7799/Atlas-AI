@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 import 'settings_provider.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../core/config/app_config.dart';
 import 'package:file_picker/file_picker.dart';
@@ -56,13 +57,13 @@ class ChatProvider extends ChangeNotifier {
   // Constructor with improved error handling
   ChatProvider() {
     try {
-      print('🚀 [CHAT_PROVIDER] بدء تهيئة ChatProvider...');
+      print('🚀 [CHAT_PROVIDER] بدء تهيئة ChatProvider... | Starting ChatProvider initialization...');
       _initializeCore();
       _initializeServices();
       _setupTimers();
       _initializeProvider();
     } catch (e, stackTrace) {
-      print('❌ [CHAT_PROVIDER] خطأ في تهيئة ChatProvider: $e');
+      print('❌ [CHAT_PROVIDER] خطأ في تهيئة ChatProvider: $e | Error initializing ChatProvider: $e');
       print('📍 Stack trace: $stackTrace');
       _handleInitializationError(e);
     }
@@ -90,10 +91,10 @@ class ChatProvider extends ChangeNotifier {
       _tavilyService.initialize();
       _mcpService.initialize();
 
-      print('✅ [SERVICES] تم تهيئة جميع الخدمات المحسنة بنجاح');
+      print('✅ [SERVICES] تم تهيئة جميع الخدمات المحسنة بنجاح | All enhanced services initialized successfully');
     } catch (e) {
-      print('⚠️ [SERVICES] خطأ في تهيئة الخدمات: $e');
-      throw ServiceInitializationException('فشل في تهيئة الخدمات: $e');
+      print('⚠️ [SERVICES] خطأ في تهيئة الخدمات: $e | Error initializing services: $e');
+      throw ServiceInitializationException('فشل في تهيئة الخدمات: $e | Failed to initialize services: $e');
     }
   }
 
@@ -123,7 +124,7 @@ class ChatProvider extends ChangeNotifier {
     // Create emergency session
     final emergencySession = ChatSessionModel(
       id: _currentSessionId!,
-      title: 'جلسة طارئة',
+      title: 'جلسة طارئة', // Emergency Session
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       messages: [],
@@ -170,14 +171,14 @@ class ChatProvider extends ChangeNotifier {
     _validateState();
     _messages.removeWhere((message) => message.id == messageId);
     _safeNotifyListeners();
-    print('✅ [REMOVE_MESSAGE] تم حذف الرسالة: $messageId');
+    print('✅ [REMOVE_MESSAGE] تم حذف الرسالة: $messageId | Message deleted: $messageId');
   }
 
   void removeMessages(List<String> messageIds) {
     _validateState();
     _messages.removeWhere((message) => messageIds.contains(message.id));
     _safeNotifyListeners();
-    print('✅ [REMOVE_MESSAGES] تم حذف ${messageIds.length} رسالة');
+    print('✅ [REMOVE_MESSAGES] تم حذف ${messageIds.length} رسالة | Deleted ${messageIds.length} messages');
   }
 
   // Validate provider state
@@ -295,7 +296,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       
       return basePrompt + languageInstruction + multilingualEnhancement;
     } catch (e) {
-      print('⚠️ [SYSTEM_PROMPT] خطأ في إنشاء System Prompt: $e');
+      print('⚠️ [SYSTEM_PROMPT] خطأ في إنشاء System Prompt: $e | Error creating System Prompt: $e');
       return 'You are a helpful AI assistant.'; // Fallback prompt
     }
   }
@@ -303,24 +304,24 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   // Enhanced provider initialization
   Future<void> _initializeProvider() async {
     try {
-      print('📥 [INIT] بدء تحميل البيانات...');
+      print('📥 [INIT] بدء تحميل البيانات... | Starting data loading...');
       await _loadSessions();
-      print('📄 [INIT] تم تحميل ${_sessions.length} جلسة سابقة');
+      print('📄 [INIT] تم تحميل ${_sessions.length} جلسة سابقة | Loaded ${_sessions.length} previous sessions');
       
       if (_sessions.isEmpty) {
-        print('📝 [INIT] لا توجد جلسات سابقة، إنشاء جلسة جديدة');
+        print('📝 [INIT] لا توجد جلسات سابقة، إنشاء جلسة جديدة | No previous sessions, creating new session');
         await createNewSession();
       } else {
-        print('📂 [INIT] تحميل آخر جلسة: ${_sessions.first.title}');
+        print('📂 [INIT] تحميل آخر جلسة: ${_sessions.first.title} | Loading last session: ${_sessions.first.title}');
         _currentSessionId = _sessions.first.id;
         await _loadCurrentSessionMessages();
       }
       
       _isInitialized = true;
       notifyListeners();
-      print('✅ [INIT] تم إكمال تهيئة ChatProvider بنجاح');
+      print('✅ [INIT] تم إكمال تهيئة ChatProvider بنجاح | ChatProvider initialization completed successfully');
     } catch (e) {
-      print('❌ [INIT] خطأ في تهيئة المزود: $e');
+      print('❌ [INIT] خطأ في تهيئة المزود: $e | Error initializing provider: $e');
       _handleInitializationError(e);
     }
   }
@@ -333,8 +334,8 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       _sessions.addAll(sessions);
       _safeNotifyListeners();
     } catch (e) {
-      print('❌ [LOAD_SESSIONS] خطأ في تحميل الجلسات: $e');
-      throw SessionLoadException('فشل في تحميل الجلسات: $e');
+      print('❌ [LOAD_SESSIONS] خطأ في تحميل الجلسات: $e | Error loading sessions: $e');
+      throw SessionLoadException('فشل في تحميل الجلسات: $e | Failed to load sessions: $e');
     }
   }
 
@@ -414,7 +415,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
     );
     
     if (timestamps.length >= _maxMessagesPerMinute) {
-      print('⚠️ [RATE_LIMIT] تم تجاوز حد الرسائل المسموحة');
+      print('⚠️ [RATE_LIMIT] تم تجاوز حد الرسائل المسموحة | Rate limit exceeded');
       return false;
     }
     
@@ -425,16 +426,16 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   // Input validation
   bool _validateInput(String content) {
     if (content.trim().isEmpty) {
-      throw InvalidInputException('محتوى الرسالة فارغ');
+      throw InvalidInputException('محتوى الرسالة فارغ | Message content is empty');
     }
     
     if (content.length > 5000) {
-      throw MessageTooLongException('الرسالة طويلة جداً');
+      throw MessageTooLongException('الرسالة طويلة جداً | Message is too long');
     }
     
     // Basic security check
     if (_containsSuspiciousContent(content)) {
-      throw SecurityException('المحتوى يحتوي على عناصر مشبوهة');
+      throw SecurityException('المحتوى يحتوي على عناصر مشبوهة | Content contains suspicious elements');
     }
     
     return true;
@@ -469,11 +470,11 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
     _validateState();
 
     try {
-      print('📤 [SEND_MESSAGE] بدء إرسال الرسالة...');
+      print('📤 [SEND_MESSAGE] بدء إرسال الرسالة... | Starting message send...');
       // Input validation and rate limiting
       _validateInput(content);
       if (!_checkRateLimit()) {
-        throw RateLimitExceededException('تم تجاوز حد الرسائل المسموحة');
+        throw RateLimitExceededException('تم تجاوز حد الرسائل المسموحة | Rate limit exceeded');
       }
 
       final sanitizedContent = _sanitizeInput(content);
@@ -494,7 +495,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       String userMessageContent = sanitizedContent;
       final imageCount = _attachments.where((att) => _isImageFile(att.type)).length;
       if (imageCount > 0) {
-        userMessageContent += '\n\n📎 تم إرفاق $imageCount صورة';
+        userMessageContent += '\n\n📎 تم إرفاق $imageCount صورة'; // $imageCount images attached
       }
 
       final userMessage = MessageModel(
@@ -510,23 +511,23 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       
       // Save message asynchronously
       unawaited(_saveMessage(userMessage));
-      _updateThinkingProcess('تم إضافة رسالة المستخدم', 'success');
+      _updateThinkingProcess('تم إضافة رسالة المستخدم | User message added', 'success');
 
       // Determine model and service
       String selectedModel = settingsProvider?.selectedModel ?? 'llama-3.1-8b-instant';
 
       if (!_isModelFreeAndAvailable(selectedModel)) {
-        print('⚠️ [AI_SERVICE] النموذج المحدد غير مجاني أو غير متاح: $selectedModel');
+        print('⚠️ [AI_SERVICE] النموذج المحدد غير مجاني أو غير متاح: $selectedModel | Selected model is not free or available: $selectedModel');
         selectedModel = _getDefaultFreeModel();
-        print('🔄 [AI_SERVICE] تم التبديل للنموذج المجاني الافتراضي: $selectedModel');
+        print('🔄 [AI_SERVICE] تم التبديل للنموذج المجاني الافتراضي: $selectedModel | Switched to default free model: $selectedModel');
       }
 
       // تحقق من دعم النموذج للصور
       final hasImages = _attachments.any((att) => _isImageFile(att.type));
       if (hasImages) {
-        print('📸 [VISION] تم اكتشاف صور مرفقة، النموذج المستخدم: $selectedModel');
+        print('📸 [VISION] تم اكتشاف صور مرفقة، النموذج المستخدم: $selectedModel | Images detected, using model: $selectedModel');
         if (!_isVisionCapableModel(selectedModel)) {
-          print('⚠️ [VISION] النموذج الحالي لا يدعم الرؤية، سيتم وصف الصور نصياً');
+          print('⚠️ [VISION] النموذج الحالي لا يدعم الرؤية، سيتم وصف الصور نصياً | Current model doesn\'t support vision, will describe images textually');
 
           // إضافة رسالة تحذيرية للمستخدم
           final warningMessage = MessageModel(

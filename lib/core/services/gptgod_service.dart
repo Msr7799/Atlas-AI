@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'base_api_service.dart';
 import 'package:uuid/uuid.dart';
@@ -183,13 +182,16 @@ class GPTGodService extends BaseApiService {
         debugPrint('[GPTGOD] Sending request: ${jsonEncode(requestData)}');
       }
 
-      final response = await dio.post(
-        AppConfig.gptGodChatEndpoint,
-        data: requestData,
-        options: Options(
-          responseType: ResponseType.stream,
-          headers: {'Accept': 'text/event-stream'},
+      final response = await _makeRequestWithRetry(
+        () => dio.post(
+          AppConfig.gptGodChatEndpoint,
+          data: requestData,
+          options: Options(
+            responseType: ResponseType.stream,
+            headers: {'Accept': 'text/event-stream'},
+          ),
         ),
+        maxRetries: 2,
       );
 
       return _parseStreamResponse(response.data);

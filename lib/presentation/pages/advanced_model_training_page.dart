@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/services/advanced_model_training_service.dart';
 import '../widgets/training/unified_training_widget.dart';
 
+
 class AdvancedModelTrainingPage extends StatefulWidget {
   const AdvancedModelTrainingPage({super.key});
 
@@ -16,7 +17,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
   late TabController _tabController;
   late AdvancedModelTrainingService _trainingService;
   bool _isInitialized = false;
-
+    
   @override
   void initState() {
     super.initState();
@@ -24,6 +25,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
     _trainingService = AdvancedModelTrainingService();
     _initializeService();
   }
+    
 
   Future<void> _initializeService() async {
     try {
@@ -37,7 +39,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في تهيئة خدمة التدريب: $e'),
+            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ في تهيئة خدمة التدريب: $e' : 'Training service initialization error: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -65,7 +67,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
                 color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 8),
-              const Text('تدريب النماذج المتقدم'),
+              Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تدريب النماذج المتقدم' : 'Advanced Model Training'),
             ],
           ),
           actions: [
@@ -88,7 +90,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'نشط',
+                            Localizations.localeOf(context).languageCode == 'ar' ? 'نشط' : 'Active',
                             style: TextStyle(
                               color: Colors.green,
                               fontWeight: FontWeight.bold,
@@ -102,7 +104,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'خامل',
+                            Localizations.localeOf(context).languageCode == 'ar' ? 'خامل' : 'Idle',
                             style: TextStyle(
                               color: Colors.grey,
                               fontWeight: FontWeight.bold,
@@ -117,33 +119,33 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'help',
                   child: Row(
                     children: [
                       Icon(Icons.help_outline),
                       SizedBox(width: 8),
-                      Text('مساعدة'),
+                      Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مساعدة' : 'Help'),
                     ],
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'settings',
                   child: Row(
                     children: [
                       Icon(Icons.settings),
                       SizedBox(width: 8),
-                      Text('إعدادات'),
+                      Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الإعدادات' : 'Settings'),
                     ],
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'export',
                   child: Row(
                     children: [
                       Icon(Icons.download),
                       SizedBox(width: 8),
-                      Text('تصدير البيانات'),
+                      Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير البيانات' : 'Export Data'),
                     ],
                   ),
                 ),
@@ -187,13 +189,13 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
         ),
         body: _isInitialized
             ? const UnifiedTrainingWidget()
-            : const Center(
+            : Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 16),
-                    Text('جاري تهيئة خدمة التدريب...'),
+                    Text(Localizations.localeOf(context).languageCode == 'ar' ? 'جاري تهيئة خدمة التدريب...' : 'Initializing training service...'),
                   ],
                 ),
               ),
@@ -250,9 +252,9 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('النوع: ${session.type.arabicName}'),
-                    Text('الحالة: ${session.status.arabicName}'),
-                    Text('التاريخ: ${_formatDate(session.createdAt)}'),
+                    Text(Localizations.localeOf(context).languageCode == 'ar' ? 'النوع: ${session.type.arabicName}' : 'Type: ${session.type.arabicName}'),
+                    Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الحالة: ${session.status.arabicName}' : 'Status: ${session.status.arabicName}'),
+                    Text(Localizations.localeOf(context).languageCode == 'ar' ? 'التاريخ: ${_formatDate(session.createdAt)}' : 'Date: ${_formatDate(session.createdAt)}'),
                   ],
                 ),
                 trailing: Row(
@@ -269,46 +271,46 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
                     PopupMenuButton<String>(
                       itemBuilder: (context) => [
                         if (session.status == TrainingStatus.completed)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'export',
                             child: Row(
                               children: [
                                 Icon(Icons.download),
                                 SizedBox(width: 8),
-                                Text('تصدير النموذج'),
+                                Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير النموذج' : 'Export Model'),
                               ],
                             ),
                           ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'details',
                           child: Row(
                             children: [
                               Icon(Icons.info),
                               SizedBox(width: 8),
-                              Text('التفاصيل'),
+                              Text(Localizations.localeOf(context).languageCode == 'ar' ? 'التفاصيل' : 'Details'),
                             ],
                           ),
                         ),
                         if (session.status == TrainingStatus.idle ||
                             session.status == TrainingStatus.failed ||
                             session.status == TrainingStatus.cancelled)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'restart',
                             child: Row(
                               children: [
                                 Icon(Icons.refresh),
                                 SizedBox(width: 8),
-                                Text('إعادة التشغيل'),
+                                Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة التشغيل' : 'Restart'),
                               ],
                             ),
                           ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'delete',
                           child: Row(
                             children: [
                               Icon(Icons.delete, color: Colors.red),
                               SizedBox(width: 8),
-                              Text('حذف', style: TextStyle(color: Colors.red)),
+                              Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف' : 'Delete', style: TextStyle(color: Colors.red)),
                             ],
                           ),
                         ),
@@ -387,8 +389,8 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
 
   void _exportModel(String sessionId) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('ميزة تصدير النموذج قيد التطوير'),
+      SnackBar(
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'ميزة تصدير النموذج قيد التطوير' : 'Model export feature is under development'),
         backgroundColor: Colors.blue,
       ),
     );
@@ -398,7 +400,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('تفاصيل: ${session.name}'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تفاصيل: ${session.name}' : 'Details: ${session.name}'),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,7 +418,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
               _buildDetailRow('عدد ملفات البيانات', session.dataFiles.length.toString()),
               if (session.error != null) ...[
                 const SizedBox(height: 8),
-                const Text('خطأ:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ:' : 'Error:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
                 Text(session.error!, style: const TextStyle(color: Colors.red)),
               ],
             ],
@@ -470,17 +472,17 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف جلسة التدريب'),
-        content: const Text('هل تريد حذف هذه الجلسة نهائياً؟ سيتم حذف جميع البيانات المرتبطة بها.'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف جلسة التدريب' : 'Delete Training Session'),
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'هل تريد حذف هذه الجلسة نهائياً؟ سيتم حذف جميع البيانات المرتبطة بها.' : 'Do you want to permanently delete this session? All associated data will be deleted.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('إلغاء'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('حذف'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف' : 'Delete'),
           ),
         ],
       ),
@@ -503,7 +505,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('مساعدة - تدريب النماذج'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مساعدة - تدريب النماذج' : 'Help - Model Training'),
         content: const SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -556,8 +558,8 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إعدادات التدريب'),
-        content: const Text('إعدادات التدريب المتقدمة قيد التطوير'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات التدريب' : 'Training Settings'),
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات التدريب المتقدمة قيد التطوير' : 'Advanced training settings are under development'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -570,8 +572,8 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
 
   void _exportTrainingData() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('ميزة تصدير بيانات التدريب قيد التطوير'),
+      SnackBar(
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'ميزة تصدير بيانات التدريب قيد التطوير' : 'Training data export feature is under development'),
         backgroundColor: Colors.blue,
       ),
     );

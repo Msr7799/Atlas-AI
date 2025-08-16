@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 /// قسم إعدادات النموذج
 class ModelSettingsSection extends StatelessWidget {
@@ -13,11 +14,11 @@ class ModelSettingsSection extends StatelessWidget {
       builder: (context, settings, child) {
         return ExpansionTile(
           leading: const Icon(Icons.psychology),
-          title: const Text('إعدادات النموذج'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات النموذج' : 'Model Settings'),
           children: [
             // اختيار النموذج
             ListTile(
-              title: const Text('النموذج'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'النموذج' : 'Model'),
               subtitle: Text(settings.selectedModel),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () => _showModelSelector(context, settings),
@@ -25,7 +26,7 @@ class ModelSettingsSection extends StatelessWidget {
             
             // Temperature
             ListTile(
-              title: Text('الإبداع (${settings.temperature.toStringAsFixed(1)})'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الإبداع (${settings.temperature.toStringAsFixed(1)})' : 'Creativity (${settings.temperature.toStringAsFixed(1)})'),
               subtitle: Slider(
                 value: settings.temperature,
                 min: 0.0,
@@ -37,7 +38,7 @@ class ModelSettingsSection extends StatelessWidget {
             
             // Max Tokens
             ListTile(
-              title: Text('الحد الأقصى للكلمات (${settings.maxTokens})'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الحد الأقصى للكلمات (${settings.maxTokens})' : 'Max Tokens (${settings.maxTokens})'),
               subtitle: Slider(
                 value: settings.maxTokens.toDouble(),
                 min: 256,
@@ -54,7 +55,7 @@ class ModelSettingsSection extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => _showModelsInfoDialog(context),
                   icon: const Icon(Icons.info_outline),
-                  label: const Text('عرض معلومات مفصلة عن جميع النماذج'),
+                  label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'عرض معلومات مفصلة عن جميع النماذج' : 'View detailed information about all models'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
@@ -71,28 +72,28 @@ class ModelSettingsSection extends StatelessWidget {
   void _showModelSelector(BuildContext context, SettingsProvider settings) {
     final availableModels = [
       // Groq Models (مجاني)
-      {'id': 'llama-3.1-8b-instant', 'name': 'Llama 3.1 8B Instant', 'description': 'نموذج سريع ومتطور - Groq', 'service': 'Groq'},
-      {'id': 'llama-3.1-70b-versatile', 'name': 'Llama 3.1 70B Versatile', 'description': 'نموذج قوي متعدد الاستخدامات - Groq', 'service': 'Groq'},
-      {'id': 'llama-3.1-405b-reasoning', 'name': 'Llama 3.1 405B Reasoning', 'description': 'أقوى نموذج للتفكير المنطقي - Groq', 'service': 'Groq'},
-      {'id': 'mixtral-8x7b-32768', 'name': 'Mixtral 8x7B', 'description': 'نموذج متعدد الخبرات - Groq', 'service': 'Groq'},
-      {'id': 'gemma2-9b-it', 'name': 'Gemma 2 9B IT', 'description': 'نموذج محادثة محسن - Groq', 'service': 'Groq'},
+      {'id': 'llama-3.1-8b-instant', 'name': 'Llama 3.1 8B Instant', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج سريع ومتطور - Groq' : 'Fast and advanced model - Groq', 'service': 'Groq'},
+      {'id': 'llama-3.1-70b-versatile', 'name': 'Llama 3.1 70B Versatile', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج قوي متعدد الاستخدامات - Groq' : 'Powerful versatile model - Groq', 'service': 'Groq'},
+      {'id': 'llama-3.1-405b-reasoning', 'name': 'Llama 3.1 405B Reasoning', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'أقوى نموذج للتفكير المنطقي - Groq' : 'Most powerful reasoning model - Groq', 'service': 'Groq'},
+      {'id': 'mixtral-8x7b-32768', 'name': 'Mixtral 8x7B', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج متعدد الخبرات - Groq' : 'Multi-expert model - Groq', 'service': 'Groq'},
+      {'id': 'gemma2-9b-it', 'name': 'Gemma 2 9B IT', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج محادثة محسن - Groq' : 'Enhanced conversation model - Groq', 'service': 'Groq'},
 
       // GPTGod Models (مجاني)
-      {'id': 'gpt-3.5-turbo', 'name': 'GPT-3.5 Turbo', 'description': 'نموذج سريع وذكي - GPTGod', 'service': 'GPTGod'},
-      {'id': 'gpt-4o-mini', 'name': 'GPT-4o Mini', 'description': 'نسخة مصغرة من GPT-4o - GPTGod', 'service': 'GPTGod'},
+      {'id': 'gpt-3.5-turbo', 'name': 'GPT-3.5 Turbo', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج سريع وذكي - GPTGod' : 'Fast and smart model - GPTGod', 'service': 'GPTGod'},
+      {'id': 'gpt-4o-mini', 'name': 'GPT-4o Mini', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نسخة مصغرة من GPT-4o - GPTGod' : 'Compact version of GPT-4o - GPTGod', 'service': 'GPTGod'},
 
       // OpenRouter Models (مجاني)
-      {'id': 'openai/gpt-oss-20b:free', 'name': 'GPT OSS 20B', 'description': 'نموذج OpenAI مفتوح المصدر - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'z-ai/glm-4.5-air:free', 'name': 'GLM 4.5 Air', 'description': 'نموذج Z.AI خفيف مع وضع تفكير - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'qwen/qwen3-coder:free', 'name': 'Qwen3 Coder', 'description': 'نموذج برمجة متطور - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'moonshotai/kimi-k2:free', 'name': 'Kimi K2', 'description': 'نموذج 1T معامل قوي - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'venice/uncensored:free', 'name': 'Venice Uncensored', 'description': 'نموذج غير مقيد - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'mistral/mistral-small-3.2-24b:free', 'name': 'Mistral Small 3.2', 'description': 'نموذج Mistral محسن - OpenRouter', 'service': 'OpenRouter'},
+      {'id': 'openai/gpt-oss-20b:free', 'name': 'GPT OSS 20B', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج OpenAI مفتوح المصدر - OpenRouter' : 'OpenAI open source model - OpenRouter', 'service': 'OpenRouter'},
+      {'id': 'z-ai/glm-4.5-air:free', 'name': 'GLM 4.5 Air', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج Z.AI خفيف مع وضع تفكير - OpenRouter' : 'Z.AI lightweight model with thinking mode - OpenRouter', 'service': 'OpenRouter'},
+      {'id': 'qwen/qwen3-coder:free', 'name': 'Qwen3 Coder', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج برمجة متطور - OpenRouter' : 'Advanced coding model - OpenRouter', 'service': 'OpenRouter'},
+      {'id': 'moonshotai/kimi-k2:free', 'name': 'Kimi K2', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج 1T معامل قوي - OpenRouter' : '1T parameter powerful model - OpenRouter', 'service': 'OpenRouter'},
+      {'id': 'venice/uncensored:free', 'name': 'Venice Uncensored', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج غير مقيد - OpenRouter' : 'Unrestricted model - OpenRouter', 'service': 'OpenRouter'},
+      {'id': 'mistral/mistral-small-3.2-24b:free', 'name': 'Mistral Small 3.2', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج Mistral محسن - OpenRouter' : 'Enhanced Mistral model - OpenRouter', 'service': 'OpenRouter'},
 
       // LocalAI Models (محلي)
-      {'id': 'llama3.1:8b', 'name': 'Llama 3.1 8B (محلي)', 'description': 'نموذج محلي للخصوصية الكاملة - LocalAI', 'service': 'LocalAI'},
-      {'id': 'mistral:7b', 'name': 'Mistral 7B (محلي)', 'description': 'نموذج محلي متعدد اللغات - LocalAI', 'service': 'LocalAI'},
-      {'id': 'codellama:7b', 'name': 'Code Llama 7B (محلي)', 'description': 'نموذج برمجة محلي - LocalAI', 'service': 'LocalAI'},
+      {'id': 'llama3.1:8b', 'name': Localizations.localeOf(context).languageCode == 'ar' ? 'Llama 3.1 8B (محلي)' : 'Llama 3.1 8B (Local)', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج محلي للخصوصية الكاملة - LocalAI' : 'Local model for complete privacy - LocalAI', 'service': 'LocalAI'},
+      {'id': 'mistral:7b', 'name': Localizations.localeOf(context).languageCode == 'ar' ? 'Mistral 7B (محلي)' : 'Mistral 7B (Local)', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج محلي متعدد اللغات - LocalAI' : 'Local multilingual model - LocalAI', 'service': 'LocalAI'},
+      {'id': 'codellama:7b', 'name': Localizations.localeOf(context).languageCode == 'ar' ? 'Code Llama 7B (محلي)' : 'Code Llama 7B (Local)', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج برمجة محلي - LocalAI' : 'Local coding model - LocalAI', 'service': 'LocalAI'},
     ];
 
     showDialog(
@@ -108,13 +109,13 @@ class ModelSettingsSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'اختيار النموذج',
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'اختيار النموذج' : 'Select Model',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.info_outline),
-                  label: const Text('معلومات النماذج'),
+                  label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'معلومات النماذج' : 'Model Info'),
                   onPressed: () {
                     Navigator.pop(context);
                     _showModelsInfoDialog(context);
@@ -187,7 +188,7 @@ class ModelSettingsSection extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إلغاء'),
+                child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
               ),
             ],
           );
@@ -215,8 +216,8 @@ class ModelSettingsSection extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('معلومات النماذج'),
-        content: const SizedBox(
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'معلومات النماذج' : 'Model Information'),
+        content: SizedBox(
           width: 500,
           height: 400,
           child: SingleChildScrollView(
@@ -224,38 +225,38 @@ class ModelSettingsSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '🚀 Groq (مجاني)',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+                  Localizations.localeOf(context).languageCode == 'ar' ? '🚀 Groq (مجاني)' : '🚀 Groq (Free)',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
                 ),
-                Text('• نماذج سريعة جداً مع دعم مجاني'),
-                Text('• Llama 3.1 بأحجام مختلفة'),
-                Text('• Mixtral و Gemma 2'),
-                SizedBox(height: 16),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• نماذج سريعة جداً مع دعم مجاني' : '• Very fast models with free support'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Llama 3.1 بأحجام مختلفة' : '• Llama 3.1 in different sizes'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Mixtral و Gemma 2' : '• Mixtral and Gemma 2'),
+                const SizedBox(height: 16),
 
                 Text(
-                  '🤖 GPTGod (مجاني)',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
+                  Localizations.localeOf(context).languageCode == 'ar' ? '🤖 GPTGod (مجاني)' : '🤖 GPTGod (Free)',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
                 ),
-                Text('• GPT-3.5 Turbo و GPT-4o Mini'),
-                Text('• جودة عالية مع استخدام مجاني'),
-                SizedBox(height: 16),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• GPT-3.5 Turbo و GPT-4o Mini' : '• GPT-3.5 Turbo and GPT-4o Mini'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• جودة عالية مع استخدام مجاني' : '• High quality with free usage'),
+                const SizedBox(height: 16),
 
                 Text(
-                  '🌐 OpenRouter (نماذج مجانية)',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                  Localizations.localeOf(context).languageCode == 'ar' ? '🌐 OpenRouter (نماذج مجانية)' : '🌐 OpenRouter (Free Models)',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
                 ),
-                Text('• مجموعة واسعة من النماذج المجانية'),
-                Text('• GPT OSS, GLM 4.5, Qwen3 Coder'),
-                Text('• Kimi K2, Venice Uncensored'),
-                SizedBox(height: 16),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• مجموعة واسعة من النماذج المجانية' : '• Wide range of free models'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• GPT OSS, GLM 4.5, Qwen3 Coder' : '• GPT OSS, GLM 4.5, Qwen3 Coder'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Kimi K2, Venice Uncensored' : '• Kimi K2, Venice Uncensored'),
+                const SizedBox(height: 16),
 
                 Text(
-                  '💻 LocalAI (محلي)',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                  Localizations.localeOf(context).languageCode == 'ar' ? '💻 LocalAI (محلي)' : '💻 LocalAI (Local)',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
                 ),
-                Text('• نماذج تعمل على جهازك'),
-                Text('• خصوصية كاملة بدون إنترنت'),
-                Text('• يتطلب تثبيت Ollama'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• نماذج تعمل على جهازك' : '• Models running on your device'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• خصوصية كاملة بدون إنترنت' : '• Complete privacy without internet'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• يتطلب تثبيت Ollama' : '• Requires Ollama installation'),
               ],
             ),
           ),
@@ -281,17 +282,17 @@ class ThemeSettingsSection extends StatelessWidget {
       builder: (context, theme, child) {
         return ExpansionTile(
           leading: const Icon(Icons.palette),
-          title: const Text('إعدادات المظهر'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات المظهر' : 'Appearance Settings'),
           children: [
             SwitchListTile(
-              title: const Text('الوضع الليلي'),
-              subtitle: const Text('تفعيل المظهر المظلم'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الوضع الليلي' : 'Dark Mode'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تفعيل المظهر المظلم' : 'Enable dark theme'),
               value: theme.isDarkMode,
               onChanged: (_) => theme.toggleTheme(),
             ),
             
             ListTile(
-              title: const Text('لون التطبيق'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'لون التطبيق' : 'App Color'),
               trailing: CircleAvatar(
                 backgroundColor: theme.primaryColor,
                 radius: 15,
@@ -300,8 +301,8 @@ class ThemeSettingsSection extends StatelessWidget {
             ),
             
             SwitchListTile(
-              title: const Text('الرسوم المتحركة'),
-              subtitle: const Text('تفعيل التأثيرات البصرية'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الرسوم المتحركة' : 'Animations'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تفعيل التأثيرات البصرية' : 'Enable visual effects'),
               value: theme.animationsEnabled,
               onChanged: theme.setAnimationsEnabled,
             ),
@@ -324,7 +325,7 @@ class ThemeSettingsSection extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('اختيار اللون'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'اختيار اللون' : 'Choose Color'),
         content: Wrap(
           spacing: 10,
           children: colors.map((color) {
@@ -358,24 +359,24 @@ class AudioSettingsSection extends StatelessWidget {
       builder: (context, settings, child) {
         return ExpansionTile(
           leading: const Icon(Icons.mic),
-          title: const Text('إعدادات الصوت'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات الصوت' : 'Audio Settings'),
           children: [
             SwitchListTile(
-              title: const Text('التعرف على الصوت'),
-              subtitle: const Text('تفعيل الإدخال الصوتي'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'التعرف على الصوت' : 'Speech Recognition'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تفعيل الإدخال الصوتي' : 'Enable voice input'),
               value: settings.speechEnabled,
               onChanged: settings.setSpeechEnabled,
             ),
             
             SwitchListTile(
-              title: const Text('التشغيل التلقائي'),
-              subtitle: const Text('تشغيل الردود صوتياً'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'التشغيل التلقائي' : 'Auto Play'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تشغيل الردود صوتياً' : 'Play responses audibly'),
               value: settings.autoPlayEnabled,
               onChanged: settings.setAutoPlayEnabled,
             ),
             
             ListTile(
-              title: Text('مستوى الصوت (${(settings.volume * 100).toInt()}%)'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مستوى الصوت (${(settings.volume * 100).toInt()}%)' : 'Volume Level (${(settings.volume * 100).toInt()}%)'),
               subtitle: Slider(
                 value: settings.volume,
                 min: 0.0,
@@ -402,7 +403,7 @@ class McpAdvancedSettingsSection extends StatelessWidget {
       builder: (context, settings, child) {
         return ExpansionTile(
           leading: const Icon(Icons.hub),
-          title: const Text('إعدادات MCP المتقدمة'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات MCP المتقدمة' : 'Advanced MCP Settings'),
           children: [
             SwitchListTile(
               title: const Text('تفعيل خوادم MCP'),
@@ -412,27 +413,27 @@ class McpAdvancedSettingsSection extends StatelessWidget {
             ),
 
             ListTile(
-              title: const Text('مهلة الاتصال'),
-              subtitle: Text('10 ثوان'), // يمكن جعلها قابلة للتخصيص
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مهلة الاتصال' : 'Connection Timeout'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? '10 ثوان' : '10 seconds'),
               trailing: const Icon(Icons.timer),
             ),
 
             ListTile(
-              title: const Text('إعادة المحاولة التلقائية'),
-              subtitle: const Text('3 محاولات'), // يمكن جعلها قابلة للتخصيص
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة المحاولة التلقائية' : 'Auto Retry'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? '3 محاولات' : '3 attempts'),
               trailing: const Icon(Icons.refresh),
             ),
 
             ListTile(
-              title: const Text('تشخيص الاتصال'),
-              subtitle: const Text('فحص حالة خوادم MCP'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تشخيص الاتصال' : 'Connection Diagnostics'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'فحص حالة خوادم MCP' : 'Check MCP server status'),
               trailing: const Icon(Icons.network_check),
               onTap: () => _showMcpDiagnostics(context),
             ),
 
             ListTile(
-              title: const Text('مسح ذاكرة التخزين المؤقت'),
-              subtitle: const Text('حذف البيانات المؤقتة لخوادم MCP'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مسح ذاكرة التخزين المؤقت' : 'Clear Cache'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف البيانات المؤقتة لخوادم MCP' : 'Delete MCP server temporary data'),
               trailing: const Icon(Icons.clear_all),
               onTap: () => _clearMcpCache(context),
             ),
@@ -487,8 +488,8 @@ class McpAdvancedSettingsSection extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('مسح ذاكرة التخزين المؤقت'),
-        content: const Text('هل تريد مسح جميع البيانات المؤقتة لخوادم MCP؟'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مسح ذاكرة التخزين المؤقت' : 'Clear Cache'),
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'هل تريد مسح جميع البيانات المؤقتة لخوادم MCP؟' : 'Do you want to clear all temporary data for MCP servers?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -501,7 +502,7 @@ class McpAdvancedSettingsSection extends StatelessWidget {
                 const SnackBar(content: Text('تم مسح ذاكرة التخزين المؤقت')),
               );
             },
-            child: const Text('مسح'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مسح' : 'Clear'),
           ),
         ],
       ),
@@ -519,7 +520,7 @@ class McpServersSection extends StatelessWidget {
       builder: (context, settings, child) {
         return ExpansionTile(
           leading: const Icon(Icons.hub),
-          title: const Text('خوادم MCP'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خوادم MCP' : 'MCP Servers'),
           children: [
             SwitchListTile(
               title: const Text('تفعيل خوادم MCP'),
@@ -567,7 +568,7 @@ class McpServersSection extends StatelessWidget {
                           child: ElevatedButton.icon(
                             onPressed: () => _showMcpDiagnostics(context),
                             icon: const Icon(Icons.network_check),
-                            label: const Text('تشخيص الاتصال'),
+                            label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تشخيص الاتصال' : 'Connection Diagnostics'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.purple,
                               foregroundColor: Colors.white,
@@ -578,7 +579,7 @@ class McpServersSection extends StatelessWidget {
                         ElevatedButton.icon(
                           onPressed: () => _showAddCustomServerDialog(context, settings),
                           icon: const Icon(Icons.add),
-                          label: const Text('إضافة خادم'),
+                          label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة خادم' : 'Add Server'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
@@ -656,7 +657,7 @@ class McpServersSection extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إضافة خادم MCP مخصص'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة خادم MCP مخصص' : 'Add Custom MCP Server'),
         content: SizedBox(
           width: 400,
           child: Column(
@@ -706,7 +707,7 @@ class McpServersSection extends StatelessWidget {
                 Navigator.pop(context);
               }
             },
-            child: const Text('إضافة'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة' : 'Add'),
           ),
         ],
       ),
@@ -724,29 +725,29 @@ class AdvancedSettingsSection extends StatelessWidget {
       builder: (context, settings, child) {
         return ExpansionTile(
           leading: const Icon(Icons.tune),
-          title: const Text('إعدادات متقدمة'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات متقدمة' : 'Advanced Settings'),
           children: [
             SwitchListTile(
-              title: const Text('البحث على الويب'),
-              subtitle: const Text('تفعيل البحث على الإنترنت للحصول على معلومات محدثة'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'البحث على الويب' : 'Web Search'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تفعيل البحث على الإنترنت للحصول على معلومات محدثة' : 'Enable internet search for updated information'),
               value: settings.enableWebSearch,
               onChanged: settings.setEnableWebSearch,
             ),
             SwitchListTile(
-              title: const Text('الاستجابة المباشرة'),
-              subtitle: const Text('إظهار الاستجابة أثناء الكتابة (أسرع)'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الاستجابة المباشرة' : 'Stream Response'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إظهار الاستجابة أثناء الكتابة (أسرع)' : 'Show response while typing (faster)'),
               value: settings.streamResponse,
               onChanged: settings.setStreamResponse,
             ),
             SwitchListTile(
-              title: const Text('المعالجة التلقائية للنص'),
-              subtitle: const Text('تحسين تنسيق النص تلقائياً (Markdown، قوائم، أكواد)'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'المعالجة التلقائية للنص' : 'Auto Text Formatting'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تحسين تنسيق النص تلقائياً (Markdown، قوائم، أكواد)' : 'Improve text formatting automatically (Markdown, lists, codes)'),
               value: settings.enableAutoTextFormatting,
               onChanged: settings.setEnableAutoTextFormatting,
             ),
             SwitchListTile(
-              title: const Text('الحفظ التلقائي'),
-              subtitle: const Text('حفظ المحادثات تلقائياً'),
+              title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الحفظ التلقائي' : 'Auto Save'),
+              subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حفظ المحادثات تلقائياً' : 'Save conversations automatically'),
               value: settings.autoSaveEnabled,
               onChanged: settings.setAutoSaveEnabled,
             ),
@@ -765,23 +766,23 @@ class AppInfoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return ExpansionTile(
       leading: const Icon(Icons.info),
-      title: const Text('معلومات التطبيق'),
+      title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'معلومات التطبيق' : 'App Information'),
       children: [
         ListTile(
-          title: const Text('الإصدار'),
-          subtitle: const Text('1.0.0'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الإصدار' : 'Version'),
+          subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? '1.0.0' : '1.0.0'),
           trailing: const Icon(Icons.update),
         ),
 
         ListTile(
-          title: const Text('المطور'),
-          subtitle: const Text('Atlas AI Team'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'المطور' : 'Developer'),
+          subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'Atlas AI Team' : 'Atlas AI Team'),
           trailing: const Icon(Icons.code),
         ),
 
         ListTile(
-          title: const Text('الدعم'),
-          subtitle: const Text('support@atlas-ai.app'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الدعم' : 'Support'),
+          subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'support@atlas-ai.app' : 'support@atlas-ai.app'),
           trailing: const Icon(Icons.email),
           onTap: () {
             // فتح تطبيق البريد الإلكتروني
@@ -789,8 +790,8 @@ class AppInfoSection extends StatelessWidget {
         ),
 
         ListTile(
-          title: const Text('تقييم التطبيق'),
-          subtitle: const Text('ساعدنا بتقييمك'),
+          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تقييم التطبيق' : 'Rate App'),
+          subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'ساعدنا بتقييمك' : 'Help us with your rating'),
           trailing: const Icon(Icons.star),
           onTap: () {
             // فتح متجر التطبيقات للتقييم

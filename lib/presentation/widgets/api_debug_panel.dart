@@ -4,6 +4,7 @@ import '../../core/services/gptgod_service.dart';
 import '../../core/services/api_key_manager.dart';
 import '../../core/services/openrouter_service.dart';
 import '../../core/services/huggingface_service.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 /// لوحة تشخيص API لعرض معلومات الخدمات
 class ApiDebugPanel extends StatefulWidget {
@@ -113,12 +114,12 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('معلومات API التشخيصية'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'معلومات API التشخيصية' : 'API Debug Information'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadDebugInfo,
-            tooltip: 'تحديث',
+            tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'تحديث' : 'Refresh',
           ),
         ],
       ),
@@ -139,7 +140,7 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
 
   Widget _buildServiceTile(String serviceName, Map<String, dynamic> data) {
     final isHealthy = data['health'] as bool? ?? false;
-    final status = data['status'] as String? ?? 'غير معروف';
+    final status = data['status'] as String? ?? (Localizations.localeOf(context).languageCode == 'ar' ? 'غير معروف' : 'Unknown');
     final requests = data['requests'] as int? ?? 0;
     final errors = data['errors'] as int? ?? 0;
     final successRate = data['successRate'] as String? ?? '0%';
@@ -157,19 +158,19 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
           _getServiceDisplayName(serviceName),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text('الحالة: ${isHealthy ? 'نشط' : 'غير نشط'}'),
+        subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الحالة: ${isHealthy ? "نشط" : "غير نشط"}' : 'Status: ${isHealthy ? "Active" : "Inactive"}'),
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('الحالة العامة', status),
-                _buildInfoRow('عدد الطلبات', requests.toString()),
-                _buildInfoRow('عدد الأخطاء', errors.toString()),
-                _buildInfoRow('معدل النجاح', successRate),
+                _buildInfoRow(Localizations.localeOf(context).languageCode == 'ar' ? 'الحالة العامة' : 'General Status', status),
+                _buildInfoRow(Localizations.localeOf(context).languageCode == 'ar' ? 'عدد الطلبات' : 'Request Count', requests.toString()),
+                _buildInfoRow(Localizations.localeOf(context).languageCode == 'ar' ? 'عدد الأخطاء' : 'Error Count', errors.toString()),
+                _buildInfoRow(Localizations.localeOf(context).languageCode == 'ar' ? 'معدل النجاح' : 'Success Rate', successRate),
                 if (lastUsed != null)
-                  _buildInfoRow('آخر استخدام', _formatDateTime(lastUsed)),
+                  _buildInfoRow(Localizations.localeOf(context).languageCode == 'ar' ? 'آخر استخدام' : 'Last Used', _formatDateTime(lastUsed)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -177,7 +178,7 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
                       child: ElevatedButton.icon(
                         onPressed: () => _clearServiceStats(serviceName),
                         icon: const Icon(Icons.clear),
-                        label: const Text('مسح الإحصائيات'),
+                        label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مسح الإحصائيات' : 'Clear Stats'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
                           foregroundColor: Colors.white,
@@ -189,7 +190,7 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
                       child: ElevatedButton.icon(
                         onPressed: () => _reinitializeService(serviceName),
                         icon: const Icon(Icons.refresh),
-                        label: const Text('إعادة تهيئة'),
+                        label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة تهيئة' : 'Reinitialize'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -252,13 +253,13 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
     final difference = now.difference(dateTime);
     
     if (difference.inDays > 0) {
-      return 'منذ ${difference.inDays} يوم';
+      return Localizations.localeOf(context).languageCode == 'ar' ? 'منذ ${difference.inDays} يوم' : '${difference.inDays} days ago';
     } else if (difference.inHours > 0) {
-      return 'منذ ${difference.inHours} ساعة';
+      return Localizations.localeOf(context).languageCode == 'ar' ? 'منذ ${difference.inHours} ساعة' : '${difference.inHours} hours ago';
     } else if (difference.inMinutes > 0) {
-      return 'منذ ${difference.inMinutes} دقيقة';
+      return Localizations.localeOf(context).languageCode == 'ar' ? 'منذ ${difference.inMinutes} دقيقة' : '${difference.inMinutes} minutes ago';
     } else {
-      return 'الآن';
+      return Localizations.localeOf(context).languageCode == 'ar' ? 'الآن' : 'Now';
     }
   }
 
@@ -267,7 +268,7 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
       await ApiKeyManager.clearUsageStats(serviceName);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('تم مسح إحصائيات $serviceName'),
+          content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم مسح إحصائيات $serviceName' : 'Cleared stats for $serviceName'),
           backgroundColor: Colors.green,
         ),
       );
@@ -275,7 +276,7 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('فشل في مسح إحصائيات $serviceName: $e'),
+          content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'فشل في مسح إحصائيات $serviceName: $e' : 'Failed to clear stats for $serviceName: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -311,7 +312,7 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('تم إعادة تهيئة $serviceName'),
+          content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم إعادة تهيئة $serviceName' : 'Reinitialized $serviceName'),
           backgroundColor: Colors.green,
         ),
       );
@@ -319,7 +320,7 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('فشل في إعادة تهيئة $serviceName: $e'),
+          content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'فشل في إعادة تهيئة $serviceName: $e' : 'Failed to reinitialize $serviceName: $e'),
           backgroundColor: Colors.red,
         ),
       );

@@ -6,6 +6,7 @@ import '../widgets/compact_message_bubble.dart';
 import '../widgets/thinking_process_widget.dart';
 import '../providers/chat_selection_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 
 /// عرض قائمة الرسائل في المحادثة
@@ -84,7 +85,7 @@ class ChatMessageList extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'مرحباً بك في Atlas AI!',
+            Localizations.localeOf(context).languageCode == 'ar' ? 'مرحباً بك في Atlas AI!' : 'Welcome to Atlas AI!',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontFamily: 'Amiri',
@@ -93,7 +94,7 @@ class ChatMessageList extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'ابدأ محادثتك الأولى',
+            Localizations.localeOf(context).languageCode == 'ar' ? 'ابدأ محادثتك الأولى' : 'Start your first conversation',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Theme.of(context)
                       .colorScheme
@@ -111,11 +112,16 @@ class ChatMessageList extends StatelessWidget {
 
   /// بناء الاقتراحات المبدئية
   Widget _buildSuggestedPrompts(BuildContext context) {
-    final suggestions = [
+    final suggestions = Localizations.localeOf(context).languageCode == 'ar' ? [
       'اشرح لي كيف يعمل الذكاء الاصطناعي',
       'اكتب لي قصة قصيرة عن المستقبل',
       'ساعدني في تعلم لغة البرمجة',
       'اقترح أفكار لمشروع جديد',
+    ] : [
+      'Explain how artificial intelligence works',
+      'Write me a short story about the future',
+      'Help me learn programming language',
+      'Suggest ideas for a new project',
     ];
 
     return Column(
@@ -273,7 +279,7 @@ class ChatMessageList extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'AI يكتب...',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'AI يكتب...' : 'AI is typing...',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontFamily: 'Amiri',
                               color: Theme.of(context)

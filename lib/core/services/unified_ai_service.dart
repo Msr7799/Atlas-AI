@@ -51,11 +51,12 @@ class UnifiedAIService {
 
     print('✅ [UNIFIED_AI] تم تهيئة الخدمة الموحدة');
     if (kDebugMode) {
-      print('🔑 [UNIFIED_AI] Groq Key: ${_groqApiKey.isNotEmpty ? "✅" : "❌"}');
-      print('🔑 [UNIFIED_AI] GPTGod Key: ${_gptgodApiKey.isNotEmpty ? "✅" : "❌"}');
-      print('🔑 [UNIFIED_AI] OpenRouter Key: ${_openRouterApiKey.isNotEmpty ? "✅" : "❌"}');
-      print('🔑 [UNIFIED_AI] HuggingFace Key: ${_huggingfaceApiKey.isNotEmpty ? "✅" : "❌"}');
-      print('🔑 [UNIFIED_AI] Tavily Key: ${_tavilyApiKey.isNotEmpty ? "✅" : "❌"}');
+      print('🔑 [UNIFIED_AI] Keys Status:');
+      print('  - Groq: ${_groqApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
+      print('  - GPTGod: ${_gptgodApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
+      print('  - OpenRouter: ${_openRouterApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
+      print('  - HuggingFace: ${_huggingfaceApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
+      print('  - Tavily: ${_tavilyApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
     }
   }
 
@@ -517,6 +518,29 @@ class UnifiedAIService {
 
   // تنظيف الموارد
   void dispose() {
-    _dio?.close();
+    try {
+      _dio?.close(force: true);
+      _dio = null;
+      
+      // تنظيف المفاتيح الحساسة من الذاكرة
+      _groqApiKey = '';
+      _groqApiKey2 = '';
+      _gptgodApiKey = '';
+      _gptgodApiKey2 = '';
+      _openRouterApiKey = '';
+      _huggingfaceApiKey = '';
+      _tavilyApiKey = '';
+      
+      _lastUsedService = '';
+      _lastUsedModel = '';
+      
+      if (kDebugMode) {
+        print('✅ [UNIFIED_AI] تم تنظيف الموارد بنجاح');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ [UNIFIED_AI] خطأ في تنظيف الموارد: $e');
+      }
+    }
   }
 }

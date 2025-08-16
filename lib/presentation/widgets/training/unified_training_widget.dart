@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/training_provider.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 /// Widget موحد لجميع وظائف التدريب
 class UnifiedTrainingWidget extends StatefulWidget {
@@ -38,10 +39,10 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
             // Tabs
             TabBar(
               controller: _tabController,
-              tabs: const [
-                Tab(icon: Icon(Icons.settings), text: 'الإعدادات'),
-                Tab(icon: Icon(Icons.trending_up), text: 'التقدم'),
-                Tab(icon: Icon(Icons.history), text: 'السجلات'),
+              tabs: [
+                Tab(icon: const Icon(Icons.settings), text: Localizations.localeOf(context).languageCode == 'ar' ? 'الإعدادات' : 'Settings'),
+                Tab(icon: const Icon(Icons.trending_up), text: Localizations.localeOf(context).languageCode == 'ar' ? 'التقدم' : 'Progress'),
+                Tab(icon: const Icon(Icons.history), text: Localizations.localeOf(context).languageCode == 'ar' ? 'السجلات' : 'Logs'),
               ],
             ),
             
@@ -93,13 +94,19 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'حالة التدريب: ${_getStatusText(training.status)}',
+                  Localizations.localeOf(context).languageCode == 'ar' 
+                      ? 'حالة التدريب: ${_getStatusText(training.status, true)}'
+                      : 'Training Status: ${_getStatusText(training.status, false)}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 if (training.isTraining)
-                  Text('التقدم: ${(training.progress * 100).toInt()}%'),
+                  Text(Localizations.localeOf(context).languageCode == 'ar' 
+                      ? 'التقدم: ${(training.progress * 100).toInt()}%'
+                      : 'Progress: ${(training.progress * 100).toInt()}%'),
                 if (training.currentEpoch > 0)
-                  Text('الحقبة: ${training.currentEpoch}/${training.totalEpochs}'),
+                  Text(Localizations.localeOf(context).languageCode == 'ar' 
+                      ? 'الحقبة: ${training.currentEpoch}/${training.totalEpochs}'
+                      : 'Epoch: ${training.currentEpoch}/${training.totalEpochs}'),
               ],
             ),
           ),
@@ -111,18 +118,18 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
                 IconButton(
                   icon: const Icon(Icons.play_arrow),
                   onPressed: training.canStartTraining ? training.startTraining : null,
-                  tooltip: 'بدء التدريب',
+                  tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'بدء التدريب' : 'Start Training',
                 ),
               if (training.isTraining)
                 IconButton(
                   icon: const Icon(Icons.pause),
                   onPressed: training.pauseTraining,
-                  tooltip: 'إيقاف مؤقت',
+                  tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إيقاف مؤقت' : 'Pause Training',
                 ),
               IconButton(
                 icon: const Icon(Icons.stop),
                 onPressed: training.isTraining ? training.stopTraining : null,
-                tooltip: 'إيقاف التدريب',
+                tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إيقاف التدريب' : 'Stop Training',
               ),
             ],
           ),
@@ -144,13 +151,16 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('اختيار النموذج', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'اختيار النموذج' : 'Model Selection',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                  ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: training.selectedModel,
-                    decoration: const InputDecoration(
-                      labelText: 'النموذج الأساسي',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: Localizations.localeOf(context).languageCode == 'ar' ? 'النموذج الأساسي' : 'Base Model',
+                      border: const OutlineInputBorder(),
                     ),
                     items: training.availableModels.map((model) {
                       return DropdownMenuItem(value: model, child: Text(model));
@@ -171,11 +181,16 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('معاملات التدريب', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'معاملات التدريب' : 'Training Parameters',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                  ),
                   const SizedBox(height: 16),
                   
                   // Learning Rate
-                  Text('معدل التعلم: ${training.learningRate.toStringAsFixed(6)}'),
+                  Text(Localizations.localeOf(context).languageCode == 'ar' 
+                      ? 'معدل التعلم: ${training.learningRate.toStringAsFixed(6)}'
+                      : 'Learning Rate: ${training.learningRate.toStringAsFixed(6)}'),
                   Slider(
                     value: training.learningRate,
                     min: 0.00001,
@@ -187,7 +202,9 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
                   const SizedBox(height: 16),
                   
                   // Batch Size
-                  Text('حجم الدفعة: ${training.batchSize}'),
+                  Text(Localizations.localeOf(context).languageCode == 'ar' 
+                      ? 'حجم الدفعة: ${training.batchSize}'
+                      : 'Batch Size: ${training.batchSize}'),
                   Slider(
                     value: training.batchSize.toDouble(),
                     min: 1,
@@ -199,7 +216,9 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
                   const SizedBox(height: 16),
                   
                   // Epochs
-                  Text('عدد الحقب: ${training.totalEpochs}'),
+                  Text(Localizations.localeOf(context).languageCode == 'ar' 
+                      ? 'عدد الحقب: ${training.totalEpochs}'
+                      : 'Epochs: ${training.totalEpochs}'),
                   Slider(
                     value: training.totalEpochs.toDouble(),
                     min: 1,
@@ -221,13 +240,18 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('مجموعة البيانات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'مجموعة البيانات' : 'Dataset',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                  ),
                   const SizedBox(height: 8),
                   
                   ListTile(
                     leading: const Icon(Icons.upload_file),
-                    title: const Text('رفع ملف البيانات'),
-                    subtitle: Text(training.datasetPath.isEmpty ? 'لم يتم اختيار ملف' : training.datasetPath),
+                    title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'رفع ملف البيانات' : 'Upload Dataset File'),
+                    subtitle: Text(training.datasetPath.isEmpty 
+                        ? (Localizations.localeOf(context).languageCode == 'ar' ? 'لم يتم اختيار ملف' : 'No file selected')
+                        : training.datasetPath),
                     trailing: const Icon(Icons.folder_open),
                     onTap: training.selectDataset,
                   ),
@@ -236,7 +260,9 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
-                        'معلومات البيانات: ${training.datasetInfo}',
+                        Localizations.localeOf(context).languageCode == 'ar' 
+                            ? 'معلومات البيانات: ${training.datasetInfo}'
+                            : 'Dataset Info: ${training.datasetInfo}',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                     ),
@@ -260,7 +286,10 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const Text('التقدم الإجمالي', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'التقدم الإجمالي' : 'Overall Progress',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                  ),
                   const SizedBox(height: 16),
                   
                   LinearProgressIndicator(
@@ -285,7 +314,10 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('المقاييس', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'المقاييس' : 'Metrics',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                  ),
                   const SizedBox(height: 16),
                   
                   Row(
@@ -305,11 +337,19 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
                   Row(
                     children: [
                       Expanded(
-                        child: _buildMetricCard('الوقت المتبقي', training.estimatedTimeRemaining, Colors.blue),
+                        child: _buildMetricCard(
+                          Localizations.localeOf(context).languageCode == 'ar' ? 'الوقت المتبقي' : 'Time Remaining',
+                          training.estimatedTimeRemaining, 
+                          Colors.blue
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: _buildMetricCard('السرعة', '${training.samplesPerSecond.toStringAsFixed(1)}/s', Colors.orange),
+                        child: _buildMetricCard(
+                          Localizations.localeOf(context).languageCode == 'ar' ? 'السرعة' : 'Speed',
+                          '${training.samplesPerSecond.toStringAsFixed(1)}/s', 
+                          Colors.orange
+                        ),
                       ),
                     ],
                   ),
@@ -326,8 +366,12 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
               child: Container(
                 height: 200,
                 padding: const EdgeInsets.all(16),
-                child: const Center(
-                  child: Text('رسم بياني للتقدم\n(سيتم إضافته لاحقاً)'),
+                child: Center(
+                  child: Text(
+                    Localizations.localeOf(context).languageCode == 'ar' 
+                        ? 'رسم بياني للتقدم\n(سيتم إضافته لاحقاً)'
+                        : 'Progress Chart\n(Coming Soon)'
+                  ),
                 ),
               ),
             ),
@@ -346,19 +390,19 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
             children: [
               ElevatedButton.icon(
                 icon: const Icon(Icons.refresh),
-                label: const Text('تحديث'),
+                label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تحديث' : 'Refresh'),
                 onPressed: training.refreshLogs,
               ),
               const SizedBox(width: 8),
               ElevatedButton.icon(
                 icon: const Icon(Icons.clear),
-                label: const Text('مسح'),
+                label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مسح' : 'Clear'),
                 onPressed: training.clearLogs,
               ),
               const Spacer(),
               ElevatedButton.icon(
                 icon: const Icon(Icons.download),
-                label: const Text('تصدير'),
+                label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير' : 'Export'),
                 onPressed: training.exportLogs,
               ),
             ],
@@ -435,13 +479,23 @@ class _UnifiedTrainingWidgetState extends State<UnifiedTrainingWidget>
     }
   }
 
-  String _getStatusText(String status) {
-    switch (status) {
-      case 'training': return 'قيد التدريب';
-      case 'completed': return 'مكتمل';
-      case 'error': return 'خطأ';
-      case 'paused': return 'متوقف مؤقتاً';
-      default: return 'متوقف';
+  String _getStatusText(String status, bool isArabic) {
+    if (isArabic) {
+      switch (status) {
+        case 'training': return 'قيد التدريب';
+        case 'completed': return 'مكتمل';
+        case 'error': return 'خطأ';
+        case 'paused': return 'متوقف مؤقتاً';
+        default: return 'متوقف';
+      }
+    } else {
+      switch (status) {
+        case 'training': return 'Training';
+        case 'completed': return 'Completed';
+        case 'error': return 'Error';
+        case 'paused': return 'Paused';
+        default: return 'Stopped';
+      }
     }
   }
 }

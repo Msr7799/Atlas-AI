@@ -140,6 +140,11 @@ class OpenRouterService extends BaseApiService {
         'temperature': temperature ?? 0.7,
         'max_tokens': maxTokens ?? 2048,
         'stream': true,
+        // إضافة request ID للتتبع والتشخيص
+        'metadata': {
+          'request_id': _uuid.v4(),
+          'client': 'atlas-ai',
+        },
       };
 
       if (kDebugMode) {

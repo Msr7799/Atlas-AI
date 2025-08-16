@@ -13,6 +13,7 @@ class McpService {
   Map<String, dynamic> _customServers = {};
 
   /// تهيئة الخدمة مع معالجة أفضل للأخطاء
+  /// Initialize service with better error handling
   void initialize() {
     if (_isInitialized) return;
 
@@ -41,21 +42,22 @@ class McpService {
       // Initialize default MCP servers
       _initializeDefaultServers();
       _isInitialized = true;
-      if (kDebugMode) print('[MCP] تم تهيئة الخدمة بنجاح');
+      if (kDebugMode) print('[MCP] تم تهيئة الخدمة بنجاح / Service initialized successfully');
     } catch (e) {
-      if (kDebugMode) print('[MCP ERROR] فشل في تهيئة الخدمة: $e');
+      if (kDebugMode) print('[MCP ERROR] فشل في تهيئة الخدمة / Failed to initialize service: $e');
       rethrow;
     }
   }
 
   /// تهيئة الخوادم الافتراضية مع معلومات أكثر تفصيلاً
+  /// Initialize default servers with more detailed information
   void _initializeDefaultServers() {
     try {
       // Memory Server
       _servers['memory'] = McpServer(
         id: 'memory',
-        name: 'خادم الذاكرة الذكي',
-        description: 'خادم متطور لحفظ واسترجاع المعلومات والبيانات المهمة مع إمكانيات البحث المتقدم والتصنيف التلقائي',
+        name: 'خادم الذاكرة الذكي', // Smart Memory Server
+        description: 'خادم متطور لحفظ واسترجاع المعلومات والبيانات المهمة مع إمكانيات البحث المتقدم والتصنيف التلقائي', // Advanced server for storing and retrieving important information with advanced search and automatic classification capabilities
         isEnabled: true,
         capabilities: ['memory_store', 'memory_retrieve', 'memory_search', 'memory_organize', 'memory_analyze'],
         isCustom: false,
@@ -64,8 +66,8 @@ class McpService {
       // Sequential Thinking Server
       _servers['sequential-thinking'] = McpServer(
         id: 'sequential-thinking',
-        name: 'محرك التفكير التسلسلي المتقدم',
-        description: 'نظام ذكي للتفكير المتسلسل والتحليل العميق للمشاكل المعقدة مع خوارزميات حل المشكلات المتطورة',
+        name: 'محرك التفكير التسلسلي المتقدم', // Advanced Sequential Thinking Engine
+        description: 'نظام ذكي للتفكير المتسلسل والتحليل العميق للمشاكل المعقدة مع خوارزميات حل المشكلات المتطورة', // Intelligent system for sequential thinking and deep analysis of complex problems with advanced problem-solving algorithms
         isEnabled: true,
         capabilities: [
           'think_step_by_step',
@@ -79,14 +81,15 @@ class McpService {
         isCustom: false,
       );
 
-      if (kDebugMode) print('[MCP] تم تهيئة ${_servers.length} خادم افتراضي بنجاح مع قدرات محسّنة');
+      if (kDebugMode) print('[MCP] تم تهيئة ${_servers.length} خادم افتراضي بنجاح مع قدرات محسّنة / Successfully initialized ${_servers.length} default servers with enhanced capabilities');
     } catch (e) {
-      if (kDebugMode) print('[MCP ERROR] فشل في تهيئة الخوادم الافتراضية: $e');
-      throw McpException('فشل في تهيئة الخوادم الافتراضية: $e');
+      if (kDebugMode) print('[MCP ERROR] فشل في تهيئة الخوادم الافتراضية / Failed to initialize default servers: $e');
+      throw McpException('فشل في تهيئة الخوادم الافتراضية / Failed to initialize default servers: $e');
     }
   }
 
   /// تحديث الخوادم المخصصة مع تحقق أفضل من صحة البيانات
+  /// Update custom servers with better data validation
   void updateCustomServers(
     Map<String, dynamic> customServers,
     Map<String, bool> serverStatus,
@@ -95,27 +98,30 @@ class McpService {
       _customServers = Map<String, dynamic>.from(customServers);
 
       // إزالة الخوادم المخصصة القديمة
+      // Remove old custom servers
       _servers.removeWhere((key, server) => server.isCustom);
 
       // إضافة الخوادم المخصصة الجديدة مع التحقق من صحة البيانات
+      // Add new custom servers with data validation
       for (String serverId in customServers.keys) {
         final serverConfig = customServers[serverId];
         
         if (serverConfig == null || serverConfig is! Map<String, dynamic>) {
-          if (kDebugMode) print('[MCP WARNING] تخطي خادم غير صالح: $serverId');
+          if (kDebugMode) print('[MCP WARNING] تخطي خادم غير صالح / Skipping invalid server: $serverId');
           continue;
         }
 
         // التحقق من وجود الحقول الأساسية
+        // Check for required basic fields
         if (serverId.trim().isEmpty) {
-          if (kDebugMode) print('[MCP WARNING] تخطي خادم بمعرف فارغ');
+          if (kDebugMode) print('[MCP WARNING] تخطي خادم بمعرف فارغ / Skipping server with empty ID');
           continue;
         }
 
         _servers[serverId] = McpServer(
           id: serverId,
           name: (serverConfig['name'] as String?)?.trim() ?? serverId,
-          description: (serverConfig['description'] as String?)?.trim() ?? 'خادم MCP مخصص متقدم مع قدرات قابلة للتخصيص',
+          description: (serverConfig['description'] as String?)?.trim() ?? 'خادم MCP مخصص متقدم مع قدرات قابلة للتخصيص', // Advanced custom MCP server with customizable capabilities
           isEnabled: serverStatus[serverId] ?? false,
           capabilities: _parseCapabilities(serverConfig['capabilities']),
           isCustom: true,
@@ -125,14 +131,15 @@ class McpService {
         );
       }
 
-      if (kDebugMode) print('[MCP] تم تحديث الخوادم المخصصة: ${customServers.keys.length} خادم');
+      if (kDebugMode) print('[MCP] تم تحديث الخوادم المخصصة / Updated custom servers: ${customServers.keys.length} خادم / servers');
     } catch (e) {
-      if (kDebugMode) print('[MCP ERROR] فشل في تحديث الخوادم المخصصة: $e');
-      throw McpException('فشل في تحديث الخوادم المخصصة: $e');
+      if (kDebugMode) print('[MCP ERROR] فشل في تحديث الخوادم المخصصة / Failed to update custom servers: $e');
+      throw McpException('فشل في تحديث الخوادم المخصصة / Failed to update custom servers: $e');
     }
   }
 
   /// معالجة قائمة القدرات مع التحقق من صحة البيانات
+  /// Process capabilities list with data validation
   List<String> _parseCapabilities(dynamic capabilities) {
     if (capabilities == null) return ['custom'];
     
@@ -145,12 +152,13 @@ class McpService {
       }
       return ['custom'];
     } catch (e) {
-      if (kDebugMode) print('[MCP WARNING] فشل في معالجة القدرات: $e');
+      if (kDebugMode) print('[MCP WARNING] فشل في معالجة القدرات / Failed to process capabilities: $e');
       return ['custom'];
     }
   }
 
   /// معالجة المعاملات مع التحقق من صحة البيانات
+  /// Process arguments with data validation
   List<String>? _parseArgs(dynamic args) {
     if (args == null) return null;
     
@@ -163,12 +171,13 @@ class McpService {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) print('[MCP WARNING] فشل في معالجة المعاملات: $e');
+      if (kDebugMode) print('[MCP WARNING] فشل في معالجة المعاملات / Failed to process arguments: $e');
       return null;
     }
   }
 
   /// معالجة متغيرات البيئة مع التحقق من صحة البيانات
+  /// Process environment variables with data validation
   Map<String, String>? _parseEnv(dynamic env) {
     if (env == null) return null;
     
@@ -184,12 +193,13 @@ class McpService {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) print('[MCP WARNING] فشل في معالجة متغيرات البيئة: $e');
+      if (kDebugMode) print('[MCP WARNING] فشل في معالجة متغيرات البيئة / Failed to process environment variables: $e');
       return null;
     }
   }
 
   // Getters محسنة مع نسخ آمنة
+  // Enhanced getters with safe copies
   List<McpServer> get availableServers => List.unmodifiable(_servers.values);
 
   List<McpServer> get enabledServers =>
@@ -202,71 +212,78 @@ class McpService {
       Map<String, dynamic>.unmodifiable(_customServers);
 
   /// التحقق من حالة الخادم
+  /// Check server status
   bool isServerEnabled(String serverId) {
     if (serverId.trim().isEmpty) return false;
     return _servers[serverId]?.isEnabled ?? false;
   }
 
   /// تفعيل/إلغاء تفعيل خادم مع التحقق من الصحة
+  /// Enable/disable server with validation
   void toggleServer(String serverId, bool enabled) {
     if (serverId.trim().isEmpty) {
-      if (kDebugMode) print('[MCP WARNING] معرف خادم فارغ');
+      if (kDebugMode) print('[MCP WARNING] معرف خادم فارغ / Empty server ID');
       return;
     }
 
     if (_servers.containsKey(serverId)) {
       try {
         _servers[serverId] = _servers[serverId]!.copyWith(isEnabled: enabled);
-        if (kDebugMode) print('[MCP] خادم $serverId ${enabled ? "مُفعل" : "مُعطل"}');
+        if (kDebugMode) print('[MCP] خادم / Server $serverId ${enabled ? "مُفعل / enabled" : "مُعطل / disabled"}');
       } catch (e) {
-        if (kDebugMode) print('[MCP ERROR] فشل في تبديل حالة الخادم $serverId: $e');
+        if (kDebugMode) print('[MCP ERROR] فشل في تبديل حالة الخادم / Failed to toggle server status $serverId: $e');
       }
     } else {
-      if (kDebugMode) print('[MCP WARNING] خادم غير موجود: $serverId');
+      if (kDebugMode) print('[MCP WARNING] خادم غير موجود / Server not found: $serverId');
     }
   }
 
   /// تنفيذ خادم مخصص مع اتصال حقيقي محسن
+  /// Execute custom server with enhanced real connection
   Future<String> executeCustomMcpServer(
     String serverId,
     Map<String, dynamic> params,
   ) async {
     // التحقق من صحة المدخلات
+    // Validate inputs
     if (serverId.trim().isEmpty) {
-      throw McpException('معرف الخادم لا يمكن أن يكون فارغاً');
+      throw McpException('معرف الخادم لا يمكن أن يكون فارغاً / Server ID cannot be empty');
     }
 
     final server = _servers[serverId];
     if (server == null) {
-      throw McpException('الخادم المخصص $serverId غير موجود');
+      throw McpException('الخادم المخصص $serverId غير موجود / Custom server $serverId not found');
     }
 
     if (!server.isEnabled) {
-      throw McpException('الخادم المخصص $serverId غير مُفعل');
+      throw McpException('الخادم المخصص $serverId غير مُفعل / Custom server $serverId is not enabled');
     }
 
     if (!server.isCustom) {
-      throw McpException('الخادم $serverId ليس خادماً مخصصاً');
+      throw McpException('الخادم $serverId ليس خادماً مخصصاً / Server $serverId is not a custom server');
     }
 
     try {
       // محاولة اتصال حقيقي أولاً
+      // Try real connection first
       final realResult = await _attemptRealMcpConnection(server, params);
       if (realResult != null) {
         return realResult;
       }
 
       // في حالة فشل الاتصال الحقيقي، استخدم المحاكاة المحسنة
+      // If real connection fails, use enhanced simulation
       return await _simulateEnhancedMcpExecution(server, params);
     } catch (e) {
       if (e is TimeoutException) {
-        throw McpException('انتهت المهلة الزمنية لتنفيذ الخادم المخصص $serverId');
+        throw McpException('انتهت المهلة الزمنية لتنفيذ الخادم المخصص / Timeout executing custom server $serverId');
       }
-      throw McpException('فشل في تنفيذ الخادم المخصص $serverId: $e');
+      throw McpException('فشل في تنفيذ الخادم المخصص / Failed to execute custom server $serverId: $e');
     }
   }
 
   /// محاولة اتصال حقيقي بخادم MCP
+  /// Attempt real connection to MCP server
   Future<String?> _attemptRealMcpConnection(
     McpServer server,
     Map<String, dynamic> params,
@@ -277,24 +294,29 @@ class McpService {
       }
 
       // محاولة تنفيذ الأمر الحقيقي (مع حماية من الأخطاء)
+      // Try executing real command (with error protection)
       if (kDebugMode) {
-        print('[MCP] محاولة تنفيذ أمر حقيقي: ${server.command} ${server.args?.join(' ') ?? ''}');
+        print('[MCP] محاولة تنفيذ أمر حقيقي / Attempting to execute real command: ${server.command} ${server.args?.join(' ') ?? ''}');
       }
 
       // هنا يمكن إضافة تنفيذ حقيقي لأوامر MCP
+      // Here we can add real execution for MCP commands
       // مثل استخدام Process.run أو WebSocket للاتصال بخوادم MCP
+      // Like using Process.run or WebSocket to connect to MCP servers
 
       // للأمان، نعيد null لاستخدام المحاكاة
+      // For safety, return null to use simulation
       return null;
     } catch (e) {
       if (kDebugMode) {
-        print('[MCP] فشل الاتصال الحقيقي، التبديل للمحاكاة: $e');
+        print('[MCP] فشل الاتصال الحقيقي، التبديل للمحاكاة / Real connection failed, switching to simulation: $e');
       }
       return null;
     }
   }
 
   /// محاكاة محسنة لتنفيذ MCP
+  /// Enhanced simulation for MCP execution
   Future<String> _simulateEnhancedMcpExecution(
     McpServer server,
     Map<String, dynamic> params,
@@ -302,15 +324,17 @@ class McpService {
     final completer = Completer<String>();
 
     // مهلة زمنية واقعية
+    // Realistic timeout
     Timer(const Duration(seconds: 10), () {
       if (!completer.isCompleted) {
         completer.completeError(
-          TimeoutException('انتهت المهلة الزمنية لتنفيذ الخادم', const Duration(seconds: 10))
+          TimeoutException('انتهت المهلة الزمنية لتنفيذ الخادم / Server execution timeout', const Duration(seconds: 10))
         );
       }
     });
 
     // محاكاة وقت معالجة واقعي
+    // Simulate realistic processing time
     final processingTime = 200 + (params.length * 50);
     Timer(Duration(milliseconds: processingTime), () {
       if (!completer.isCompleted) {
@@ -323,6 +347,7 @@ class McpService {
   }
 
   /// توليد رد محسن لخادم MCP
+  /// Generate enhanced response for MCP server
   String _generateEnhancedMcpResponse(
     McpServer server,
     Map<String, dynamic> params,

@@ -4,11 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// مدير مفاتيح API محسن مع تشفير وإحصائيات
+/// Enhanced API key manager with encryption and statistics
 class ApiKeyManager {
   static const String _keyPrefix = 'atlas_';
   static const String _encryptionSalt = 'atlas_ai_2024';
 
   /// حفظ مفتاح API مع تشفير
+  /// Save API key with encryption
   static Future<void> saveApiKey(String serviceName, String apiKey) async {
     if (apiKey.isEmpty) return;
     
@@ -19,10 +21,11 @@ class ApiKeyManager {
     await prefs.setString(keyName, encryptedKey);
     await prefs.setInt('$_keyPrefix${serviceName}_last_updated', DateTime.now().millisecondsSinceEpoch);
     
-    if (kDebugMode) if (kDebugMode) print('✅ [API_KEY_MANAGER] تم حفظ مفتاح $serviceName بنجاح');
+    if (kDebugMode) print('✅ [API_KEY_MANAGER] تم حفظ مفتاح / Successfully saved key $serviceName');
   }
 
   /// استرجاع مفتاح API
+  /// Retrieve API key
   static Future<String> getApiKey(String serviceName) async {
     final prefs = await SharedPreferences.getInstance();
     final keyName = '$_keyPrefix${serviceName}_api_key_encrypted';
@@ -35,12 +38,13 @@ class ApiKeyManager {
     try {
       return _decryptKey(encryptedKey);
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('❌ [API_KEY_MANAGER] فشل في فك تشفير مفتاح $serviceName: $e');
+      if (kDebugMode) print('❌ [API_KEY_MANAGER] فشل في فك تشفير مفتاح / Failed to decrypt key $serviceName: $e');
       return '';
     }
   }
 
   /// التحقق من صحة مفتاح API
+  /// Validate API key
   static bool isValidApiKey(String apiKey, String serviceName) {
     if (apiKey.isEmpty || apiKey.length < 20) return false;
     
@@ -56,13 +60,14 @@ class ApiKeyManager {
       case 'huggingface':
         return apiKey.startsWith('hf_') && apiKey.length >= 32;
       case 'localai':
-        return true; // LocalAI لا يحتاج مفتاح
+        return true; // LocalAI لا يحتاج مفتاح // LocalAI doesn't need a key
       default:
         return false;
     }
   }
 
   /// تشفير بسيط للمفتاح
+  /// Simple key encryption
   static String _encryptKey(String key) {
     final bytes = utf8.encode(key + _encryptionSalt);
     final digest = sha256.convert(bytes);
@@ -71,18 +76,21 @@ class ApiKeyManager {
   }
 
   /// فك تشفير المفتاح
+  /// Decrypt key
   static String _decryptKey(String encryptedKey) {
     try {
       final decoded = utf8.decode(base64.decode(encryptedKey));
       // إزالة الـ salt المضاف
+      // Remove added salt
       final key = decoded.substring(0, decoded.length - 8);
       return key;
     } catch (e) {
-      throw Exception('فشل في فك تشفير المفتاح: $e');
+      throw Exception('فشل في فك تشفير المفتاح / Failed to decrypt key: $e');
     }
   }
 
   /// تسجيل استخدام API
+  /// Record API usage
   static Future<void> recordApiUsage(String serviceName, {bool isSuccess = true}) async {
     final prefs = await SharedPreferences.getInstance();
     final requestsKey = '$_keyPrefix${serviceName}_requests';
@@ -90,20 +98,24 @@ class ApiKeyManager {
     final lastUsedKey = '$_keyPrefix${serviceName}_last_used';
     
     // زيادة عدد الطلبات
+    // Increment request count
     final requests = prefs.getInt(requestsKey) ?? 0;
     await prefs.setInt(requestsKey, requests + 1);
     
     // زيادة عدد الأخطاء إذا فشل الطلب
+    // Increment error count if request failed
     if (!isSuccess) {
       final errors = prefs.getInt(errorsKey) ?? 0;
       await prefs.setInt(errorsKey, errors + 1);
     }
     
     // تحديث آخر استخدام
+    // Update last used timestamp
     await prefs.setInt(lastUsedKey, DateTime.now().millisecondsSinceEpoch);
   }
 
   /// الحصول على إحصائيات الاستخدام
+  /// Get usage statistics
   static Future<Map<String, dynamic>> getUsageStats(String serviceName) async {
     final prefs = await SharedPreferences.getInstance();
     final requestsKey = '$_keyPrefix${serviceName}_requests';
@@ -127,15 +139,17 @@ class ApiKeyManager {
   }
 
   /// تحديد حالة الخدمة
+  /// Determine service status
   static String _getServiceStatus(int requests, int errors) {
-    if (requests == 0) return 'غير مستخدم';
-    if (errors == 0) return 'ممتاز';
-    if (errors < requests * 0.1) return 'جيد';
-    if (errors < requests * 0.3) return 'مقبول';
-    return 'ضعيف';
+    if (requests == 0) return 'غير مستخدم'; // Not used
+    if (errors == 0) return 'ممتاز'; // Excellent
+    if (errors < requests * 0.1) return 'جيد'; // Good
+    if (errors < requests * 0.3) return 'مقبول'; // Acceptable
+    return 'ضعيف'; // Poor
   }
 
   /// مسح إحصائيات خدمة معينة
+  /// Clear statistics for specific service
   static Future<void> clearUsageStats(String serviceName) async {
     final prefs = await SharedPreferences.getInstance();
     final keys = [
@@ -148,10 +162,11 @@ class ApiKeyManager {
       await prefs.remove(key);
     }
     
-    if (kDebugMode) if (kDebugMode) print('✅ [API_KEY_MANAGER] تم مسح إحصائيات $serviceName');
+    if (kDebugMode) print('✅ [API_KEY_MANAGER] تم مسح إحصائيات / Cleared statistics for $serviceName');
   }
 
   /// الحصول على جميع الإحصائيات
+  /// Get all usage statistics
   static Future<Map<String, Map<String, dynamic>>> getAllUsageStats() async {
     final services = ['groq', 'gptgod', 'tavily', 'openrouter', 'huggingface', 'localai'];
     final stats = <String, Map<String, dynamic>>{};
@@ -164,6 +179,7 @@ class ApiKeyManager {
   }
 
   /// فحص صحة جميع المفاتيح
+  /// Validate all API keys
   static Future<Map<String, bool>> validateAllApiKeys() async {
     final services = ['groq', 'gptgod', 'tavily', 'openrouter', 'huggingface', 'localai'];
     final results = <String, bool>{};
@@ -177,14 +193,17 @@ class ApiKeyManager {
   }
 
   // ===== الدوال المفقودة للتوافق مع الكود القديم =====
+  // ===== Missing functions for compatibility with old code =====
 
   /// التحقق من وجود مفتاح مطلوب
+  /// Check if required key exists
   static Future<bool> hasRequiredKeys() async {
     final groqKey = await getApiKey('groq');
     return groqKey.isNotEmpty;
   }
 
   /// التحقق من وجود أي مفاتيح
+  /// Check if any keys exist
   static Future<bool> hasAnyKeys() async {
     final services = ['groq', 'gptgod', 'tavily', 'openrouter', 'huggingface', 'localai'];
     for (final service in services) {
@@ -195,12 +214,15 @@ class ApiKeyManager {
   }
 
   /// التحقق من استخدام مفاتيح افتراضية
+  /// Check if using default keys
   static Future<bool> isUsingDefaultKeys() async {
     // بما أننا نستخدم تشفير، نفترض أن المستخدم أدخل مفاتيحه الخاصة
+    // Since we use encryption, we assume user entered their own keys
     return false;
   }
 
   /// الحصول على حالة المفاتيح
+  /// Get keys status
   static Future<Map<String, Map<String, dynamic>>> getKeysStatus() async {
     final services = ['groq', 'gptgod', 'tavily', 'openrouter', 'huggingface', 'localai'];
     final status = <String, Map<String, dynamic>>{};
@@ -242,7 +264,7 @@ class ApiKeyManager {
       }
     }
 
-    if (kDebugMode) if (kDebugMode) print('✅ [API_KEY_MANAGER] تم مسح جميع المفاتيح والإحصائيات');
+    if (kDebugMode) print('✅ [API_KEY_MANAGER] تم مسح جميع المفاتيح والإحصائيات / Cleared all keys and statistics');
   }
 
   /// مسح مفتاح API محدد
@@ -257,7 +279,7 @@ class ApiKeyManager {
       await prefs.remove(key);
     }
     
-    if (kDebugMode) if (kDebugMode) print('✅ [API_KEY_MANAGER] تم مسح مفتاح $serviceName');
+    if (kDebugMode) print('✅ [API_KEY_MANAGER] تم مسح مفتاح / Cleared key $serviceName');
   }
 
   /// الحصول على معلومات الخدمة
@@ -265,42 +287,42 @@ class ApiKeyManager {
     return {
       'groq': {
         'name': 'Groq',
-        'description': 'نماذج سريعة ومجانية',
+        'description': 'نماذج Llama وMixtral سريعة ومجانية / Fast and free Llama & Mixtral models',
         'url': 'https://console.groq.com/keys',
         'freeModels': getFreeModels('groq'),
         'isRequired': true,
       },
       'gptgod': {
         'name': 'GPTGod',
-        'description': 'نموذج GPT-3.5 مجاني',
+        'description': 'نماذج GPT مجانية وسريعة / Free and fast GPT models',
         'url': 'https://gptgod.site',
         'freeModels': getFreeModels('gptgod'),
         'isRequired': false,
       },
       'tavily': {
-        'name': 'Tavily',
-        'description': 'البحث على الإنترنت',
+        'name': 'Tavily Search',
+        'description': 'بحث ذكي في الإنترنت / Smart internet search',
         'url': 'https://tavily.com',
         'freeModels': [],
         'isRequired': false,
       },
       'huggingface': {
-        'name': 'Hugging Face',
-        'description': 'نماذج مفتوحة المصدر',
+        'name': 'HuggingFace',
+        'description': 'نماذج مفتوحة المصدر / Open source models',
         'url': 'https://huggingface.co/settings/tokens',
         'freeModels': [],
         'isRequired': false,
       },
       'openrouter': {
         'name': 'OpenRouter',
-        'description': 'نماذج متعددة (GPT-4, Claude, Gemini)',
+        'description': 'وصول لجميع النماذج المتقدمة / Access to all advanced models',
         'url': 'https://openrouter.ai/keys',
         'freeModels': getFreeModels('openrouter'),
         'isRequired': false,
       },
       'localai': {
         'name': 'LocalAI / Ollama',
-        'description': 'نماذج محلية للخصوصية الكاملة',
+        'description': 'نماذج محلية للخصوصية الكاملة / Local models for complete privacy',
         'url': 'https://ollama.ai',
         'freeModels': getFreeModels('localai'),
         'isRequired': false,
@@ -309,6 +331,7 @@ class ApiKeyManager {
   }
 
   /// الحصول على قائمة النماذج المجانية لخدمة معينة
+  /// Get list of free models for specific service
   static List<Map<String, dynamic>> getFreeModels(String serviceName) {
     switch (serviceName) {
       case 'groq':

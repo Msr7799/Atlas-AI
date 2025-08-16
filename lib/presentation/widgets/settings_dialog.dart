@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'settings/api_keys_section.dart';
-import 'settings/settings_sections.dart';
 import '../providers/theme_provider.dart';
+import '../providers/language_provider.dart';
 import '../providers/settings_provider.dart';
+import '../../core/services/api_key_manager.dart';
+import 'settings/settings_sections.dart';
+import 'settings/api_keys_section.dart';
+import '../../generated/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/utils/responsive_helper.dart';
-import '../../core/services/api_key_manager.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 // Added import for AppConfig
 
@@ -92,8 +94,8 @@ class _SettingsDialogState extends State<SettingsDialog>
                 maxHeight: MediaQuery.of(context).size.height * 0.8,
               ),
             ).maxHeight,
-            child: Consumer2<ThemeProvider, SettingsProvider>(
-              builder: (context, themeProvider, settingsProvider, child) {
+            child: Consumer3<ThemeProvider, SettingsProvider, LanguageProvider>(
+              builder: (context, themeProvider, settingsProvider, languageProvider, child) {
                 return Column(
                   children: [
                     // Header
@@ -109,7 +111,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                         controller: _tabController,
                         children: [
                           _buildAISettingsTab(context, settingsProvider, themeProvider),
-                          _buildAppearanceTab(context, themeProvider),
+                          _buildAppearanceTab(context, themeProvider, languageProvider),
                           _buildAdvancedOptionsTab(context, settingsProvider, themeProvider),
                           _buildAboutTab(deviceType),
                         ],
@@ -152,7 +154,7 @@ class _SettingsDialogState extends State<SettingsDialog>
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'إعدادات التطبيق',
+              Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات التطبيق' : 'App Settings',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -164,7 +166,7 @@ class _SettingsDialogState extends State<SettingsDialog>
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.close, color: Colors.white),
-            tooltip: 'إغلاق',
+            tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إغلاق' : 'Close',
           ),
         ],
       ),
@@ -200,19 +202,19 @@ class _SettingsDialogState extends State<SettingsDialog>
         tabs: [
           Tab(
             icon: Icon(Icons.psychology, size: 20),
-            text: 'الذكاء الاصطناعي',
+            text: Localizations.localeOf(context).languageCode == 'ar' ? 'الذكاء الاصطناعي' : 'AI',
           ),
           Tab(
             icon: Icon(Icons.palette, size: 20),
-            text: 'المظهر',
+            text: Localizations.localeOf(context).languageCode == 'ar' ? 'المظهر' : 'Appearance',
           ),
           Tab(
             icon: Icon(Icons.tune, size: 20),
-            text: 'خيارات متقدمة',
+            text: Localizations.localeOf(context).languageCode == 'ar' ? 'خيارات متقدمة' : 'Advanced Options',
           ),
           Tab(
             icon: Icon(Icons.info_outline, size: 20),
-            text: 'حول التطبيق',
+            text: Localizations.localeOf(context).languageCode == 'ar' ? 'حول التطبيق' : 'About',
           ),
         ],
       ),
@@ -275,9 +277,9 @@ class _SettingsDialogState extends State<SettingsDialog>
                 children: [
                   const Icon(Icons.key, color: Colors.blue),
                   const SizedBox(width: 8),
-                  const Text(
-                    'إدارة مفاتيح API',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'إدارة مفاتيح API' : 'Manage API Keys',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
                   IconButton(
@@ -302,12 +304,12 @@ class _SettingsDialogState extends State<SettingsDialog>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: Text('هل تريد حذف مفتاح ${_getServiceDisplayName(serviceName)}؟'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'),
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'هل تريد حذف مفتاح ${_getServiceDisplayName(serviceName)}؟' : 'Do you want to delete the ${_getServiceDisplayName(serviceName)} key?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
           TextButton(
             onPressed: () async {
@@ -316,13 +318,13 @@ class _SettingsDialogState extends State<SettingsDialog>
               setState(() {}); // تحديث الواجهة
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('تم حذف مفتاح ${_getServiceDisplayName(serviceName)}'),
+                  content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم حذف مفتاح ${_getServiceDisplayName(serviceName)}' : '${_getServiceDisplayName(serviceName)} key deleted'),
                   backgroundColor: Colors.green,
                 ),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('حذف'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف' : 'Delete'),
           ),
         ],
       ),
@@ -334,12 +336,12 @@ class _SettingsDialogState extends State<SettingsDialog>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تحذير'),
-        content: const Text('هل تريد حذف جميع مفاتيح API؟ هذا الإجراء لا يمكن التراجع عنه.'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تحذير' : 'Warning'),
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'هل تريد حذف جميع مفاتيح API؟ هذا الإجراء لا يمكن التراجع عنه.' : 'Do you want to delete all API keys? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
           TextButton(
             onPressed: () async {
@@ -347,14 +349,14 @@ class _SettingsDialogState extends State<SettingsDialog>
               Navigator.pop(context);
               setState(() {}); // تحديث الواجهة
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم حذف جميع مفاتيح API'),
+                SnackBar(
+                  content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم حذف جميع مفاتيح API' : 'All API keys deleted'),
                   backgroundColor: Colors.orange,
                 ),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('حذف الكل'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف الكل' : 'Delete All'),
           ),
         ],
       ),
@@ -367,11 +369,11 @@ class _SettingsDialogState extends State<SettingsDialog>
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          'مفتاح API مطلوب',
+          Localizations.localeOf(context).languageCode == 'ar' ? 'مفتاح API مطلوب' : 'API Key Required',
           style: TextStyle(fontFamily: themeProvider.fontFamily),
         ),
         content: Text(
-          'هذا النموذج يتطلب مفتاح API لـ $serviceName. يرجى إضافة المفتاح في صفحة إعدادات API أولاً.',
+          Localizations.localeOf(context).languageCode == 'ar' ? 'هذا النموذج يتطلب مفتاح API لـ $serviceName. يرجى إضافة المفتاح في صفحة إعدادات API أولاً.' : 'This model requires an API key for $serviceName. Please add the key in API settings first.',
           style: TextStyle(fontFamily: themeProvider.fontFamily),
         ),
         actions: [
@@ -392,7 +394,7 @@ class _SettingsDialogState extends State<SettingsDialog>
               foregroundColor: Colors.white,
             ),
             child: Text(
-              'إعدادات API',
+              Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات API' : 'API Settings',
               style: TextStyle(fontFamily: themeProvider.fontFamily),
             ),
           ),
@@ -401,7 +403,7 @@ class _SettingsDialogState extends State<SettingsDialog>
     );
   }
 
-  Widget _buildAppearanceTab(BuildContext context, ThemeProvider themeProvider) {
+  Widget _buildAppearanceTab(BuildContext context, ThemeProvider themeProvider, LanguageProvider languageProvider) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -415,7 +417,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    ' وضع المظهر',
+                    Localizations.localeOf(context).languageCode == 'ar' ? ' وضع المظهر' : ' Theme Mode',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -451,6 +453,121 @@ class _SettingsDialogState extends State<SettingsDialog>
           ),
           const SizedBox(height: 16),
 
+          // Language Selection
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'ar' ? '🌐 اللغة' : '🌐 Language',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: themeProvider.fontFamily,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RadioListTile<Locale>(
+                          title: Text(
+                            Localizations.localeOf(context).languageCode == 'ar' ? 'العربية' : 'Arabic',
+                            style: TextStyle(fontFamily: themeProvider.fontFamily),
+                          ),
+                          value: const Locale('ar'),
+                          groupValue: languageProvider.currentLocale,
+                          onChanged: (value) async {
+                            if (value != null) {
+                              await languageProvider.changeLanguage(value);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      Localizations.localeOf(context).languageCode == 'ar' ? 'تم تغيير اللغة إلى العربية' : 'Language changed to Arabic',
+                                      style: TextStyle(fontFamily: themeProvider.fontFamily),
+                                    ),
+                                    backgroundColor: themeProvider.accentColor,
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          activeColor: themeProvider.accentColor,
+                        ),
+                      ),
+                      Expanded(
+                        child: RadioListTile<Locale>(
+                          title: Text(
+                            Localizations.localeOf(context).languageCode == 'ar' ? 'الإنجليزية' : 'English',
+                            style: TextStyle(fontFamily: themeProvider.fontFamily),
+                          ),
+                          value: const Locale('en'),
+                          groupValue: languageProvider.currentLocale,
+                          onChanged: (value) async {
+                            if (value != null) {
+                              await languageProvider.changeLanguage(value);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Language changed to English',
+                                      style: TextStyle(fontFamily: themeProvider.fontFamily),
+                                    ),
+                                    backgroundColor: themeProvider.accentColor,
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          activeColor: themeProvider.accentColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: themeProvider.accentColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: themeProvider.accentColor.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: themeProvider.accentColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            languageProvider.currentLocale.languageCode == 'ar' 
+                              ? 'قد تحتاج لإعادة تشغيل التطبيق لتطبيق تغييرات اللغة بالكامل'
+                              : 'You may need to restart the app to fully apply language changes',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: themeProvider.accentColor,
+                              fontFamily: themeProvider.fontFamily,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // Color Picker
           Card(
             child: Padding(
@@ -459,7 +576,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '🎨 لون التطبيق الأساسي',
+                    Localizations.localeOf(context).languageCode == 'ar' ? '🎨 لون التطبيق الأساسي' : '🎨 Primary App Color',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1298,7 +1415,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                           onPressed: () => _showMcpConfigDialog(context, themeProvider),
                           icon: const Icon(Icons.settings),
                           label: Text(
-                            'إعدادات MCP',
+                            Localizations.localeOf(context).languageCode == 'ar' ? 'العربية' : 'Arabic',
                             style: TextStyle(fontFamily: themeProvider.fontFamily),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -2009,18 +2126,18 @@ class _SettingsDialogState extends State<SettingsDialog>
                                   ),
                                   const SizedBox(height: 12),
                                   SwitchListTile(
-                                    title: const Text('تفعيل خوادم MCP'),
+                                    title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تفعيل خوادم MCP' : 'Enable MCP Servers'),
                                     value: settingsProvider.enableMcpServers,
                                     onChanged: settingsProvider.setEnableMcpServers,
                                   ),
                                   ListTile(
-                                    title: const Text('مهلة الاتصال'),
-                                    subtitle: const Text('10 ثوان'),
+                                    title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مهلة الاتصال' : 'Connection Timeout'),
+                                    subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? '10 ثوان' : '10 seconds'),
                                     trailing: const Icon(Icons.timer),
                                   ),
                                   ListTile(
-                                    title: const Text('إعادة المحاولة'),
-                                    subtitle: const Text('3 محاولات'),
+                                    title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة المحاولة' : 'Retry Attempts'),
+                                    subtitle: Text(Localizations.localeOf(context).languageCode == 'ar' ? '3 محاولات' : '3 attempts'),
                                     trailing: const Icon(Icons.refresh),
                                   ),
                                 ],
@@ -2045,7 +2162,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                                       const Spacer(),
                                       TextButton.icon(
                                         icon: const Icon(Icons.add),
-                                        label: const Text('إضافة خادم'),
+                                        label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة خادم' : 'Add Server'),
                                         onPressed: () => _showAddCustomMcpServerDialog(context),
                                       ),
                                     ],
@@ -2094,7 +2211,7 @@ class _SettingsDialogState extends State<SettingsDialog>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إضافة خادم MCP مخصص'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة خادم MCP مخصص' : 'Add Custom MCP Server'),
         content: SizedBox(
           width: 400,
           child: Column(
@@ -2129,7 +2246,7 @@ class _SettingsDialogState extends State<SettingsDialog>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -2145,7 +2262,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 Navigator.pop(context); // إغلاق حوار الإعدادات أيضاً
               }
             },
-            child: const Text('إضافة'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة' : 'Add'),
           ),
         ],
       ),

@@ -34,7 +34,7 @@ class AttachmentPreview extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'ملفات مرفقة (${attachments.length})',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'ملفات مرفقة (${attachments.length})' : 'Attached files (${attachments.length})',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
@@ -91,7 +91,7 @@ class AttachmentPreview extends StatelessWidget {
               color: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => onRemove(attachment.id),
-            tooltip: 'إزالة الملف',
+            tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إزالة الملف' : 'Remove file',
           ),
         ],
       ),

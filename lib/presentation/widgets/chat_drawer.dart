@@ -6,6 +6,7 @@ import '../providers/chat_provider.dart';
 import '../providers/theme_provider.dart';
 import '../../data/models/message_model.dart';
 import '../providers/chat_selection_provider.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 class ChatDrawer extends StatelessWidget {
   const ChatDrawer({super.key});
@@ -69,7 +70,7 @@ class ChatDrawer extends StatelessWidget {
           // New Chat Button
           ListTile(
             leading: const Icon(Icons.add_circle_outline),
-            title: const Text('محادثة جديدة'),
+            title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'محادثة جديدة' : 'New Chat'),
             onTap: () {
               context.read<ChatProvider>().createNewSession();
               Navigator.pop(context);
@@ -81,7 +82,7 @@ class ChatDrawer extends StatelessWidget {
             builder: (context, chatProvider, selectionProvider, child) {
               return ExpansionTile(
                 leading: const Icon(Icons.download),
-                title: const Text('تصدير المحادثات'),
+                title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير المحادثات' : 'Export Chats'),
                 children: [
                   // Export Selected Messages (if in selection mode)
                   if (selectionProvider.isSelectionMode &&
@@ -89,7 +90,7 @@ class ChatDrawer extends StatelessWidget {
                     ListTile(
                       leading: const Icon(Icons.check_box),
                       title: Text(
-                        'تصدير المحدد (${selectionProvider.selectedMessageIds.length})',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير المحدد (${selectionProvider.selectedMessageIds.length})' : 'Export Selected (${selectionProvider.selectedMessageIds.length})',
                       ),
                       onTap: () {
                         _showExportDialog(
@@ -106,7 +107,7 @@ class ChatDrawer extends StatelessWidget {
                   // Export All Messages
                   ListTile(
                     leading: const Icon(Icons.download_outlined),
-                    title: const Text('تصدير جميع المحادثات'),
+                    title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير جميع المحادثات' : 'Export All Chats'),
                     onTap: () async {
                       final allMessages = await chatProvider.getAllMessagesFromAllSessions();
                       _showExportDialog(context, chatProvider, false, null, allMessages);
@@ -118,7 +119,7 @@ class ChatDrawer extends StatelessWidget {
                   if (chatProvider.messages.isNotEmpty)
                     ListTile(
                       leading: const Icon(Icons.file_download),
-                      title: const Text('تصدير الجلسة الحالية'),
+                      title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير الجلسة الحالية' : 'Export Current Session'),
                       onTap: () {
                         _showCurrentSessionExportDialog(context, chatProvider);
                         Navigator.pop(context);
@@ -152,7 +153,7 @@ class ChatDrawer extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'الحد الأقصى للمحادثات المحفوظة: 50 محادثة أو 100 ميجا',
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'الحد الأقصى للمحادثات المحفوظة: 50 محادثة أو 100 ميجا' : 'Max saved chats: 50 conversations or 100 MB',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                       fontSize: 11,
@@ -180,14 +181,14 @@ class ChatDrawer extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'لا توجد محادثات محفوظة',
+                          Localizations.localeOf(context).languageCode == 'ar' ? 'لا توجد محادثات محفوظة' : 'No saved conversations',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Theme.of(context).colorScheme.outline,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'ابدأ محادثة جديدة لحفظها',
+                          Localizations.localeOf(context).languageCode == 'ar' ? 'ابدأ محادثة جديدة لحفظها' : 'Start a new conversation to save it',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.outline,
                           ),
@@ -198,7 +199,7 @@ class ChatDrawer extends StatelessWidget {
                             await chatProvider.loadSessions();
                           },
                           icon: const Icon(Icons.refresh),
-                          label: const Text('إعادة تحميل'),
+                          label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة تحميل' : 'Reload'),
                         ),
                       ],
                     ),
@@ -227,7 +228,7 @@ class ChatDrawer extends StatelessWidget {
                 );
               },
             ),
-            title: const Text('تبديل المظهر'),
+            title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تبديل المظهر' : 'Toggle Theme'),
             onTap: () {
               context.read<ThemeProvider>().toggleTheme();
             },
@@ -235,7 +236,7 @@ class ChatDrawer extends StatelessWidget {
 
           ListTile(
             leading: const Icon(Icons.settings),
-            title: const Text('الإعدادات'),
+            title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الإعدادات' : 'Settings'),
             onTap: () {
               Navigator.pop(context);
               showDialog(
@@ -247,7 +248,7 @@ class ChatDrawer extends StatelessWidget {
 
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: const Text('حول التطبيق'),
+            title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حول التطبيق' : 'About App'),
             onTap: () {
               Navigator.pop(context);
               _showAboutDialog(context);
@@ -299,12 +300,12 @@ class ChatDrawer extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _formatDate(session.createdAt),
+              _formatDate(session.createdAt, context),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             if (isCurrentSession)
               Text(
-                '● الجلسة الحالية',
+                Localizations.localeOf(context).languageCode == 'ar' ? '● الجلسة الحالية' : '● Current Session',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontSize: 10,
@@ -328,49 +329,49 @@ class ChatDrawer extends StatelessWidget {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'export',
               child: Row(
                 children: [
-                  Icon(Icons.download, color: Colors.blue),
-                  SizedBox(width: 8),
-                  Text('تصدير الجلسة', style: TextStyle(color: Colors.blue)),
+                  const Icon(Icons.download, color: Colors.blue),
+                  const SizedBox(width: 8),
+                  Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير الجلسة' : 'Export Session', style: const TextStyle(color: Colors.blue)),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'rename',
               child: Row(
                 children: [
-                  Icon(Icons.edit),
-                  SizedBox(width: 8),
-                  Text('إعادة تسمية'),
+                  const Icon(Icons.edit),
+                  const SizedBox(width: 8),
+                  Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة تسمية' : 'Rename'),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
-                  Icon(Icons.delete, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('حذف', style: TextStyle(color: Colors.red)),
+                  const Icon(Icons.delete, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف' : 'Delete', style: const TextStyle(color: Colors.red)),
                 ],
               ),
             ),
           ],
         ),
         onTap: () async {
-          print('🔄 [DRAWER] محاولة تحميل الجلسة: ${session.title}');
+          print('🔄 [DRAWER] محاولة تحميل الجلسة: ${session.title} | Attempting to load session: ${session.title}');
           try {
             await chatProvider.loadSession(session.id);
             Navigator.pop(context);
-            print('✅ [DRAWER] تم تحميل الجلسة بنجاح');
+            print('✅ [DRAWER] تم تحميل الجلسة بنجاح | Session loaded successfully');
           } catch (e) {
-            print('❌ [DRAWER] خطأ في تحميل الجلسة: $e');
+            print('❌ [DRAWER] خطأ في تحميل الجلسة: $e | Error loading session: $e');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('خطأ في تحميل المحادثة: $e'),
+                content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ في تحميل المحادثة: $e' : 'Error loading conversation: $e'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -380,17 +381,17 @@ class ChatDrawer extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, BuildContext context) {
     final now = DateTime.now();
     final diff = now.difference(date);
 
     if (diff.inDays < 1) {
       if (diff.inHours < 1) {
-        return '${diff.inMinutes} دقيقة';
+        return Localizations.localeOf(context).languageCode == 'ar' ? '${diff.inMinutes} دقيقة' : '${diff.inMinutes} min';
       }
-      return '${diff.inHours} ساعة';
+      return Localizations.localeOf(context).languageCode == 'ar' ? '${diff.inHours} ساعة' : '${diff.inHours} hr';
     } else if (diff.inDays < 7) {
-      return '${diff.inDays} يوم';
+      return Localizations.localeOf(context).languageCode == 'ar' ? '${diff.inDays} يوم' : '${diff.inDays} day';
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
@@ -404,14 +405,14 @@ class ChatDrawer extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: const Text(
-          'هل أنت متأكد من حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.',
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'),
+        content: Text(
+          Localizations.localeOf(context).languageCode == 'ar' ? 'هل أنت متأكد من حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.' : 'Are you sure you want to delete this conversation? This action cannot be undone.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -421,7 +422,7 @@ class ChatDrawer extends StatelessWidget {
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('حذف'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف' : 'Delete'),
           ),
         ],
       ),
@@ -438,23 +439,23 @@ class ChatDrawer extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إعادة تسمية المحادثة'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة تسمية المحادثة' : 'Rename Conversation'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: 'اسم المحادثة الجديد'),
+          decoration: InputDecoration(hintText: Localizations.localeOf(context).languageCode == 'ar' ? 'اسم المحادثة الجديد' : 'New conversation name'),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
           TextButton(
             onPressed: () {
               // TODO: Implement rename functionality
               Navigator.pop(context);
             },
-            child: const Text('حفظ'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حفظ' : 'Save'),
           ),
         ],
       ),
@@ -462,31 +463,32 @@ class ChatDrawer extends StatelessWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حول التطبيق'),
-        content: const Column(
+        title: Text(isArabic ? 'حول التطبيق' : 'About App'),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Atlas AI'),
-            SizedBox(height: 8),
-            Text('الإصدار: 1.0.0'),
-            SizedBox(height: 8),
-            Text('تطوير: Mohamed S AL-Romaihi'),
-            SizedBox(height: 8),
-            Text('مساعد ذكي يدعم اللغة العربية مع ميزات متقدمة.'),
-            SizedBox(height: 8),
-            Text('الموقع: www.atlasai.com'),
-            SizedBox(height: 8),
-            Text('البريد الإلكتروني: alromaihi2224@gmail.com'),
+            const Text('Atlas AI'),
+            const SizedBox(height: 8),
+            Text(isArabic ? 'الإصدار: 1.0.0' : 'Version: 1.0.0'),
+            const SizedBox(height: 8),
+            Text(isArabic ? 'تطوير: Mohamed S AL-Romaihi' : 'Developer: Mohamed S AL-Romaihi'),
+            const SizedBox(height: 8),
+            Text(isArabic ? 'مساعد ذكي يدعم اللغة العربية مع ميزات متقدمة.' : 'Intelligent assistant supporting Arabic with advanced features.'),
+            const SizedBox(height: 8),
+            Text(isArabic ? 'الموقع: www.atlasai.com' : 'Website: www.atlasai.com'),
+            const SizedBox(height: 8),
+            Text(isArabic ? 'البريد الإلكتروني: alromaihi2224@gmail.com' : 'Email: alromaihi2224@gmail.com'),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('موافق'),
+            child: Text(isArabic ? 'موافق' : 'OK'),
           ),
         ],
       ),
@@ -503,12 +505,18 @@ class ChatDrawer extends StatelessWidget {
   ) {
     String dialogTitle;
 
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    
     if (exportSelected && selectionProvider != null) {
       // تصدير الرسائل المحددة
-      dialogTitle = 'تصدير الرسائل المحددة (${messagesToExport.length})';
+      dialogTitle = isArabic 
+          ? 'تصدير الرسائل المحددة (${messagesToExport.length})'
+          : 'Export Selected Messages (${messagesToExport.length})';
     } else {
       // تصدير جميع الرسائل
-      dialogTitle = 'تصدير جميع المحادثات';
+      dialogTitle = isArabic 
+          ? 'تصدير جميع المحادثات'
+          : 'Export All Conversations';
     }
 
     showDialog(
@@ -543,8 +551,9 @@ class ChatDrawer extends StatelessWidget {
           ),
           child: ChatExportDialog(
             messages: chatProvider.messages,
-            chatTitle:
-                'الجلسة الحالية - ${DateTime.now().toString().split(' ')[0]}',
+            chatTitle: Localizations.localeOf(context).languageCode == 'ar'
+                ? 'الجلسة الحالية - ${DateTime.now().toString().split(' ')[0]}'
+                : 'Current Session - ${DateTime.now().toString().split(' ')[0]}',
           ),
         ),
       ),
@@ -573,7 +582,7 @@ class ChatDrawer extends StatelessWidget {
             ),
             child: ChatExportDialog(
               messages: sessionMessages,
-              chatTitle: '${session.title} - ${_formatDate(session.createdAt)}',
+              chatTitle: '${session.title} - ${_formatDate(session.createdAt, context)}',
             ),
           ),
         ),
@@ -583,7 +592,11 @@ class ChatDrawer extends StatelessWidget {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('خطأ في تحميل الجلسة للتصدير: $e'),
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'ar'
+                ? 'خطأ في تحميل الجلسة للتصدير: $e'
+                : 'Error loading session for export: $e'
+          ),
           backgroundColor: Colors.red,
         ),
       );

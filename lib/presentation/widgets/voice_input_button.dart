@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import '../../core/services/speech_service.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 /// زر إدخال الصوت مع تأثيرات بصرية متقدمة
 class VoiceInputButton extends StatefulWidget {
@@ -83,11 +85,17 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
       }
       
       if (!initialized) {
-        _showErrorSnackBar('فشل في تهيئة خدمة الصوت. تأكد من منح الأذونات المطلوبة.');
+        final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+        _showErrorSnackBar(isArabic 
+            ? 'فشل في تهيئة خدمة الصوت. تأكد من منح الأذونات المطلوبة.'
+            : 'Failed to initialize speech service. Make sure to grant required permissions.');
       }
     } catch (e) {
       if (mounted) {
-        _showErrorSnackBar('خطأ في تهيئة خدمة الصوت: $e');
+        final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+        _showErrorSnackBar(isArabic 
+            ? 'خطأ في تهيئة خدمة الصوت: $e'
+            : 'Error initializing speech service: $e');
       }
     }
   }
@@ -120,7 +128,10 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
         await _startListening();
       }
     } catch (e) {
-      _showErrorSnackBar('خطأ في التحكم بالصوت: $e');
+      final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+      _showErrorSnackBar(isArabic 
+          ? 'خطأ في التحكم بالصوت: $e'
+          : 'Voice control error: $e');
     }
   }
 
@@ -342,7 +353,11 @@ class VoiceInputDisplay extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              text.isEmpty ? 'جاري الاستماع...' : text,
+              text.isEmpty 
+                  ? (Localizations.localeOf(context).languageCode == 'ar' 
+                      ? 'جاري الاستماع...' 
+                      : 'Listening...') 
+                  : text,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontStyle: text.isEmpty ? FontStyle.italic : FontStyle.normal,
                 color: text.isEmpty 

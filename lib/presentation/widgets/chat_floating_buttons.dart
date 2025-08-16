@@ -30,7 +30,7 @@ class ChatFloatingButtons extends StatelessWidget {
                 heroTag: 'new_chat',
                 onPressed: onNewChatTap,
                 backgroundColor: Theme.of(context).colorScheme.secondary,
-                tooltip: 'محادثة جديدة',
+                tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'محادثة جديدة' : 'New Chat',
                 child: Icon(
                   Icons.add_comment,
                   color: Theme.of(context).colorScheme.onSecondary,
@@ -48,7 +48,7 @@ class ChatFloatingButtons extends StatelessWidget {
                   heroTag: 'scroll_down',
                   onPressed: onScrollToBottom,
                   backgroundColor: Theme.of(context).colorScheme.primary,
-                  tooltip: 'التمرير للأسفل',
+                  tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'التمرير للأسفل' : 'Scroll Down',
                   child: const Icon(
                     Icons.keyboard_arrow_down,
                     color: Colors.white,
@@ -82,7 +82,7 @@ class ChatFloatingButtons extends StatelessWidget {
               ? () => _copySelectedMessages(context, selectionProvider)
               : null,
           backgroundColor: Theme.of(context).colorScheme.primary,
-          tooltip: 'نسخ المحدد',
+          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'نسخ المحدد' : 'Copy Selected',
           child: const Icon(
             Icons.copy,
             color: Colors.white,
@@ -101,7 +101,7 @@ class ChatFloatingButtons extends StatelessWidget {
               ? () => _deleteSelectedMessages(context, selectionProvider)
               : null,
           backgroundColor: Colors.red,
-          tooltip: 'حذف المحدد',
+          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'حذف المحدد' : 'Delete Selected',
           child: const Icon(
             Icons.delete,
             color: Colors.white,
@@ -120,7 +120,7 @@ class ChatFloatingButtons extends StatelessWidget {
               ? () => _exportSelectedMessages(context, selectionProvider)
               : null,
           backgroundColor: Theme.of(context).colorScheme.secondary,
-          tooltip: 'تصدير المحدد',
+          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير المحدد' : 'Export Selected',
           child: Icon(
             Icons.download,
             color: Theme.of(context).colorScheme.onSecondary,
@@ -142,7 +142,7 @@ class ChatFloatingButtons extends StatelessWidget {
 
     if (selectedMessages.isNotEmpty) {
       selectedMessages
-          .map((msg) => '${msg.isUser ? 'أنت' : 'AI'}: ${msg.content}')
+          .map((msg) => '${msg.isUser ? (Localizations.localeOf(context).languageCode == 'ar' ? 'أنت' : 'You') : 'AI'}: ${msg.content}')
           .join('\\n\\n');
 
       // نسخ النص إلى الحافظة
@@ -150,8 +150,8 @@ class ChatFloatingButtons extends StatelessWidget {
       
       // إظهار رسالة تأكيد
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم نسخ الرسائل المحددة'),
+        SnackBar(
+          content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم نسخ الرسائل المحددة' : 'Selected messages copied'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -169,14 +169,16 @@ class ChatFloatingButtons extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'),
         content: Text(
-          'هل أنت متأكد من حذف ${selectionProvider.selectedMessageIds.length} رسالة؟',
+          Localizations.localeOf(context).languageCode == 'ar' 
+              ? 'هل أنت متأكد من حذف ${selectionProvider.selectedMessageIds.length} رسالة؟'
+              : 'Are you sure you want to delete ${selectionProvider.selectedMessageIds.length} messages?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -194,13 +196,13 @@ class ChatFloatingButtons extends StatelessWidget {
 
               // إظهار رسالة تأكيد
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم حذف الرسائل المحددة'),
+                SnackBar(
+                  content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم حذف الرسائل المحددة' : 'Selected messages deleted'),
                   duration: Duration(seconds: 2),
                 ),
               );
             },
-            child: const Text('حذف'),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف' : 'Delete'),
           ),
         ],
       ),
@@ -216,8 +218,8 @@ class ChatFloatingButtons extends StatelessWidget {
     // يمكن استخدام خدمة التصدير هنا
     
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم تصدير الرسائل المحددة'),
+      SnackBar(
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم تصدير الرسائل المحددة' : 'Selected messages exported'),
         duration: Duration(seconds: 2),
       ),
     );

@@ -307,7 +307,7 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     
     try {
       final permissionsManager = PermissionsManager();
-      await permissionsManager.checkAndRequestAllPermissions();
+      await permissionsManager.checkAndRequestAllPermissions(context);
       if (kDebugMode) {
         print('✅ Permissions requested successfully');
       }

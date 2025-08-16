@@ -5,6 +5,7 @@ import '../../core/services/tavily_service.dart';
 import '../../core/services/api_key_manager.dart';
 import '../../core/utils/responsive_helper.dart';
 import '../widgets/models_info_dialog.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 class ApiSettingsPage extends StatefulWidget {
   const ApiSettingsPage({super.key});
@@ -100,9 +101,19 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
       // تحديث حالة المفاتيح
       await _updateKeysStatus();
 
-      _showSnackBar('تم حفظ المفاتيح بنجاح! ✅', Colors.green);
+      _showSnackBar(
+        Localizations.localeOf(context).languageCode == 'ar' 
+            ? 'تم حفظ المفاتيح بنجاح! ✅'
+            : 'Keys saved successfully! ✅', 
+        Colors.green
+      );
     } catch (e) {
-      _showSnackBar('خطأ في حفظ المفاتيح: $e', Colors.red);
+      _showSnackBar(
+        Localizations.localeOf(context).languageCode == 'ar' 
+            ? 'خطأ في حفظ المفاتيح: $e'
+            : 'Error saving keys: $e', 
+        Colors.red
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -177,7 +188,9 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                 ),
                 Expanded(
                   child: Text(
-                    'حالة مفاتيح API',
+                    Localizations.localeOf(context).languageCode == 'ar' 
+                        ? 'حالة مفاتيح API'
+                        : 'API Keys Status',
                     style: TextStyle(
                       fontSize: ResponsiveHelper.getResponsiveFontSize(
                         context,
@@ -245,8 +258,12 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                             Expanded(
                               child: Text(
                                 hasRequiredKeys
-                                    ? 'التطبيق جاهز للعمل ✅'
-                                    : 'مفتاح Groq مطلوب ⚠️',
+                                    ? (Localizations.localeOf(context).languageCode == 'ar' 
+                                        ? 'التطبيق جاهز للعمل ✅'
+                                        : 'App ready to work ✅')
+                                    : (Localizations.localeOf(context).languageCode == 'ar' 
+                                        ? 'مفتاح Groq مطلوب ⚠️'
+                                        : 'Groq key required ⚠️'),
                                 style: TextStyle(
                                   color: hasRequiredKeys
                                       ? Colors.green
@@ -309,7 +326,9 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    'يتم استخدام المفاتيح الافتراضية المجانية',
+                                    Localizations.localeOf(context).languageCode == 'ar' 
+                                        ? 'يتم استخدام المفاتيح الافتراضية المجانية'
+                                        : 'Using free default keys',
                                     style: TextStyle(
                                       color: Colors.blue,
                                       fontSize:
@@ -340,7 +359,9 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                   ),
                   // تفاصيل المفاتيح
                   Text(
-                    'تفاصيل المفاتيح:',
+                    Localizations.localeOf(context).languageCode == 'ar' 
+                        ? 'تفاصيل المفاتيح:'
+                        : 'Keys Details:',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: ResponsiveHelper.getResponsiveFontSize(
@@ -396,7 +417,9 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'إحصائيات:',
+                          Localizations.localeOf(context).languageCode == 'ar' 
+                              ? 'إحصائيات:'
+                              : 'Statistics:',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: ResponsiveHelper.getResponsiveFontSize(
@@ -416,7 +439,9 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                           ),
                         ),
                         Text(
-                          '• المفاتيح المتوفرة: ${keysStatus.values.where((status) => status['hasKey'] == true).length}/5',
+                          Localizations.localeOf(context).languageCode == 'ar' 
+                              ? '• المفاتيح المتوفرة: ${keysStatus.values.where((status) => status['hasKey'] == true).length}/5'
+                              : '• Available keys: ${keysStatus.values.where((status) => status['hasKey'] == true).length}/5',
                           style: TextStyle(
                             fontSize: ResponsiveHelper.getResponsiveFontSize(
                               context,
@@ -427,7 +452,9 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                           ),
                         ),
                         Text(
-                          '• المفاتيح المطلوبة: ${hasRequiredKeys ? "متوفرة" : "مفقودة"}',
+                          Localizations.localeOf(context).languageCode == 'ar' 
+                              ? '• المفاتيح المطلوبة: ${hasRequiredKeys ? "متوفرة" : "مفقودة"}'
+                              : '• Required keys: ${hasRequiredKeys ? "Available" : "Missing"}',
                           style: TextStyle(
                             fontSize: ResponsiveHelper.getResponsiveFontSize(
                               context,
@@ -438,7 +465,9 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                           ),
                         ),
                         Text(
-                          '• استخدام المفاتيح الافتراضية: ${isUsingDefaultKeys ? "نعم" : "لا"}',
+                          Localizations.localeOf(context).languageCode == 'ar' 
+                              ? '• استخدام المفاتيح الافتراضية: ${isUsingDefaultKeys ? "نعم" : "لا"}'
+                              : '• Using default keys: ${isUsingDefaultKeys ? "Yes" : "No"}',
                           style: TextStyle(
                             fontSize: ResponsiveHelper.getResponsiveFontSize(
                               context,
@@ -458,7 +487,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'إغلاق',
+                  Localizations.localeOf(context).languageCode == 'ar' ? 'مسح' : 'Clear',
                   style: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(
                       context,
@@ -569,7 +598,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'مطلوب',
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'مطلوب' : 'Required',
                     style: TextStyle(
                       color: Colors.orange,
                       fontSize: ResponsiveHelper.getResponsiveFontSize(
@@ -628,7 +657,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                     ),
                   ),
                   Text(
-                    'مفتاح افتراضي',
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'مفتاح افتراضي' : 'Default Key',
                     style: TextStyle(
                       color: Colors.blue,
                       fontSize: ResponsiveHelper.getResponsiveFontSize(
@@ -677,7 +706,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
               ),
               Expanded(
                 child: Text(
-                  'مسح مفاتيح API',
+                  Localizations.localeOf(context).languageCode == 'ar' ? 'مسح مفاتيح API' : 'Clear API Keys',
                   style: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(
                       context,
@@ -696,7 +725,9 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'هل تريد مسح مفاتيح API المحفوظة؟',
+                Localizations.localeOf(context).languageCode == 'ar' 
+                  ? 'هل تريد مسح جميع مفاتيح API المحفوظة؟\n\nهذا الإجراء لا يمكن التراجع عنه.'
+                  : 'Do you want to clear all saved API keys?\n\nThis action cannot be undone.',
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(
                     context,
@@ -750,7 +781,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                           ),
                         ),
                         Text(
-                          'تحذير',
+                          Localizations.localeOf(context).languageCode == 'ar' ? 'تحذير' : 'Warning',
                           style: TextStyle(
                             color: Colors.orange,
                             fontWeight: FontWeight.bold,
@@ -773,10 +804,15 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                       ),
                     ),
                     Text(
-                      '• سيتم مسح جميع المفاتيح المحفوظة\n'
-                      '• سيتم استخدام المفاتيح الافتراضية المجانية\n'
-                      '• يمكنك إعادة إدخال مفاتيحك الخاصة لاحقاً\n'
-                      '• لا يمكن التراجع عن هذا الإجراء',
+                      Localizations.localeOf(context).languageCode == 'ar'
+                          ? '• سيتم مسح جميع المفاتيح المحفوظة\n'
+                            '• سيتم استخدام المفاتيح الافتراضية المجانية\n'
+                            '• يمكنك إعادة إدخال مفاتيحك الخاصة لاحقاً\n'
+                            '• لا يمكن التراجع عن هذا الإجراء'
+                          : '• All saved keys will be cleared\n'
+                            '• Default free keys will be used\n'
+                            '• You can re-enter your own keys later\n'
+                            '• This action cannot be undone',
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -796,7 +832,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'إلغاء',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel',
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(
                     context,
@@ -817,7 +853,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                 foregroundColor: Colors.white,
               ),
               child: Text(
-                'مسح الكل',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'مسح الكل' : 'Clear All',
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(
                     context,
@@ -852,11 +888,18 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
       await _updateKeysStatus();
 
       _showSnackBar(
-        'تم مسح جميع مفاتيح API بنجاح! ✅\nسيتم استخدام المفاتيح الافتراضية المجانية',
+        Localizations.localeOf(context).languageCode == 'ar'
+            ? 'تم مسح جميع مفاتيح API بنجاح! ✅\nسيتم استخدام المفاتيح الافتراضية المجانية'
+            : 'All API keys cleared successfully! ✅\nDefault free keys will be used',
         Colors.green,
       );
     } catch (e) {
-      _showSnackBar('خطأ في مسح المفاتيح: $e', Colors.red);
+      _showSnackBar(
+        Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في مسح المفاتيح: $e'
+            : 'Error clearing keys: $e',
+        Colors.red
+      );
     }
   }
 
@@ -1013,8 +1056,12 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                     ),
                     Text(
                       keyName == 'groq'
-                          ? '• مفتاح Groq مطلوب للعمل الأساسي\n• سيتم استخدام المفتاح الافتراضي المجاني\n• يمكنك إعادة إدخال مفتاحك الخاص لاحقاً'
-                          : '• سيتم مسح المفتاح من التخزين\n• سيتم استخدام المفتاح الافتراضي المجاني\n• يمكنك إعادة إدخاله لاحقاً',
+                          ? (Localizations.localeOf(context).languageCode == 'ar'
+                              ? '• مفتاح Groq مطلوب للعمل الأساسي\n• سيتم استخدام المفتاح الافتراضي المجاني\n• يمكنك إعادة إدخال مفتاحك الخاص لاحقاً'
+                              : '• Groq key is required for basic operation\n• Default free key will be used\n• You can re-enter your own key later')
+                          : (Localizations.localeOf(context).languageCode == 'ar'
+                              ? '• سيتم مسح المفتاح من التخزين\n• سيتم استخدام المفتاح الافتراضي المجاني\n• يمكنك إعادة إدخاله لاحقاً'
+                              : '• Key will be cleared from storage\n• Default free key will be used\n• You can re-enter it later'),
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -1034,7 +1081,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'إلغاء',
+                Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel',
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(
                     context,
@@ -1180,7 +1227,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                                           ),
                                     ),
                                     Text(
-                                      'معلومات مهمة',
+                                      Localizations.localeOf(context).languageCode == 'ar' ? 'معلومات مهمة' : 'Important Information',
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium
@@ -1206,11 +1253,17 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                                   ),
                                 ),
                                 Text(
-                                  '• مفتاح Groq مطلوب للعمل الأساسي\n'
-                                  '• مفاتيح أخرى اختيارية للمزيد من الميزات\n'
-                                  '• يتم حفظ المفاتيح محلياً على جهازك\n'
-                                  '• يمكنك الحصول على مفاتيح مجانية من المواقع الرسمية\n'
-                                  '• إذا لم تدخل مفتاحاً، سيتم استخدام المفتاح الافتراضي المجاني',
+                                  Localizations.localeOf(context).languageCode == 'ar'
+                                      ? '• مفتاح Groq مطلوب للعمل الأساسي\n'
+                                        '• مفاتيح أخرى اختيارية للمزيد من الميزات\n'
+                                        '• يتم حفظ المفاتيح محلياً على جهازك\n'
+                                        '• يمكنك الحصول على مفاتيح مجانية من المواقع الرسمية\n'
+                                        '• إذا لم تدخل مفتاحاً، سيتم استخدام المفتاح الافتراضي المجاني'
+                                      : '• Groq key is required for basic operation\n'
+                                        '• Other keys are optional for additional features\n'
+                                        '• Keys are saved locally on your device\n'
+                                        '• You can get free keys from official websites\n'
+                                        '• If no key is entered, default free key will be used',
                                   style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(
                                         fontSize:

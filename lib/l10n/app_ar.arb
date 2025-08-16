@@ -1,0 +1,214 @@
+{
+  "@@locale": "ar",
+  "appTitle": "أطلس الذكي",
+  "settingsTitle": "إعدادات التطبيق",
+  "close": "إغلاق",
+  "aiTab": "الذكاء الاصطناعي",
+  "appearanceTab": "المظهر",
+  "advancedTab": "خيارات متقدمة",
+  "aboutTab": "حول التطبيق",
+  "themeMode": "وضع المظهر",
+  "lightTheme": "🌞",
+  "darkTheme": "🌙",
+  "primaryColor": "🎨 لون التطبيق الأساسي",
+  "chooseNewColor": "اختيار لون جديد",
+  "currentColor": "اللون الحالي: {color}",
+  "fontFamily": "🔤 الخط المستخدم",
+  "fontSize": "📏 حجم الخط",
+  "small": "صغير",
+  "large": "كبير",
+  "fontSizePreview": "نموذج للنص بالحجم المحدد ({size})",
+  "customBackground": "🖼️ الخلفية المخصصة",
+  "currentBackground": "✨ الخلفية الحالية ✨",
+  "changeBackground": "تغيير الخلفية",
+  "chooseBackground": "اختيار خلفية",
+  "removeBackground": "بدون خلفية",
+  "useTheme": "استخدام الثيم",
+  "backgroundAppliedSuccess": "✅ تم تطبيق الخلفية المخصصة بنجاح",
+  "backgroundSelectionFailed": "❌ فشل في اختيار الصورة",
+  "backgroundRemovedSuccess": "🔄 تم العودة للوضع العادي (ليلي/نهاري)",
+  "language": "🌐 اللغة",
+  "arabic": "العربية",
+  "english": "English",
+  "languageChanged": "تم تغيير اللغة إلى {language}",
+  "restartRequired": "يرجى إعادة تشغيل التطبيق لتطبيق تغييرات اللغة",
+  "welcomeMessage1": "هلا بلي له الخافق يهلي 🚀",
+  "welcomeMessage2": "مساعدك أطلس يسموني ابوالعريف باجاوب جميع أسئلتك 🤖",
+  "welcomeMessage3": "قول أسأل عن أي شي أيي في بالك؟ 💭",
+  "welcomeMessage4": "قول اللي في قلبك أنا واحد مافتن ! 🌟",
+  "welcome": "مرحباً بك في أطلس الذكي",
+  "chatWithAI": "تحدث مع الذكاء الاصطناعي",
+  "typeMessage": "اكتب رسالتك...",
+  "send": "إرسال",
+  "newChat": "محادثة جديدة",
+  "chatHistory": "سجل المحادثات",
+  "settings": "الإعدادات",
+  "menu": "القائمة",
+  "search": "البحث",
+  "cancel": "إلغاء",
+  "save": "حفظ",
+  "delete": "حذف",
+  "edit": "تعديل",
+  "copy": "نسخ",
+  "share": "مشاركة",
+  "loading": "جاري التحميل...",
+  "error": "خطأ",
+  "retry": "إعادة المحاولة",
+  "yes": "نعم",
+  "no": "لا",
+  "ok": "موافق",
+  "programming": "البرمجة",
+  "dataAnalysis": "تحليل البيانات",
+  "translation": "الترجمة",
+  "creativeIdeas": "أفكار إبداعية",
+  "learning": "التعلم",
+  "helpMeCode": "أبيك تبرمج لي: ",
+  "analyzeData": "حلل هذه البيانات: ",
+  "translateThis": "ترجم هذي: ",
+  "creativeIdeasAbout": "عطني افكارك وأتحفي في  ",
+  "teachMeAbout": "أبيك تعلمني على  ",
+  "thinkingProcess": "عملية التفكير",
+  "completed": "مكتملة",
+  "inProgress": "جارية",
+  "completedIn": "اكتملت في {duration}",
+  "revisionOfStep": "تنقيح للخطوة {step}",
+  "listening": "جاري الاستماع...",
+  "speechInitError": "فشل في تهيئة خدمة الصوت. تأكد من منح الأذونات المطلوبة.",
+  "speechControlError": "خطأ في التحكم بالصوت: {error}",
+  "webSearch": "البحث في الويب",
+  "enterSearchQuery": "أدخل استعلام البحث...",
+  "enhancingPrompt": "جاري تحسين البرومبت باستخدام الذكاء الاصطناعي...",
+  "listening2": "أستمع...",
+  "typeAnything": "أكتب أي شي يدور في خاطرك...",
+  "shareYourThoughts": "أتحفني بأي شي يدور في خاطرك...",
+  "apiSettings": "إعدادات API",
+  "showKeys": "إظهار المفاتيح",
+  "hideKeys": "إخفاء المفاتيح",
+  "trainingSettings": "الإعدادات",
+  "trainingStopped": "تم إيقاف التدريب",
+  "speechServiceInitFailed": "فشل في تهيئة خدمة الصوت. تأكد من منح الأذونات المطلوبة.",
+  "speechServiceInitError": "خطأ في تهيئة خدمة الصوت",
+  "voiceControlError": "خطأ في التحكم بالصوت",
+  "trainingStatus": "حالة التدريب: {status}",
+  "trainingProgress2": "التقدم: {progress}%",
+  "epoch": "الحقبة: {current}/{total}",
+  "startTraining": "بدء التدريب",
+  "pauseTraining": "إيقاف مؤقت",
+  "stopTraining": "إيقاف التدريب",
+  "selectModel": "اختيار النموذج",
+  "baseModel": "النموذج الأساسي",
+  "trainingParameters": "معاملات التدريب",
+  "learningRate": "معدل التعلم: {rate}",
+  "batchSize": "حجم الدفعة: {size}",
+  "epochs": "عدد الحقب: {epochs}",
+  "dataset": "مجموعة البيانات",
+  "uploadDatasetFile": "رفع ملف البيانات",
+  "noFileSelected": "لم يتم اختيار ملف",
+  "datasetInfo": "معلومات البيانات: {info}",
+  "overallProgress": "التقدم الإجمالي",
+  "metrics": "المقاييس",
+  "timeRemaining": "الوقت المتبقي",
+  "speed": "السرعة",
+  "progressChart": "رسم بياني للتقدم\n(سيتم إضافته لاحقاً)",
+  "refresh": "تحديث",
+  "clear": "مسح",
+  "export": "تصدير",
+  "idle": "في الانتظار",
+  "training": "قيد التدريب",
+  "errorStatus": "خطأ",
+  "pausedStatus": "متوقف مؤقتاً",
+  "stoppedStatus": "متوقف",
+  "scrollDown": "التمرير للأسفل",
+  "copySelected": "نسخ المحدد",
+  "deleteSelected": "حذف المحدد",
+  "exportSelected": "تصدير المحدد",
+  "you": "أنت",
+  "messagesCopied": "تم نسخ الرسائل المحددة",
+  "confirmDelete": "تأكيد الحذف",
+  "confirmDeleteMessages": "هل أنت متأكد من حذف {count} رسالة؟",
+  "@confirmDeleteMessages": {
+    "description": "Confirm delete messages dialog",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messagesDeleted": "تم حذف الرسائل المحددة",
+  "messagesExported": "تم تصدير الرسائل المحددة",
+  "debugModel": "النموذج",
+  "debugTemperature": "درجة الحرارة",
+  "debugMaxTokens": "الحد الأقصى للرموز",
+  "debugStreamResponse": "الاستجابة المتدفقة",
+  "debugWebSearch": "البحث في الويب",
+  "debugMcpServers": "خوادم MCP",
+  "debugAutoTextFormatting": "المعالجة التلقائية للنص",
+  "debugEnabled": "مفعل",
+  "debugDisabled": "معطل",
+  "debugMessageCount": "عدد الرسائل",
+  "debugSessionCount": "عدد الجلسات",
+  "debugAttachmentCount": "عدد المرفقات",
+  "debugMode": "وضع التشخيص",
+  "debugIsTyping": "يكتب الآن",
+  "debugIsThinking": "يفكر الآن",
+  "debugYes": "نعم",
+  "debugNo": "لا",
+  "debugApiKeyStatus": "حالة مفاتيح API",
+  "debugApiKeyAvailable": "متوفر",
+  "debugApiKeyNotAvailable": "غير متوفر",
+  "debugMcpServerStatus": "حالة خوادم MCP",
+  "debugMemoryServer": "خادم الذاكرة",
+  "debugSequentialThinking": "التفكير التسلسلي",
+  "debugCurrentThinking": "عملية التفكير الحالية",
+  "debugStepCount": "عدد الخطوات",
+  "debugIsComplete": "مكتملة",
+  "debugStartedAt": "بدأت في",
+  "debugCompletedAt": "انتهت في",
+  "enableMcpServers": "تفعيل خوادم MCP",
+  "connectionTimeout": "مهلة الاتصال",
+  "connectionTimeoutValue": "10 ثوان",
+  "retryAttempts": "إعادة المحاولة",
+  "retryAttemptsValue": "3 محاولات",
+  "addServer": "إضافة خادم",
+  "addCustomMcpServer": "إضافة خادم MCP مخصص",
+  "advancedMcpSettings": "إعدادات MCP المتقدمة",
+  "enableMcpServersSubtitle": "تمكين استخدام خوادم Model Context Protocol",
+  "autoRetry": "إعادة المحاولة التلقائية",
+  "autoRetrySubtitle": "3 محاولات",
+  "connectionDiagnostics": "تشخيص الاتصال",
+  "connectionDiagnosticsSubtitle": "فحص حالة خوادم MCP",
+  "clearCache": "مسح ذاكرة التخزين المؤقت",
+  "clearCacheSubtitle": "حذف البيانات المؤقتة لخوادم MCP",
+  "mcpDiagnosticsTitle": "تشخيص خوادم MCP",
+  "memoryServerStatus": "خادم الذاكرة",
+  "memoryServerConnected": "متصل ويعمل بشكل طبيعي",
+  "sequentialThinkingServerStatus": "خادم التفكير التسلسلي",
+  "sequentialThinkingConnected": "متصل ويعمل بشكل طبيعي",
+  "customServers": "الخوادم المخصصة",
+  "noCustomServers": "لا توجد خوادم مخصصة",
+  "clearCacheTitle": "مسح ذاكرة التخزين المؤقت",
+  "clearCacheConfirm": "هل تريد مسح جميع البيانات المؤقتة لخوادم MCP؟",
+  "cacheCleared": "تم مسح ذاكرة التخزين المؤقت",
+  "mcpServersTitle": "خوادم MCP",
+  "trainingServiceInitError": "خطأ في تهيئة خدمة التدريب",
+  "advancedModelTrainingPage": "تدريب النماذج المتقدم",
+  "help": "مساعدة",
+  "exportData": "تصدير البيانات",
+  "initializingTrainingService": "جاري تهيئة خدمة التدريب...",
+  "sessionType": "النوع",
+  "sessionStatus": "الحالة",
+  "sessionDate": "التاريخ",
+  "exportModel": "تصدير النموذج",
+  "details": "التفاصيل",
+  "restart": "إعادة التشغيل",
+  "exportModelFeatureInDevelopment": "ميزة تصدير النموذج قيد التطوير",
+  "sessionDetails": "تفاصيل",
+  "errorLabel": "خطأ",
+  "deleteTrainingSession": "حذف جلسة التدريب",
+  "deleteSessionConfirm": "هل تريد حذف هذه الجلسة نهائياً؟ سيتم حذف جميع البيانات المرتبطة بها.",
+  "modelTrainingHelp": "مساعدة - تدريب النماذج",
+  "trainingSettingsTitle": "إعدادات التدريب",
+  "advancedTrainingSettingsInDevelopment": "إعدادات التدريب المتقدمة قيد التطوير",
+  "exportTrainingDataFeatureInDevelopment": "ميزة تصدير بيانات التدريب قيد التطوير",
+  "active": "نشط"
+}

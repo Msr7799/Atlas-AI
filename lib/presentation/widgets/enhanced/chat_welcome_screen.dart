@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants/ui_constants.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 
 /// شاشة الترحيب المحسنة
@@ -52,24 +53,35 @@ class ChatWelcomeScreen extends StatelessWidget {
 
   /// بناء نص الترحيب
   Widget _buildWelcomeText(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    
     return DefaultTextStyle(
       style: Theme.of(context).textTheme.headlineSmall!,
       child: AnimatedTextKit(
         animatedTexts: [
           TypewriterAnimatedText(
-            'هلا بلي له الخافق يهلي 🚀',
+            isArabic 
+                ? 'هلا بلي له الخافق يهلي 🚀'
+                : 'Welcome to Atlas AI! 🚀',
             speed: const Duration(milliseconds: 80),
           ),
           TypewriterAnimatedText(
-            'مساعدك أطلس يسموني ابوالعريف باجاوب جميع أسئلتك 🤖',
+            isArabic 
+                ? 'مساعدك أطلس يسموني ابوالعريف باجاوب جميع أسئلتك 🤖'
+                : 'Your AI assistant Atlas is here to answer all your questions 🤖',
             speed: const Duration(milliseconds: 80),
           ),
           TypewriterAnimatedText(
-            'قول أسأل عن أي شي أيي في بالك؟ 💭',
+            isArabic 
+                ? 'قول أسأل عن أي شي أيي في بالك؟ 💭'
+                : 'Ask me about anything on your mind! 💭',
             speed: const Duration(milliseconds: 80),
           ),
           TypewriterAnimatedText(
-            'قول اللي في قلبك أنا واحد مافتن ! 🌟',
+            isArabic 
+                ? 'قول اللي في قلبك أنا واحد مافتن ! 🌟'
+                : 'Tell me what\'s in your heart, I\'m here to help! 🌟',
             speed: const Duration(milliseconds: 80),
           ),
         ],
@@ -81,7 +93,7 @@ class ChatWelcomeScreen extends StatelessWidget {
 
   /// بناء رقائق الترحيب
   Widget _buildWelcomeChips(BuildContext context) {
-    final chips = _getWelcomeChips();
+    final chips = _getWelcomeChips(context);
     
     return Wrap(
       spacing: UIConstants.spacing8,
@@ -92,37 +104,40 @@ class ChatWelcomeScreen extends StatelessWidget {
   }
 
   /// الحصول على رقائق الترحيب
-  List<_WelcomeChip> _getWelcomeChips() {
+  List<_WelcomeChip> _getWelcomeChips(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    
     return [
       _WelcomeChip(
         icon: Icons.code_rounded,
-        text: 'البرمجة',
+        text: isArabic ? 'البرمجة' : 'Programming',
         color: const Color(UIConstants.primaryBlue),
-        prompt: 'أبيك تبرمج لي: ',
+        prompt: isArabic ? 'أبيك تبرمج لي: ' : 'Help me code: ',
       ),
       _WelcomeChip(
         icon: Icons.analytics_rounded,
-        text: 'تحليل البيانات',
+        text: isArabic ? 'تحليل البيانات' : 'Data Analysis',
         color: const Color(UIConstants.accentGreen),
-        prompt: 'حلل هذي الويه: ',
+        prompt: isArabic ? 'حلل هذي الويه: ' : 'Analyze this data: ',
       ),
       _WelcomeChip(
         icon: Icons.translate_rounded,
-        text: 'الترجمة',
+        text: isArabic ? 'الترجمة' : 'Translation',
         color: const Color(UIConstants.warningRed),
-        prompt: 'ترجم هذي: ',
+        prompt: isArabic ? 'ترجم هذي: ' : 'Translate this: ',
       ),
       _WelcomeChip(
         icon: Icons.lightbulb_outline_rounded,
-        text: 'أفكار إبداعية',
+        text: isArabic ? 'أفكار إبداعية' : 'Creative Ideas',
         color: const Color(UIConstants.darkRed),
-        prompt: 'عطني افكارك وأتحفي في  ',
+        prompt: isArabic ? 'عطني افكارك وأتحفي في  ' : 'Give me creative ideas about: ',
       ),
       _WelcomeChip(
         icon: Icons.school_rounded,
-        text: 'التعلم',
+        text: isArabic ? 'التعلم' : 'Learning',
         color: const Color(UIConstants.purple),
-        prompt: 'أبيك تعلمني على  ',
+        prompt: isArabic ? 'أبيك تعلمني على  ' : 'Teach me about: ',
       ),
     ];
   }

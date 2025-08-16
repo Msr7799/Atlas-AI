@@ -1,0 +1,840 @@
+{
+  "@@locale": "en",
+  "appTitle": "Atlas AI",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "settingsTitle": "App Settings",
+  "@settingsTitle": {
+    "description": "Title for the settings dialog"
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Close button text"
+  },
+  "aiTab": "AI",
+  "@aiTab": {
+    "description": "AI settings tab"
+  },
+  "appearanceTab": "Appearance",
+  "@appearanceTab": {
+    "description": "Appearance settings tab"
+  },
+  "advancedTab": "Advanced",
+  "@advancedTab": {
+    "description": "Advanced options tab"
+  },
+  "aboutTab": "About",
+  "@aboutTab": {
+    "description": "About app tab"
+  },
+  "themeMode": "Theme Mode",
+  "@themeMode": {
+    "description": "Theme mode section title"
+  },
+  "lightTheme": "Light",
+  "@lightTheme": {
+    "description": "Light theme option"
+  },
+  "darkTheme": "Dark",
+  "@darkTheme": {
+    "description": "Dark theme option"
+  },
+  "primaryColor": "Primary Color",
+  "@primaryColor": {
+    "description": "Primary color section title"
+  },
+  "chooseNewColor": "Choose New Color",
+  "@chooseNewColor": {
+    "description": "Choose color button text"
+  },
+  "currentColor": "Current Color: {color}",
+  "@currentColor": {
+    "description": "Current color display text",
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "fontFamily": "Font Family",
+  "@fontFamily": {
+    "description": "Font family section title"
+  },
+  "fontSize": "Font Size",
+  "@fontSize": {
+    "description": "Font size section title"
+  },
+  "small": "Small",
+  "@small": {
+    "description": "Small font size"
+  },
+  "large": "Large",
+  "@large": {
+    "description": "Large font size"
+  },
+  "fontSizePreview": "Text sample with selected size ({size})",
+  "@fontSizePreview": {
+    "description": "Font size preview text",
+    "placeholders": {
+      "size": {
+        "type": "int"
+      }
+    }
+  },
+  "customBackground": "Custom Background",
+  "@customBackground": {
+    "description": "Custom background section title"
+  },
+  "currentBackground": "✨ Current Background ✨",
+  "@currentBackground": {
+    "description": "Current background preview text"
+  },
+  "changeBackground": "Change Background",
+  "@changeBackground": {
+    "description": "Change background button text"
+  },
+  "chooseBackground": "Choose Background",
+  "@chooseBackground": {
+    "description": "Choose background button text"
+  },
+  "removeBackground": "Remove Background",
+  "@removeBackground": {
+    "description": "Remove background button text"
+  },
+  "useTheme": "Use Theme",
+  "@useTheme": {
+    "description": "Use theme button text"
+  },
+  "backgroundAppliedSuccess": "✅ Custom background applied successfully",
+  "@backgroundAppliedSuccess": {
+    "description": "Success message for background application"
+  },
+  "backgroundSelectionFailed": "❌ Failed to select image",
+  "@backgroundSelectionFailed": {
+    "description": "Error message for background selection failure"
+  },
+  "backgroundRemovedSuccess": "🔄 Returned to normal mode (light/dark)",
+  "@backgroundRemovedSuccess": {
+    "description": "Success message for background removal"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Language section title"
+  },
+  "arabic": "العربية",
+  "@arabic": {
+    "description": "Arabic language option"
+  },
+  "english": "English",
+  "@english": {
+    "description": "English language option"
+  },
+  "languageChanged": "Language changed to {language}",
+  "@languageChanged": {
+    "description": "Language change confirmation message",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "restartRequired": "Please restart the app to apply language changes",
+  "@restartRequired": {
+    "description": "Restart required message for language changes"
+  },
+  "welcome": "Welcome to Atlas AI",
+  "@welcome": {
+    "description": "Welcome message"
+  },
+  "chatWithAI": "Chat with AI",
+  "@chatWithAI": {
+    "description": "Chat with AI button text"
+  },
+  "typeMessage": "Type your message...",
+  "@typeMessage": {
+    "description": "Message input placeholder"
+  },
+  "send": "Send",
+  "@send": {
+    "description": "Send button text"
+  },
+  "newChat": "New Chat",
+  "@newChat": {
+    "description": "New chat button text"
+  },
+  "chatHistory": "Chat History",
+  "@chatHistory": {
+    "description": "Chat history title"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings button text"
+  },
+  "menu": "Menu",
+  "@menu": {
+    "description": "Menu button text"
+  },
+  "search": "Search",
+  "@search": {
+    "description": "Search button text"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Save button text"
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Delete button text"
+  },
+  "edit": "Edit",
+  "@edit": {
+    "description": "Edit button text"
+  },
+  "copy": "Copy",
+  "@copy": {
+    "description": "Copy button text"
+  },
+  "share": "Share",
+  "@share": {
+    "description": "Share button text"
+  },
+  "loading": "Loading...",
+  "@loading": {
+    "description": "Loading text"
+  },
+  "error": "Error",
+  "@error": {
+    "description": "Error text"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button text"
+  },
+  "yes": "Yes",
+  "@yes": {
+    "description": "Yes button text"
+  },
+  "no": "No",
+  "@no": {
+    "description": "No button text"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "OK button text"
+  },
+  "welcomeMessage1": "Welcome to Atlas AI! 🚀",
+  "@welcomeMessage1": {
+    "description": "First welcome message"
+  },
+  "welcomeMessage2": "Your AI assistant Atlas is here to answer all your questions 🤖",
+  "@welcomeMessage2": {
+    "description": "Second welcome message"
+  },
+  "welcomeMessage3": "Ask me about anything on your mind! 💭",
+  "@welcomeMessage3": {
+    "description": "Third welcome message"
+  },
+  "welcomeMessage4": "Tell me what's in your heart, I'm here to help! 🌟",
+  "@welcomeMessage4": {
+    "description": "Fourth welcome message"
+  },
+  "programming": "Programming",
+  "@programming": {
+    "description": "Programming welcome chip"
+  },
+  "dataAnalysis": "Data Analysis",
+  "@dataAnalysis": {
+    "description": "Data analysis welcome chip"
+  },
+  "translation": "Translation",
+  "@translation": {
+    "description": "Translation welcome chip"
+  },
+  "creativeIdeas": "Creative Ideas",
+  "@creativeIdeas": {
+    "description": "Creative ideas welcome chip"
+  },
+  "learning": "Learning",
+  "@learning": {
+    "description": "Learning welcome chip"
+  },
+  "helpMeCode": "Help me code: ",
+  "@helpMeCode": {
+    "description": "Programming prompt prefix"
+  },
+  "analyzeData": "Analyze this data: ",
+  "@analyzeData": {
+    "description": "Data analysis prompt prefix"
+  },
+  "translateThis": "Translate this: ",
+  "@translateThis": {
+    "description": "Translation prompt prefix"
+  },
+  "creativeIdeasAbout": "Give me creative ideas about: ",
+  "@creativeIdeasAbout": {
+    "description": "Creative ideas prompt prefix"
+  },
+  "teachMeAbout": "Teach me about: ",
+  "@teachMeAbout": {
+    "description": "Learning prompt prefix"
+  },
+  "thinkingProcess": "Thinking Process",
+  "@thinkingProcess": {
+    "description": "Thinking process widget title"
+  },
+  "completed": "Completed",
+  "@completed": {
+    "description": "Completed status"
+  },
+  "inProgress": "In Progress",
+  "@inProgress": {
+    "description": "In progress status"
+  },
+  "completedIn": "Completed in {duration}",
+  "@completedIn": {
+    "description": "Completion time message",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "revisionOfStep": "Revision of step {step}",
+  "@revisionOfStep": {
+    "description": "Revision indicator",
+    "placeholders": {
+      "step": {
+        "type": "int"
+      }
+    }
+  },
+  "listening": "Listening...",
+  "@listening": {
+    "description": "Voice input listening status"
+  },
+  "speechInitError": "Failed to initialize speech service. Make sure to grant required permissions.",
+  "@speechInitError": {
+    "description": "Speech initialization error"
+  },
+  "speechControlError": "Error controlling voice: {error}",
+  "@speechControlError": {
+    "description": "Speech control error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "webSearch": "Web Search",
+  "@webSearch": {
+    "description": "Web search dialog title"
+  },
+  "enterSearchQuery": "Enter search query...",
+  "@enterSearchQuery": {
+    "description": "Search query input hint"
+  },
+  "enhancingPrompt": "Enhancing prompt with AI...",
+  "@enhancingPrompt": {
+    "description": "Prompt enhancement status"
+  },
+  "listening2": "Listening...",
+  "@listening2": {
+    "description": "Voice listening status"
+  },
+  "typeAnything": "Type anything on your mind...",
+  "@typeAnything": {
+    "description": "Desktop input hint"
+  },
+  "shareYourThoughts": "Share anything on your mind...",
+  "@shareYourThoughts": {
+    "description": "Mobile input hint"
+  },
+  "apiSettings": "API Settings",
+  "@apiSettings": {
+    "description": "API settings page title"
+  },
+  "showKeys": "Show Keys",
+  "@showKeys": {
+    "description": "Show API keys tooltip"
+  },
+  "hideKeys": "Hide Keys",
+  "@hideKeys": {
+    "description": "Hide API keys tooltip"
+  },
+  "advancedModelTraining": "Advanced Model Training",
+  "@advancedModelTraining": {
+    "description": "Advanced model training page title"
+  },
+  "trainingSettings": "Settings",
+  "@trainingSettings": {
+    "description": "Training settings tab"
+  },
+  "trainingProgress": "Progress",
+  "@trainingProgress": {
+    "description": "Training progress tab"
+  },
+  "trainingLogs": "Logs",
+  "@trainingLogs": {
+    "description": "Training logs tab"
+  },
+  "trainingStatus": "Training Status: {status}",
+  "@trainingStatus": {
+    "description": "Training status display",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "trainingProgress2": "Progress: {progress}%",
+  "@trainingProgress2": {
+    "description": "Training progress display",
+    "placeholders": {
+      "progress": {
+        "type": "int"
+      }
+    }
+  },
+  "epoch": "Epoch: {current}/{total}",
+  "@epoch": {
+    "description": "Epoch display",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "startTraining": "Start Training",
+  "@startTraining": {
+    "description": "Start training button"
+  },
+  "pauseTraining": "Pause",
+  "@pauseTraining": {
+    "description": "Pause training button"
+  },
+  "stopTraining": "Stop Training",
+  "@stopTraining": {
+    "description": "Stop training button"
+  },
+  "selectModel": "Select Model",
+  "@selectModel": {
+    "description": "Model selection section"
+  },
+  "baseModel": "Base Model",
+  "@baseModel": {
+    "description": "Base model field label"
+  },
+  "trainingParameters": "Training Parameters",
+  "@trainingParameters": {
+    "description": "Training parameters section"
+  },
+  "learningRate": "Learning Rate: {rate}",
+  "@learningRate": {
+    "description": "Learning rate display",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "batchSize": "Batch Size: {size}",
+  "@batchSize": {
+    "description": "Batch size display",
+    "placeholders": {
+      "size": {
+        "type": "int"
+      }
+    }
+  },
+  "epochs": "Epochs: {epochs}",
+  "@epochs": {
+    "description": "Epochs display",
+    "placeholders": {
+      "epochs": {
+        "type": "int"
+      }
+    }
+  },
+  "dataset": "Dataset",
+  "@dataset": {
+    "description": "Dataset section"
+  },
+  "uploadDatasetFile": "Upload Dataset File",
+  "@uploadDatasetFile": {
+    "description": "Upload dataset file button"
+  },
+  "noFileSelected": "No file selected",
+  "@noFileSelected": {
+    "description": "No file selected message"
+  },
+  "datasetInfo": "Dataset Info: {info}",
+  "@datasetInfo": {
+    "description": "Dataset info display",
+    "placeholders": {
+      "info": {
+        "type": "String"
+      }
+    }
+  },
+  "overallProgress": "Overall Progress",
+  "@overallProgress": {
+    "description": "Overall progress section"
+  },
+  "metrics": "Metrics",
+  "@metrics": {
+    "description": "Metrics section"
+  },
+  "timeRemaining": "Time Remaining",
+  "@timeRemaining": {
+    "description": "Time remaining metric"
+  },
+  "speed": "Speed",
+  "@speed": {
+    "description": "Speed metric"
+  },
+  "progressChart": "Progress Chart\n(Coming Soon)",
+  "@progressChart": {
+    "description": "Progress chart placeholder"
+  },
+  "refresh": "Refresh",
+  "@refresh": {
+    "description": "Refresh button"
+  },
+  "clear": "Clear",
+  "@clear": {
+    "description": "Clear button"
+  },
+  "export": "Export",
+  "@export": {
+    "description": "Export button"
+  },
+  "idle": "Idle",
+  "@idle": {
+    "description": "Idle status"
+  },
+  "training": "Training",
+  "@training": {
+    "description": "Training status"
+  },
+  "errorStatus": "Error",
+  "@errorStatus": {
+    "description": "Error status"
+  },
+  "pausedStatus": "Paused",
+  "@pausedStatus": {
+    "description": "Paused status"
+  },
+  "stoppedStatus": "Stopped",
+  "@stoppedStatus": {
+    "description": "Stopped status"
+  },
+  "voiceInputButton": "Voice input button with advanced visual effects",
+  "@voiceInputButton": {
+    "description": "Voice input button description"
+  },
+  "pulseAnimation": "Pulse animation",
+  "@pulseAnimation": {
+    "description": "Animation for pulse effect"
+  },
+  "waveAnimation": "Wave animation",
+  "@waveAnimation": {
+    "description": "Animation for wave effect"
+  },
+  "speechServiceInitFailed": "Failed to initialize speech service. Make sure to grant required permissions.",
+  "@speechServiceInitFailed": {
+    "description": "Speech service initialization failure"
+  },
+  "speechServiceError": "Speech service error: {error}",
+  "@speechServiceError": {
+    "description": "Speech service error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceControlError": "Voice control error: {error}",
+  "@voiceControlError": {
+    "description": "Voice control error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "startAnimation": "Start animation",
+  "@startAnimation": {
+    "description": "Start animation process"
+  },
+  "callbackInvocation": "Callback invocation",
+  "@callbackInvocation": {
+    "description": "Callback function call"
+  },
+  "startListening": "Start listening",
+  "@startListening": {
+    "description": "Begin listening process"
+  },
+  "finalResultCheck": "If result is final, send it and stop listening",
+  "@finalResultCheck": {
+    "description": "Check if speech result is final"
+  },
+  "stopAnimation": "Stop animation",
+  "@stopAnimation": {
+    "description": "Stop animation process"
+  },
+  "stopListening": "Stop listening",
+  "@stopListening": {
+    "description": "Stop listening process"
+  },
+  "sendFinalResult": "Send final result if found",
+  "@sendFinalResult": {
+    "description": "Send final speech recognition result"
+  },
+  "outerWaves": "Outer waves (shown during listening)",
+  "@outerWaves": {
+    "description": "Outer wave effects during listening"
+  },
+  "mainButton": "Main button",
+  "@mainButton": {
+    "description": "Main voice input button"
+  },
+  "activityIndicator": "Activity indicator",
+  "@activityIndicator": {
+    "description": "Activity indicator during voice input"
+  },
+  "voiceInputDisplay": "Widget to display recognized text during recording",
+  "@voiceInputDisplay": {
+    "description": "Voice input display widget description"
+  },
+  "unifiedTrainingWidget": "Unified widget for all training functions",
+  "@unifiedTrainingWidget": {
+    "description": "Unified training widget description"
+  },
+  "quickInfoHeader": "Header with quick information",
+  "@quickInfoHeader": {
+    "description": "Quick information header"
+  },
+  "trainingStatusDisplay": "Training status: {status}",
+  "@trainingStatusDisplay": {
+    "description": "Training status display format",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "progressDisplay": "Progress: {progress}%",
+  "@progressDisplay": {
+    "description": "Progress display format",
+    "placeholders": {
+      "progress": {
+        "type": "int"
+      }
+    }
+  },
+  "epochDisplay": "Epoch: {current}/{total}",
+  "@epochDisplay": {
+    "description": "Epoch display format",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "startTrainingTooltip": "Start Training",
+  "@startTrainingTooltip": {
+    "description": "Start training button tooltip"
+  },
+  "pauseTrainingTooltip": "Pause",
+  "@pauseTrainingTooltip": {
+    "description": "Pause training button tooltip"
+  },
+  "stopTrainingTooltip": "Stop Training",
+  "@stopTrainingTooltip": {
+    "description": "Stop training button tooltip"
+  },
+  "modelSelection": "Model Selection",
+  "@modelSelection": {
+    "description": "Model selection section title"
+  },
+  "baseModelLabel": "Base Model",
+  "@baseModelLabel": {
+    "description": "Base model field label"
+  },
+  "trainingParametersSection": "Training Parameters",
+  "@trainingParametersSection": {
+    "description": "Training parameters section title"
+  },
+  "learningRateDisplay": "Learning Rate: {rate}",
+  "@learningRateDisplay": {
+    "description": "Learning rate display format",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "batchSizeDisplay": "Batch Size: {size}",
+  "@batchSizeDisplay": {
+    "description": "Batch size display format",
+    "placeholders": {
+      "size": {
+        "type": "int"
+      }
+    }
+  },
+  "epochsDisplay": "Epochs: {epochs}",
+  "@epochsDisplay": {
+    "description": "Epochs display format",
+    "placeholders": {
+      "epochs": {
+        "type": "int"
+      }
+    }
+  },
+  "datasetSection": "Dataset",
+  "@datasetSection": {
+    "description": "Dataset section title"
+  },
+  "uploadDatasetButton": "Upload Dataset File",
+  "@uploadDatasetButton": {
+    "description": "Upload dataset file button text"
+  },
+  "noFileSelectedMessage": "No file selected",
+  "@noFileSelectedMessage": {
+    "description": "No file selected message"
+  },
+  "datasetInfoDisplay": "Dataset Info: {info}",
+  "@datasetInfoDisplay": {
+    "description": "Dataset info display format",
+    "placeholders": {
+      "info": {
+        "type": "String"
+      }
+    }
+  },
+  "trainingInProgress": "Training in progress",
+  "@trainingInProgress": {
+    "description": "Training in progress status"
+  },
+  "trainingCompleted": "Training completed",
+  "@trainingCompleted": {
+    "description": "Training completed status"
+  },
+  "trainingError": "Training error",
+  "@trainingError": {
+    "description": "Training error status"
+  },
+  "trainingPaused": "Training paused",
+  "@trainingPaused": {
+    "description": "Training paused status"
+  },
+  "trainingStopped": "Training stopped",
+  "@trainingStopped": {
+    "description": "Training stopped status"
+  },
+  "scrollDown": "Scroll Down",
+  "copySelected": "Copy Selected",
+  "deleteSelected": "Delete Selected",
+  "exportSelected": "Export Selected",
+  "you": "You",
+  "messagesCopied": "Selected messages copied",
+  "confirmDelete": "Confirm Delete",
+  "confirmDeleteMessages": "Are you sure you want to delete {count} messages?",
+  "@confirmDeleteMessages": {
+    "description": "Confirm delete messages dialog",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messagesDeleted": "Selected messages deleted",
+  "messagesExported": "Selected messages exported",
+  "debugModel": "Model",
+  "debugTemperature": "Temperature",
+  "debugMaxTokens": "Max Tokens",
+  "debugStreamResponse": "Stream Response",
+  "debugWebSearch": "Web Search",
+  "debugMcpServers": "MCP Servers",
+  "debugAutoTextFormatting": "Auto Text Formatting",
+  "debugEnabled": "Enabled",
+  "debugDisabled": "Disabled",
+  "debugMessageCount": "Message Count",
+  "debugSessionCount": "Session Count",
+  "debugAttachmentCount": "Attachment Count",
+  "debugMode": "Debug Mode",
+  "debugIsTyping": "Is Typing",
+  "debugIsThinking": "Is Thinking",
+  "debugYes": "Yes",
+  "debugNo": "No",
+  "debugApiKeyStatus": "API Key Status",
+  "debugApiKeyAvailable": "Available",
+  "debugApiKeyNotAvailable": "Not Available",
+  "debugMcpServerStatus": "MCP Server Status",
+  "debugMemoryServer": "Memory Server",
+  "debugSequentialThinking": "Sequential Thinking",
+  "debugCurrentThinking": "Current Thinking Process",
+  "debugStepCount": "Step Count",
+  "debugIsComplete": "Is Complete",
+  "debugStartedAt": "Started At",
+  "debugCompletedAt": "Completed At",
+  "enableMcpServers": "Enable MCP Servers",
+  "connectionTimeout": "Connection Timeout",
+  "connectionTimeoutValue": "10 seconds",
+  "retryAttempts": "Retry Attempts",
+  "retryAttemptsValue": "3 attempts",
+  "addServer": "Add Server",
+  "addCustomMcpServer": "Add Custom MCP Server",
+  "advancedMcpSettings": "Advanced MCP Settings",
+  "enableMcpServersSubtitle": "Enable Model Context Protocol servers",
+  "autoRetry": "Auto Retry",
+  "autoRetrySubtitle": "3 attempts",
+  "connectionDiagnostics": "Connection Diagnostics",
+  "connectionDiagnosticsSubtitle": "Check MCP server status",
+  "clearCache": "Clear Cache",
+  "clearCacheSubtitle": "Delete MCP server temporary data",
+  "mcpDiagnosticsTitle": "MCP Server Diagnostics",
+  "memoryServerStatus": "Memory Server",
+  "memoryServerConnected": "Connected and working normally",
+  "sequentialThinkingServerStatus": "Sequential Thinking Server",
+  "sequentialThinkingConnected": "Connected and working normally",
+  "customServers": "Custom Servers",
+  "noCustomServers": "No custom servers",
+  "clearCacheTitle": "Clear Cache",
+  "clearCacheConfirm": "Do you want to clear all temporary data for MCP servers?",
+  "cacheCleared": "Cache cleared",
+  "mcpServersTitle": "MCP Servers",
+  "trainingServiceInitError": "Training service initialization error",
+  "advancedModelTrainingPage": "Advanced Model Training",
+  "help": "Help",
+  "exportData": "Export Data",
+  "initializingTrainingService": "Initializing training service...",
+  "sessionType": "Type",
+  "sessionStatus": "Status",
+  "sessionDate": "Date",
+  "exportModel": "Export Model",
+  "details": "Details",
+  "restart": "Restart",
+  "exportModelFeatureInDevelopment": "Model export feature is under development",
+  "sessionDetails": "Details",
+  "errorLabel": "Error",
+  "deleteTrainingSession": "Delete Training Session",
+  "deleteSessionConfirm": "Do you want to permanently delete this session? All associated data will be deleted.",
+  "modelTrainingHelp": "Help - Model Training",
+  "trainingSettingsTitle": "Training Settings",
+  "advancedTrainingSettingsInDevelopment": "Advanced training settings are under development",
+  "exportTrainingDataFeatureInDevelopment": "Training data export feature is under development",
+  "active": "Active"
+}
