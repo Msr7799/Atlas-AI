@@ -7,7 +7,6 @@ import '../providers/settings_provider.dart';
 import '../../data/models/message_model.dart';
 import '../providers/chat_selection_provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 
 class CompactMessageBubble extends StatelessWidget {
@@ -182,7 +181,7 @@ class CompactMessageBubble extends StatelessWidget {
                                   tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'نسخ النص' : 'Copy Text',
                                 ),
                                 Text(
-                                  _formatTime(message.timestamp),
+                                  _formatTime(message.timestamp, context),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: isUser
@@ -219,8 +218,8 @@ class CompactMessageBubble extends StatelessWidget {
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     final shouldApplyFormatting = settingsProvider.enableAutoTextFormatting;
   
-    // تطبيق الخوارزميات الذكية لتحسين المحتوى (فقط إذا كان مفعلاً)
-    final processedContent = shouldApplyFormatting 
+    // تطبيق الخوارزميات الذكية فقط للنصوص التي لا تحتوي على Markdown
+    final processedContent = (shouldApplyFormatting && !_containsMarkdownFormatting(content))
         ? _applySmartFormatting(content, isUser)
         : content;
   
@@ -906,7 +905,7 @@ class CompactMessageBubble extends StatelessWidget {
                     Clipboard.setData(ClipboardData(text: codeContent.trim()));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('تم نسخ الكود'),
+                        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم نسخ الكود' : 'Code copied'),
                         duration: Duration(seconds: 1),
                         backgroundColor: theme.colorScheme.primary,
                       ),
@@ -1065,6 +1064,21 @@ class CompactMessageBubble extends StatelessWidget {
       if (closestMatch == codeBlockMatch) {
         final codeContent = closestMatch.group(2) ?? '';
         final language = closestMatch.group(1) ?? '';
+        
+        // استخدام اللغة في تحديد الأسلوب
+        final languageDisplayName = _getLanguageDisplayName(language);
+        
+        // إضافة تعليق مع اسم اللغة
+        spans.add(
+          TextSpan(
+            text: '\n[$languageDisplayName] ',
+            style: TextStyle(
+              fontSize: themeProvider.fontSize * 0.8,
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
 
         // تحديد لون الخلفية حسب الثيم
         Color codeBackground;
@@ -1096,7 +1110,7 @@ class CompactMessageBubble extends StatelessWidget {
         );
       } else if (closestMatch == inlineCodeMatch) {
         final codeContent = closestMatch.group(1) ?? '';
-
+        
         // تحديد لون الخلفية للكود المضمن
         Color inlineCodeBackground;
         Color inlineCodeTextColor;
@@ -1177,18 +1191,18 @@ class CompactMessageBubble extends StatelessWidget {
 
 
 
-  String _formatTime(DateTime dateTime) {
+  String _formatTime(DateTime dateTime, BuildContext context) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
 
     if (difference.inDays > 0) {
       return '${dateTime.day}/${dateTime.month}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}س';
+      return Localizations.localeOf(context).languageCode == 'ar' ? '${difference.inHours}س' : '${difference.inHours}h';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}د';
+      return Localizations.localeOf(context).languageCode == 'ar' ? '${difference.inMinutes}د' : '${difference.inMinutes}m';
     } else {
-      return 'الآن';
+      return Localizations.localeOf(context).languageCode == 'ar' ? 'الآن' : 'now';
     }
   }
   
@@ -1238,7 +1252,7 @@ class CompactMessageBubble extends StatelessWidget {
 
   // بناء رأس النموذج مع مؤشر الحالة
   Widget _buildModelHeader(BuildContext context, ThemeData theme) {
-    final modelName = message.metadata?['model'] ?? 'مجهول';
+    final modelName = message.metadata?['model'] ?? (Localizations.localeOf(context).languageCode == 'ar' ? 'مجهول' : 'Unknown');
     final serviceName = message.metadata?['service'] ?? '';
     final hasError = message.metadata?['type'] == 'connection_error';
     final isSuccess = !hasError && message.content.isNotEmpty;
@@ -1346,7 +1360,7 @@ class CompactMessageBubble extends StatelessWidget {
           // نص التفكير
           Flexible(
             child: Text(
-              '🧠 عملية التفكير',
+              Localizations.localeOf(context).languageCode == 'ar' ? '🧠 عملية التفكير' : '🧠 Thinking Process',
               style: TextStyle(
                 fontSize: (theme.textTheme.bodySmall?.fontSize ?? 12) * 0.9,
                 fontFamily: theme.textTheme.bodyMedium?.fontFamily,

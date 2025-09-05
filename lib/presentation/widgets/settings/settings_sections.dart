@@ -1,8 +1,14 @@
+import 'dart:convert';
+import 'package:atlas/core/utils/responsive_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/theme_provider.dart';
+import '../../../core/config/app_config.dart';
+import '../../../core/services/custom_models_manager.dart';
 import '../../providers/settings_provider.dart';
-import '../../../generated/l10n/app_localizations.dart';
+import '../../providers/theme_provider.dart';
+import '../../../core/config/app_config.dart';
+import 'custom_models_section.dart';
+
 
 /// قسم إعدادات النموذج
 class ModelSettingsSection extends StatelessWidget {
@@ -70,31 +76,47 @@ class ModelSettingsSection extends StatelessWidget {
   }
 
   void _showModelSelector(BuildContext context, SettingsProvider settings) {
-    final availableModels = [
-      // Groq Models (مجاني)
-      {'id': 'llama-3.1-8b-instant', 'name': 'Llama 3.1 8B Instant', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج سريع ومتطور - Groq' : 'Fast and advanced model - Groq', 'service': 'Groq'},
-      {'id': 'llama-3.1-70b-versatile', 'name': 'Llama 3.1 70B Versatile', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج قوي متعدد الاستخدامات - Groq' : 'Powerful versatile model - Groq', 'service': 'Groq'},
-      {'id': 'llama-3.1-405b-reasoning', 'name': 'Llama 3.1 405B Reasoning', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'أقوى نموذج للتفكير المنطقي - Groq' : 'Most powerful reasoning model - Groq', 'service': 'Groq'},
-      {'id': 'mixtral-8x7b-32768', 'name': 'Mixtral 8x7B', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج متعدد الخبرات - Groq' : 'Multi-expert model - Groq', 'service': 'Groq'},
-      {'id': 'gemma2-9b-it', 'name': 'Gemma 2 9B IT', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج محادثة محسن - Groq' : 'Enhanced conversation model - Groq', 'service': 'Groq'},
+    // استخدام النماذج من AppConfig بدلاً من القائمة المحددة مسبقاً
+    final availableModels = <Map<String, dynamic>>[];
+    
+    // إضافة جميع النماذج من AppConfig
+    AppConfig.freeModels.forEach((service, models) {
+      for (final model in models) {
+        availableModels.add({
+          'id': model['id'],
+          'name': model['name'],
+          'description': model['description'],
+          'service': service.toUpperCase(),
+          'features': model['features'] ?? [],
+          'speed': model['speed'] ?? '',
+          'quality': model['quality'] ?? '',
+          'context': model['context'] ?? '',
+          'provider': model['provider'] ?? service,
+        });
+      }
+    });
 
-      // GPTGod Models (مجاني)
-      {'id': 'gpt-3.5-turbo', 'name': 'GPT-3.5 Turbo', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج سريع وذكي - GPTGod' : 'Fast and smart model - GPTGod', 'service': 'GPTGod'},
-      {'id': 'gpt-4o-mini', 'name': 'GPT-4o Mini', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نسخة مصغرة من GPT-4o - GPTGod' : 'Compact version of GPT-4o - GPTGod', 'service': 'GPTGod'},
-
-      // OpenRouter Models (مجاني)
-      {'id': 'openai/gpt-oss-20b:free', 'name': 'GPT OSS 20B', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج OpenAI مفتوح المصدر - OpenRouter' : 'OpenAI open source model - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'z-ai/glm-4.5-air:free', 'name': 'GLM 4.5 Air', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج Z.AI خفيف مع وضع تفكير - OpenRouter' : 'Z.AI lightweight model with thinking mode - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'qwen/qwen3-coder:free', 'name': 'Qwen3 Coder', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج برمجة متطور - OpenRouter' : 'Advanced coding model - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'moonshotai/kimi-k2:free', 'name': 'Kimi K2', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج 1T معامل قوي - OpenRouter' : '1T parameter powerful model - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'venice/uncensored:free', 'name': 'Venice Uncensored', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج غير مقيد - OpenRouter' : 'Unrestricted model - OpenRouter', 'service': 'OpenRouter'},
-      {'id': 'mistral/mistral-small-3.2-24b:free', 'name': 'Mistral Small 3.2', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج Mistral محسن - OpenRouter' : 'Enhanced Mistral model - OpenRouter', 'service': 'OpenRouter'},
-
-      // LocalAI Models (محلي)
-      {'id': 'llama3.1:8b', 'name': Localizations.localeOf(context).languageCode == 'ar' ? 'Llama 3.1 8B (محلي)' : 'Llama 3.1 8B (Local)', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج محلي للخصوصية الكاملة - LocalAI' : 'Local model for complete privacy - LocalAI', 'service': 'LocalAI'},
-      {'id': 'mistral:7b', 'name': Localizations.localeOf(context).languageCode == 'ar' ? 'Mistral 7B (محلي)' : 'Mistral 7B (Local)', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج محلي متعدد اللغات - LocalAI' : 'Local multilingual model - LocalAI', 'service': 'LocalAI'},
-      {'id': 'codellama:7b', 'name': Localizations.localeOf(context).languageCode == 'ar' ? 'Code Llama 7B (محلي)' : 'Code Llama 7B (Local)', 'description': Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج برمجة محلي - LocalAI' : 'Local coding model - LocalAI', 'service': 'LocalAI'},
-    ];
+    // إضافة النماذج المخصصة من CustomModelsSection
+    try {
+      final customModelsManager = CustomModelsManager.instance;
+      final customModels = customModelsManager.customModels;
+      for (final model in customModels) {
+        availableModels.add({
+          'id': model.name,
+          'name': model.name,
+          'description': model.description.isNotEmpty ? model.description : 'Custom LLM API',
+          'service': 'CUSTOM',
+          'features': ['API'],
+          'speed': 'Unknown',
+          'quality': 'Custom',
+          'context': 'Variable',
+          'provider': 'Custom LLM',
+        });
+      }
+    } catch (e) {
+      // التعامل مع أي أخطاء في تحميل النماذج المخصصة
+      print('Error loading custom models: $e');
+    }
 
     showDialog(
       context: context,
@@ -198,15 +220,19 @@ class ModelSettingsSection extends StatelessWidget {
   }
 
   Color _getServiceColor(String service) {
-    switch (service) {
-      case 'Groq':
+    switch (service.toUpperCase()) {
+      case 'GROQ':
         return Colors.orange;
-      case 'GPTGod':
+      case 'GPTGOD':
         return Colors.purple;
-      case 'OpenRouter':
+      case 'OPENROUTER':
         return Colors.blue;
-      case 'LocalAI':
+      case 'LOCALAI':
         return Colors.green;
+      case 'CUSTOM':
+        return Colors.teal;
+      case 'HUGGINGFACE':
+        return Colors.yellow.shade700;
       default:
         return Colors.grey;
     }
@@ -237,8 +263,11 @@ class ModelSettingsSection extends StatelessWidget {
                   Localizations.localeOf(context).languageCode == 'ar' ? '🤖 GPTGod (مجاني)' : '🤖 GPTGod (Free)',
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
                 ),
-                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• GPT-3.5 Turbo و GPT-4o Mini' : '• GPT-3.5 Turbo and GPT-4o Mini'),
-                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• جودة عالية مع استخدام مجاني' : '• High quality with free usage'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• GPT-3.5 Turbo (1.8B معامل)' : '• GPT-3.5 Turbo (1.8B params)'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• GPT-4o Mini (3B معامل)' : '• GPT-4o Mini (3B params)'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• GPT-4o (6B معامل) - دعم متعدد الوسائط' : '• GPT-4o (6B params) - Multimodal support'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• GPT-4o Vision - معالجة الصور والرسوم' : '• GPT-4o Vision - Image and animation processing'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• ChatGPT مجاني - واجهة محادثة' : '• ChatGPT Free - Chat interface'),
                 const SizedBox(height: 16),
 
                 Text(
@@ -257,6 +286,15 @@ class ModelSettingsSection extends StatelessWidget {
                 Text(Localizations.localeOf(context).languageCode == 'ar' ? '• نماذج تعمل على جهازك' : '• Models running on your device'),
                 Text(Localizations.localeOf(context).languageCode == 'ar' ? '• خصوصية كاملة بدون إنترنت' : '• Complete privacy without internet'),
                 Text(Localizations.localeOf(context).languageCode == 'ar' ? '• يتطلب تثبيت Ollama' : '• Requires Ollama installation'),
+                const SizedBox(height: 16),
+
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ar' ? '🔧 Custom LLMs (مخصص)' : '🔧 Custom LLMs (Custom)',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.teal),
+                ),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• نماذج مخصصة من أوامر cURL' : '• Custom models from cURL commands'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• إضافة أي API خارجي بسهولة' : '• Easily add any external API'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• مرونة كاملة في التكوين' : '• Full configuration flexibility'),
               ],
             ),
           ),
@@ -444,42 +482,131 @@ class McpAdvancedSettingsSection extends StatelessWidget {
   }
 
   void _showMcpDiagnostics(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تشخيص خوادم MCP'),
-        content: const SizedBox(
-          width: 300,
-          height: 200,
-          child: Column(
-            children: [
-              ListTile(
-                leading: Icon(Icons.memory, color: Colors.green),
-                title: Text('خادم الذاكرة'),
-                subtitle: Text('متصل ويعمل بشكل طبيعي'),
-                trailing: Icon(Icons.check_circle, color: Colors.green),
+        title: Text(isArabic ? 'تشخيص خوادم MCP' : 'MCP Server Diagnostics'),
+        contentPadding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
+        content: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isSmallScreen ? screenSize.width * 0.9 : 500,
+            maxHeight: screenSize.height * 0.6,
+          ),
+          child: SizedBox(
+            width: isSmallScreen ? double.infinity : 400,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildServerStatusTile(
+                    context: context,
+                    icon: Icons.memory,
+                    title: isArabic ? 'خادم الذاكرة' : 'Memory Server',
+                    subtitle: isArabic ? 'متصل ويعمل بشكل طبيعي' : 'Connected and working normally',
+                    status: _ServerStatus.connected,
+                    isSmallScreen: isSmallScreen,
+                  ),
+                  _buildServerStatusTile(
+                    context: context,
+                    icon: Icons.psychology,
+                    title: isArabic ? 'خادم التفكير التسلسلي' : 'Sequential Thinking Server',
+                    subtitle: isArabic ? 'متصل ويعمل بشكل طبيعي' : 'Connected and working normally',
+                    status: _ServerStatus.connected,
+                    isSmallScreen: isSmallScreen,
+                  ),
+                  _buildServerStatusTile(
+                    context: context,
+                    icon: Icons.extension,
+                    title: isArabic ? 'الخوادم المخصصة' : 'Custom Servers',
+                    subtitle: isArabic ? 'لا توجد خوادم مخصصة' : 'No custom servers available',
+                    status: _ServerStatus.warning,
+                    isSmallScreen: isSmallScreen,
+                  ),
+                ],
               ),
-              ListTile(
-                leading: Icon(Icons.psychology, color: Colors.green),
-                title: Text('خادم التفكير التسلسلي'),
-                subtitle: Text('متصل ويعمل بشكل طبيعي'),
-                trailing: Icon(Icons.check_circle, color: Colors.green),
-              ),
-              ListTile(
-                leading: Icon(Icons.extension, color: Colors.orange),
-                title: Text('الخوادم المخصصة'),
-                subtitle: Text('لا توجد خوادم مخصصة'),
-                trailing: Icon(Icons.info, color: Colors.orange),
-              ),
-            ],
+            ),
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
+          SizedBox(
+            width: isSmallScreen ? double.infinity : null,
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(isArabic ? 'إغلاق' : 'Close'),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildServerStatusTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required _ServerStatus status,
+    required bool isSmallScreen,
+  }) {
+    Color iconColor;
+    IconData statusIcon;
+    
+    switch (status) {
+      case _ServerStatus.connected:
+        iconColor = Colors.green;
+        statusIcon = Icons.check_circle;
+        break;
+      case _ServerStatus.warning:
+        iconColor = Colors.orange;
+        statusIcon = Icons.info;
+        break;
+      case _ServerStatus.error:
+        iconColor = Colors.red;
+        statusIcon = Icons.error;
+        break;
+    }
+
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 4.0 : 8.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+        ),
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isSmallScreen ? 12.0 : 16.0,
+          vertical: isSmallScreen ? 4.0 : 8.0,
+        ),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: iconColor, size: isSmallScreen ? 20 : 24),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: isSmallScreen ? 14 : 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+        ),
+        trailing: Icon(
+          statusIcon, 
+          color: iconColor,
+          size: isSmallScreen ? 18 : 20,
+        ),
       ),
     );
   }
@@ -510,208 +637,1137 @@ class McpAdvancedSettingsSection extends StatelessWidget {
   }
 }
 
-/// قسم إدارة خوادم MCP
+/// قسم إدارة خوادم MCP - Responsive
+enum _ServerStatus {
+  connected,
+  warning,
+  error,
+}
+
 class McpServersSection extends StatelessWidget {
   const McpServersSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SettingsProvider>(
-      builder: (context, settings, child) {
+    return Consumer2<SettingsProvider, ThemeProvider>(
+      builder: (context, settings, themeProvider, child) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isExtraSmall = screenWidth < 360;
+        final isSmall = screenWidth < 600;
+            
         return ExpansionTile(
-          leading: const Icon(Icons.hub),
-          title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خوادم MCP' : 'MCP Servers'),
-          children: [
-            SwitchListTile(
-              title: const Text('تفعيل خوادم MCP'),
-              subtitle: const Text('تمكين استخدام خوادم Model Context Protocol'),
-              value: settings.enableMcpServers,
-              onChanged: settings.setEnableMcpServers,
-            ),
-
-            if (settings.enableMcpServers) ...[
-              const Divider(),
-
-              // عرض خوادم MCP المتاحة
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'الخوادم المتاحة:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+              leading: Icon(
+                Icons.hub,
+                size: ResponsiveHelper.getResponsiveIconSize(
+                  context,
+                  mobile: isExtraSmall ? 18 : 20,
+                  tablet: 24,
+                  desktop: 28,
+                ),
+                color: themeProvider.accentColor,
+              ),
+              title: Text(
+                Localizations.localeOf(context).languageCode == 'ar' ? 'خوادم MCP' : 'MCP Servers',
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: isExtraSmall ? 13 : 14,
+                    tablet: 16,
+                    desktop: 18,
+                  ),
+                  fontFamily: themeProvider.fontFamily,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              tilePadding: EdgeInsets.symmetric(
+                horizontal: isExtraSmall ? 8 : (isSmall ? 12 : 16),
+                vertical: isExtraSmall ? 4 : 8,
+              ),
+              childrenPadding: EdgeInsets.symmetric(
+                horizontal: isExtraSmall ? 4 : (isSmall ? 8 : 12),
+                vertical: 4,
+              ),
+              children: [
+                // Main Toggle Switch - Enhanced Responsive
+                Container(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: isExtraSmall ? 4 : (isSmall ? 8 : 12),
+                    vertical: isExtraSmall ? 2 : 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: themeProvider.accentColor.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(
+                      ResponsiveHelper.getResponsiveWidth(
+                        context,
+                        mobile: isExtraSmall ? 6 : 8,
+                        tablet: 10,
+                        desktop: 12,
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    ...settings.getAvailableMcpServers().map((server) {
-                      final isEnabled = settings.mcpServerStatus[server] ?? false;
-                      return ListTile(
-                        leading: Icon(
-                          server.contains('memory') ? Icons.memory :
-                          server.contains('thinking') ? Icons.psychology : Icons.extension,
-                          color: isEnabled ? Colors.green : Colors.grey,
+                    border: Border.all(
+                      color: themeProvider.accentColor.withOpacity(0.25),
+                      width: isExtraSmall ? 1 : 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: themeProvider.accentColor.withOpacity(0.05),
+                        blurRadius: isExtraSmall ? 2 : 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Container(
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: isExtraSmall ? 8 : (isSmall ? 12 : 16),
+                        vertical: isExtraSmall ? 4 : (isSmall ? 6 : 8),
+                      ),
+                      title: Text(
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'تفعيل خوادم MCP' : 'Enable MCP Servers',
+                        style: TextStyle(
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(
+                            context,
+                            mobile: isExtraSmall ? 12 : 13,
+                            tablet: 15,
+                            desktop: 16,
+                          ),
+                          fontWeight: FontWeight.w600,
+                          fontFamily: themeProvider.fontFamily,
                         ),
-                        title: Text(server),
-                        subtitle: Text(_getServerDescription(server)),
-                        trailing: Switch(
-                          value: isEnabled,
-                          onChanged: (value) => settings.setMcpServerStatus(server, value),
+                      ),
+                      subtitle: isExtraSmall ? null : Text(
+                        Localizations.localeOf(context).languageCode == 'ar' 
+                          ? 'تمكين استخدام خوادم Model Context Protocol' 
+                          : 'Enable Model Context Protocol servers',
+                        style: TextStyle(
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(
+                            context,
+                            mobile: 10,
+                            tablet: 12,
+                            desktop: 13,
+                          ),
+                          fontFamily: themeProvider.fontFamily,
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                         ),
-                      );
-                    }),
+                      ),
+                      value: settings.enableMcpServers,
+                      onChanged: settings.setEnableMcpServers,
+                      activeColor: themeProvider.accentColor,
+                    ),
+                  ),
+                ),
 
-                    const SizedBox(height: 16),
+                if (settings.enableMcpServers) ...[
+                  Divider(
+                    height: ResponsiveHelper.getResponsiveHeight(
+                      context,
+                      mobile: 16,
+                      tablet: 20,
+                      desktop: 24,
+                    ),
+                    color: themeProvider.accentColor.withOpacity(0.3),
+                  ),
 
-                    Row(
+                  // Available Servers Section - Enhanced Responsive
+                  Padding(
+                    padding: EdgeInsets.all(
+                      isExtraSmall ? 8 : (isSmall ? 12 : 16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _showMcpDiagnostics(context),
-                            icon: const Icon(Icons.network_check),
-                            label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تشخيص الاتصال' : 'Connection Diagnostics'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.purple,
-                              foregroundColor: Colors.white,
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.dns,
+                              size: isExtraSmall ? 16 : 18,
+                              color: themeProvider.accentColor,
                             ),
+                            SizedBox(width: isExtraSmall ? 4 : 8),
+                            Expanded(
+                              child: Text(
+                                Localizations.localeOf(context).languageCode == 'ar' ? 'الخوادم المتاحة:' : 'Available MCP Servers:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                                    context,
+                                    mobile: isExtraSmall ? 13 : 14,
+                                    tablet: 16,
+                                    desktop: 18,
+                                  ),
+                                  color: themeProvider.accentColor,
+                                  fontFamily: themeProvider.fontFamily,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: ResponsiveHelper.getResponsiveHeight(
+                          context,
+                          mobile: 8,
+                          tablet: 12,
+                          desktop: 16,
+                        )),
+
+                        // Server List - Enhanced Responsive Layout
+                        ResponsiveHelper.buildResponsiveLayout(
+                          context,
+                          mobile: Column(
+                            children: settings.getAvailableMcpServers().map((server) {
+                              final isEnabled = settings.mcpServerStatus[server] ?? false;
+                              return Container(
+                                margin: EdgeInsets.only(
+                                  bottom: isExtraSmall ? 6 : 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(isExtraSmall ? 8 : 12),
+                                  border: Border.all(
+                                    color: isEnabled 
+                                      ? themeProvider.accentColor 
+                                      : Colors.grey.shade300,
+                                    width: isEnabled ? (isExtraSmall ? 1.5 : 2) : 1,
+                                  ),
+                                  color: isEnabled 
+                                    ? themeProvider.accentColor.withOpacity(0.08) 
+                                    : null,
+                                  boxShadow: isEnabled ? [
+                                    BoxShadow(
+                                      color: themeProvider.accentColor.withOpacity(0.1),
+                                      blurRadius: isExtraSmall ? 2 : 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ] : null,
+                                ),
+                                child: ListTile(
+                                  leading: Icon(
+                                    _getServerIcon(server),
+                                    color: isEnabled ? themeProvider.accentColor : Colors.grey,
+                                    size: isExtraSmall ? 18 : 20,
+                                  ),
+                                  title: Text(
+                                    _getServerDisplayName(server, context),
+                                    style: TextStyle(
+                                      fontSize: isExtraSmall ? 12 : 13,
+                                      fontWeight: isEnabled ? FontWeight.bold : FontWeight.normal,
+                                      fontFamily: themeProvider.fontFamily,
+                                    ),
+                                  ),
+                                  subtitle: isExtraSmall ? null : Text(
+                                    _getServerDescription(server, context),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontFamily: themeProvider.fontFamily,
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  trailing: Transform.scale(
+                                    scale: isExtraSmall ? 0.8 : 1.0,
+                                    child: Switch(
+                                      value: isEnabled,
+                                      onChanged: (value) => settings.setMcpServerStatus(server, value),
+                                      activeColor: themeProvider.accentColor,
+                                    ),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: isExtraSmall ? 8 : 12, 
+                                    vertical: isExtraSmall ? 2 : 4,
+                                  ),
+                                  dense: isExtraSmall,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          tablet: GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 2.5,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                            ),
+                            itemCount: settings.getAvailableMcpServers().length,
+                            itemBuilder: (context, index) {
+                              final server = settings.getAvailableMcpServers()[index];
+                              final isEnabled = settings.mcpServerStatus[server] ?? false;
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isEnabled 
+                                      ? themeProvider.accentColor 
+                                      : Colors.grey.shade300,
+                                    width: isEnabled ? 2 : 1,
+                                  ),
+                                  color: isEnabled 
+                                    ? themeProvider.accentColor.withOpacity(0.1) 
+                                    : null,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            _getServerIcon(server),
+                                            color: isEnabled ? themeProvider.accentColor : Colors.grey,
+                                            size: 24,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              _getServerDisplayName(server, context),
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: isEnabled ? FontWeight.bold : FontWeight.normal,
+                                                fontFamily: themeProvider.fontFamily,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          Switch(
+                                            value: isEnabled,
+                                            onChanged: (value) => settings.setMcpServerStatus(server, value),
+                                            activeColor: themeProvider.accentColor,
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Expanded(
+                                        child: Text(
+                                          _getServerDescription(server, context),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.grey.shade600,
+                                            fontFamily: themeProvider.fontFamily,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          desktop: GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              childAspectRatio: 2.2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                            itemCount: settings.getAvailableMcpServers().length,
+                            itemBuilder: (context, index) {
+                              final server = settings.getAvailableMcpServers()[index];
+                              final isEnabled = settings.mcpServerStatus[server] ?? false;
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isEnabled 
+                                      ? themeProvider.accentColor 
+                                      : Colors.grey.shade300,
+                                    width: isEnabled ? 3 : 1,
+                                  ),
+                                  color: isEnabled 
+                                    ? themeProvider.accentColor.withOpacity(0.1) 
+                                    : null,
+                                  boxShadow: isEnabled 
+                                    ? [BoxShadow(
+                                        color: themeProvider.accentColor.withOpacity(0.2),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      )]
+                                    : null,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            _getServerIcon(server),
+                                            color: isEnabled ? themeProvider.accentColor : Colors.grey,
+                                            size: 28,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              _getServerDisplayName(server, context),
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: isEnabled ? FontWeight.bold : FontWeight.w600,
+                                                fontFamily: themeProvider.fontFamily,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Expanded(
+                                        child: Text(
+                                          _getServerDescription(server, context),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade600,
+                                            fontFamily: themeProvider.fontFamily,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 3,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Center(
+                                        child: Switch(
+                                          value: isEnabled,
+                                          onChanged: (value) => settings.setMcpServerStatus(server, value),
+                                          activeColor: themeProvider.accentColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          onPressed: () => _showAddCustomServerDialog(context, settings),
-                          icon: const Icon(Icons.add),
-                          label: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة خادم' : 'Add Server'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
+
+                        SizedBox(height: ResponsiveHelper.getResponsiveHeight(
+                          context,
+                          mobile: 16,
+                          tablet: 20,
+                          desktop: 24,
+                        )),
+
+                        // Action Buttons - Responsive Layout
+                        ResponsiveHelper.buildResponsiveLayout(
+                          context,
+                          mobile: Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showMcpDiagnostics(context),
+                                  icon: Icon(
+                                    Icons.network_check,
+                                    size: ResponsiveHelper.getResponsiveIconSize(context, mobile: 18),
+                                  ),
+                                  label: Text(
+                                    Localizations.localeOf(context).languageCode == 'ar' ? 'تشخيص الاتصال' : 'Connection Diagnostics',
+                                    style: TextStyle(
+                                      fontSize: ResponsiveHelper.getResponsiveFontSize(context, mobile: 13),
+                                      fontFamily: themeProvider.fontFamily,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.purple,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showAddCustomServerDialog(context, settings),
+                                  icon: Icon(
+                                    Icons.add,
+                                    size: ResponsiveHelper.getResponsiveIconSize(context, mobile: 18),
+                                  ),
+                                  label: Text(
+                                    Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة خادم' : 'Add Server',
+                                    style: TextStyle(
+                                      fontSize: ResponsiveHelper.getResponsiveFontSize(context, mobile: 13),
+                                      fontFamily: themeProvider.fontFamily,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          tablet: Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showMcpDiagnostics(context),
+                                  icon: const Icon(Icons.network_check),
+                                  label: Text(
+                                    Localizations.localeOf(context).languageCode == 'ar' ? 'تشخيص الاتصال' : 'Connection Diagnostics',
+                                    style: TextStyle(fontFamily: themeProvider.fontFamily),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.purple,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showAddCustomServerDialog(context, settings),
+                                  icon: const Icon(Icons.add),
+                                  label: Text(
+                                    Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة خادم' : 'Add Server',
+                                    style: TextStyle(fontFamily: themeProvider.fontFamily),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          desktop: Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showMcpDiagnostics(context),
+                                  icon: const Icon(Icons.network_check, size: 20),
+                                  label: Text(
+                                    Localizations.localeOf(context).languageCode == 'ar' ? 'تشخيص الاتصال' : 'Connection Diagnostics',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontFamily: themeProvider.fontFamily,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.purple,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showAddCustomServerDialog(context, settings),
+                                  icon: const Icon(Icons.add, size: 20),
+                                  label: Text(
+                                    Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة خادم' : 'Add Server',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontFamily: themeProvider.fontFamily,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        );
+                  ),
+                ],
+                ],
+            );
       },
     );
   }
 
-  String _getServerDescription(String serverName) {
+  IconData _getServerIcon(String server) {
+    if (server.contains('memory')) return Icons.memory;
+    if (server.contains('thinking')) return Icons.psychology;
+    if (server.contains('context')) return Icons.article;
+    if (server.contains('deepwiki')) return Icons.library_books;
+    return Icons.extension;
+  }
+
+
+  String _getServerDescription(String serverName, BuildContext context) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     switch (serverName) {
       case 'memory':
-        return 'خادم الذاكرة الذكي لحفظ واسترجاع المعلومات';
+        return isArabic 
+          ? 'خادم الذاكرة الذكي لحفظ واسترجاع المعلومات'
+          : 'Smart memory server for storing and retrieving information';
       case 'sequential-thinking':
-        return 'محرك التفكير التسلسلي للمشاكل المعقدة';
+        return isArabic 
+          ? 'محرك التفكير التسلسلي للمشاكل المعقدة'
+          : 'Sequential thinking engine for complex problems';
+      case 'context7':
+        return isArabic 
+          ? 'خادم السياق المتقدم لفهم أعمق للمحادثات'
+          : 'Advanced context server for deeper conversation understanding';
+      case 'mcp-deepwiki':
+        return isArabic 
+          ? 'خادم المعرفة العميقة والبحث في الويكيبيديا'
+          : 'Deep knowledge server with Wikipedia search capabilities';
       default:
-        return 'خادم MCP مخصص';
+        return isArabic ? 'خادم MCP مخصص' : 'Custom MCP server';
+    }
+  }
+
+  String _getServerDisplayName(String server, BuildContext context) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    switch (server) {
+      case 'memory':
+        return isArabic ? 'خادم الذاكرة' : 'Memory Server';
+      case 'sequential-thinking':
+        return isArabic ? 'التفكير التسلسلي' : 'Sequential Thinking';
+      case 'context7':
+        return isArabic ? 'السياق المتقدم' : 'Context7';
+      case 'mcp-deepwiki':
+        return isArabic ? 'المعرفة العميقة' : 'DeepWiki';
+      default:
+        return server;
     }
   }
 
   void _showMcpDiagnostics(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تشخيص خوادم MCP'),
-        content: const SizedBox(
-          width: 300,
-          height: 200,
-          child: Column(
-            children: [
-              ListTile(
-                leading: Icon(Icons.memory, color: Colors.green),
-                title: Text('خادم الذاكرة'),
-                subtitle: Text('متصل ويعمل بشكل طبيعي'),
-                trailing: Icon(Icons.check_circle, color: Colors.green),
+        title: Text(isArabic ? 'تشخيص خوادم MCP' : 'MCP Server Diagnostics'),
+        contentPadding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
+        content: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isSmallScreen ? screenSize.width * 0.9 : 500,
+            maxHeight: screenSize.height * 0.6,
+          ),
+          child: SizedBox(
+            width: isSmallScreen ? double.infinity : 400,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildServerStatusTile(
+                    context: context,
+                    icon: Icons.memory,
+                    title: isArabic ? 'خادم الذاكرة' : 'Memory Server',
+                    subtitle: isArabic ? 'متصل ويعمل بشكل طبيعي' : 'Connected and working normally',
+                    status: _ServerStatus.connected,
+                    isSmallScreen: isSmallScreen,
+                  ),
+                  _buildServerStatusTile(
+                    context: context,
+                    icon: Icons.psychology,
+                    title: isArabic ? 'خادم التفكير التسلسلي' : 'Sequential Thinking Server',
+                    subtitle: isArabic ? 'متصل ويعمل بشكل طبيعي' : 'Connected and working normally',
+                    status: _ServerStatus.connected,
+                    isSmallScreen: isSmallScreen,
+                  ),
+                  _buildServerStatusTile(
+                    context: context,
+                    icon: Icons.extension,
+                    title: isArabic ? 'الخوادم المخصصة' : 'Custom Servers',
+                    subtitle: isArabic ? 'لا توجد خوادم مخصصة' : 'No custom servers available',
+                    status: _ServerStatus.warning,
+                    isSmallScreen: isSmallScreen,
+                  ),
+                ],
               ),
-              ListTile(
-                leading: Icon(Icons.psychology, color: Colors.green),
-                title: Text('خادم التفكير التسلسلي'),
-                subtitle: Text('متصل ويعمل بشكل طبيعي'),
-                trailing: Icon(Icons.check_circle, color: Colors.green),
-              ),
-              ListTile(
-                leading: Icon(Icons.extension, color: Colors.orange),
-                title: Text('الخوادم المخصصة'),
-                subtitle: Text('لا توجد خوادم مخصصة'),
-                trailing: Icon(Icons.info, color: Colors.orange),
-              ),
-            ],
+            ),
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
+          SizedBox(
+            width: isSmallScreen ? double.infinity : null,
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(isArabic ? 'إغلاق' : 'Close'),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildServerStatusTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required _ServerStatus status,
+    required bool isSmallScreen,
+  }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isExtraSmall = screenWidth < 360;
+    Color iconColor;
+    IconData statusIcon;
+    
+    switch (status) {
+      case _ServerStatus.connected:
+        iconColor = Colors.green;
+        statusIcon = Icons.check_circle;
+        break;
+      case _ServerStatus.warning:
+        iconColor = Colors.orange;
+        statusIcon = Icons.info;
+        break;
+      case _ServerStatus.error:
+        iconColor = Colors.red;
+        statusIcon = Icons.error;
+        break;
+    }
+
+    return Container(
+      margin: EdgeInsets.symmetric(
+        vertical: isExtraSmall ? 3.0 : (isSmallScreen ? 4.0 : 8.0),
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(isExtraSmall ? 8 : 12),
+        border: Border.all(
+          color: iconColor.withOpacity(0.3),
+          width: isExtraSmall ? 1 : 1.5,
+        ),
+        color: iconColor.withOpacity(0.05),
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isExtraSmall ? 8.0 : (isSmallScreen ? 12.0 : 16.0),
+          vertical: isExtraSmall ? 2.0 : (isSmallScreen ? 4.0 : 8.0),
+        ),
+        leading: Container(
+          padding: EdgeInsets.all(isExtraSmall ? 6 : 8),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(isExtraSmall ? 6 : 8),
+          ),
+          child: Icon(
+            icon, 
+            color: iconColor, 
+            size: isExtraSmall ? 16 : (isSmallScreen ? 20 : 24),
+          ),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: isExtraSmall ? 12 : (isSmallScreen ? 14 : 16),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: isExtraSmall ? null : Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: isSmallScreen ? 11 : 12,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: Icon(
+          statusIcon, 
+          color: iconColor,
+          size: isExtraSmall ? 16 : (isSmallScreen ? 18 : 20),
+        ),
+        dense: isExtraSmall,
       ),
     );
   }
 
   void _showAddCustomServerDialog(BuildContext context, SettingsProvider settings) {
-    final nameController = TextEditingController();
-    final commandController = TextEditingController();
-    final argsController = TextEditingController();
-
+    final jsonController = TextEditingController();
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isExtraSmall = screenWidth < 360;
+    final isSmallScreen = screenWidth < 600;
+    String? errorMessage;
+    bool isLoading = false;
+    
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة خادم MCP مخصص' : 'Add Custom MCP Server'),
-        content: SizedBox(
-          width: 400,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      barrierDismissible: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          titlePadding: EdgeInsets.all(isExtraSmall ? 12 : (isSmallScreen ? 16 : 20)),
+          title: Row(
             children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم الخادم',
-                  hintText: 'my-custom-server',
-                ),
+              Icon(
+                Icons.add_circle_outline,
+                color: Colors.green,
+                size: isExtraSmall ? 20 : 24,
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: commandController,
-                decoration: const InputDecoration(
-                  labelText: 'الأمر',
-                  hintText: 'npx',
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: argsController,
-                decoration: const InputDecoration(
-                  labelText: 'المعاملات (مفصولة بفواصل)',
-                  hintText: '-y, @my/mcp-server',
+              SizedBox(width: isExtraSmall ? 6 : 8),
+              Expanded(
+                child: Text(
+                  isArabic ? 'إضافة خادم MCP مخصص' : 'Add Custom MCP Server',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: isExtraSmall ? 16 : (isSmallScreen ? 18 : 20),
+                  ),
                 ),
               ),
             ],
           ),
+          contentPadding: EdgeInsets.fromLTRB(
+            isExtraSmall ? 12 : (isSmallScreen ? 16 : 20),
+            8,
+            isExtraSmall ? 12 : (isSmallScreen ? 16 : 20),
+            isExtraSmall ? 8 : 12,
+          ),
+          content: SizedBox(
+            width: isExtraSmall 
+              ? screenWidth * 0.95 
+              : ResponsiveHelper.getResponsiveValue(
+                  context,
+                  mobile: screenWidth * 0.9,
+                  tablet: 700.0,
+                  desktop: 800.0,
+                ),
+            height: screenHeight * (isExtraSmall ? 0.75 : 0.7),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                Text(
+                  isArabic 
+                    ? 'أدخل تكوين الخادم بصيغة JSON:' 
+                    : 'Enter server configuration in JSON format:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: isExtraSmall ? 13 : 14,
+                  ),
+                ),
+                SizedBox(height: isExtraSmall ? 6 : 8),
+                Container(
+                  constraints: BoxConstraints(
+                    maxHeight: isExtraSmall ? 200 : 250,
+                  ),
+                  child: TextField(
+                    controller: jsonController,
+                    textDirection: TextDirection.ltr,
+                    maxLines: null,
+                    expands: true,
+                    textAlignVertical: TextAlignVertical.top,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: isExtraSmall ? 12 : 14,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: isArabic 
+                        ? '''{
+  "name": "my-custom-server",
+  "command": "npx",
+  "args": ["-y", "@my/mcp-server"],
+  "env": {},
+  "disabled": false
+}''' 
+                        : '''{
+  "name": "my-custom-server",
+  "command": "npx",
+  "args": ["-y", "@my/mcp-server"],
+  "env": {},
+  "disabled": false
+}''',
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).hintColor.withOpacity(0.6),
+                        fontFamily: 'monospace',
+                        fontSize: isExtraSmall ? 10 : 12,
+                      ),
+                      hintTextDirection: TextDirection.ltr,
+                      border: const OutlineInputBorder(),
+                      contentPadding: EdgeInsets.all(isExtraSmall ? 12 : 16),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface,
+                      labelText: isExtraSmall 
+                        ? (isArabic ? 'JSON' : 'JSON Config')
+                        : (isArabic ? 'تكوين خادم MCP بصيغة JSON' : 'MCP Server Configuration JSON'),
+                      labelStyle: TextStyle(fontSize: isExtraSmall ? 12 : 14),
+                    ),
+                    onChanged: (value) {
+                      if (errorMessage != null) {
+                        setState(() {
+                          errorMessage = null;
+                        });
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (!isExtraSmall)
+                  Text(
+                    isArabic 
+                      ? 'تلميح: يمكنك نسخ النموذج أعلاه وتعديله حسب حاجتك' 
+                      : 'Tip: You can copy the template above and modify it as needed',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).hintColor,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                if (errorMessage != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            errorMessage!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                ],
+              ),
+            ),
+          ),
+          actionsPadding: EdgeInsets.fromLTRB(
+            isExtraSmall ? 12 : 16,
+            isExtraSmall ? 4 : 8,
+            isExtraSmall ? 12 : 16,
+            isExtraSmall ? 8 : 12,
+          ),
+          actions: isExtraSmall ? [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  child: Text(
+                    isArabic ? 'إلغاء' : 'Cancel',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ElevatedButton(
+                  onPressed: isLoading ? null : () async {
+                    final jsonText = jsonController.text.trim();
+                    if (jsonText.isEmpty) {
+                      setState(() {
+                        errorMessage = isArabic 
+                          ? 'يرجى إدخال تكوين JSON' 
+                          : 'Please enter JSON configuration';
+                      });
+                      return;
+                    }
+                    
+                    setState(() {
+                      isLoading = true;
+                      errorMessage = null;
+                    });
+                    
+                    try {
+                      final success = await _addServerFromJson(context, settings, jsonText, isArabic);
+                      if (success && context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isArabic 
+                                ? '✅ تمت إضافة الخادم بنجاح' 
+                                : '✅ Server added successfully'
+                            ),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      setState(() {
+                        errorMessage = e.toString();
+                      });
+                    } finally {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  child: isLoading
+                    ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Text(
+                        isArabic ? 'إضافة' : 'Add Server',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                ),
+              ],
+            ),
+          ] : [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(context),
+              child: Text(isArabic ? 'إلغاء' : 'Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isLoading ? null : () async {
+                final jsonText = jsonController.text.trim();
+                if (jsonText.isEmpty) {
+                  setState(() {
+                    errorMessage = isArabic 
+                      ? 'يرجى إدخال تكوين JSON' 
+                      : 'Please enter JSON configuration';
+                  });
+                  return;
+                }
+                
+                setState(() {
+                  isLoading = true;
+                  errorMessage = null;
+                });
+                
+                try {
+                  final success = await _addServerFromJson(context, settings, jsonText, isArabic);
+                  if (success && context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isArabic 
+                            ? '✅ تمت إضافة الخادم بنجاح' 
+                            : '✅ Server added successfully'
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  setState(() {
+                    errorMessage = e.toString();
+                  });
+                } finally {
+                  setState(() {
+                    isLoading = false;
+                  });
+                }
+              },
+              child: isLoading 
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                  )
+                : Text(isArabic ? 'إضافة الخادم' : 'Add Server'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (nameController.text.isNotEmpty && commandController.text.isNotEmpty) {
-                final args = argsController.text.split(',').map((e) => e.trim()).toList();
-                settings.addCustomMcpServer(
-                  nameController.text,
-                  commandController.text,
-                  args,
-                  {},
-                );
-                Navigator.pop(context);
-              }
-            },
-            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إضافة' : 'Add'),
-          ),
-        ],
       ),
     );
+  }
+  
+  Future<bool> _addServerFromJson(BuildContext context, SettingsProvider settings, String jsonText, bool isArabic) async {
+    try {
+      // التحقق من صحة JSON
+      final Map<String, dynamic> config = jsonDecode(jsonText);
+      
+      // التحقق من الحقول المطلوبة
+      if (!config.containsKey('name') || !config.containsKey('command')) {
+        throw Exception(
+          isArabic 
+            ? 'حقول مطلوبة مفقودة: name و command' 
+            : 'Required fields missing: name and command'
+        );
+      }
+      
+      final String name = config['name']?.toString() ?? '';
+      final String command = config['command']?.toString() ?? '';
+      
+      if (name.isEmpty || command.isEmpty) {
+        throw Exception(
+          isArabic 
+            ? 'name و command لا يمكن أن يكونا فارغين' 
+            : 'name and command cannot be empty'
+        );
+      }
+      
+      // تحويل args إلى قائمة
+      final List<String> args = [];
+      if (config.containsKey('args')) {
+        final argsValue = config['args'];
+        if (argsValue is List) {
+          args.addAll(argsValue.map((e) => e.toString()));
+        } else if (argsValue is String && argsValue.isNotEmpty) {
+          args.addAll(argsValue.split(',').map((e) => e.trim()));
+        }
+      }
+      
+      // تحويل env إلى Map
+      final Map<String, String> env = {};
+      if (config.containsKey('env') && config['env'] is Map) {
+        final envMap = config['env'] as Map<String, dynamic>;
+        env.addAll(envMap.map((key, value) => MapEntry(key, value.toString())));
+      }
+      
+      // محاولة إضافة الخادم فعلياً
+      settings.addCustomMcpServer(
+        name,
+        command,
+        args,
+        env,
+      );
+      
+      return true;
+    } on FormatException catch (e) {
+      throw Exception(
+        isArabic 
+          ? 'خطأ في تنسيق JSON: ${e.message}' 
+          : 'JSON format error: ${e.message}'
+      );
+    } catch (e) {
+      if (e.toString().contains('Required fields') || 
+          e.toString().contains('cannot be empty') ||
+          e.toString().contains('حقول مطلوبة') ||
+          e.toString().contains('لا يمكن أن يكونا فارغين')) {
+        rethrow;
+      }
+      throw Exception(
+        isArabic 
+          ? 'خطأ في إضافة الخادم: ${e.toString()}' 
+          : 'Error adding server: ${e.toString()}'
+      );
+    }
   }
 }
 
@@ -801,3 +1857,7 @@ class AppInfoSection extends StatelessWidget {
     );
   }
 }
+
+/// قسم النماذج المخصصة - Custom LLMs API
+/// يصدر CustomModelsSection من custom_models_section.dart
+/// مع دعم إضافة عدد لا محدود من النماذج وإمكانية تسميتها وحذفها

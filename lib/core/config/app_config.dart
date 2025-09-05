@@ -12,12 +12,14 @@ class AppConfig {
   static String get tavilyUrlApiPaired => dotenv.env['TAVILY_URL_API_PAIRED'] ?? '';
   static String get gptGodApiKey => dotenv.env['GPTGOD_API_KEY'] ?? '';
   static String get huggingFaceApiKey => dotenv.env['HUGGINGFACE_API_KEY'] ?? '';
+  static String get hfToken => dotenv.env['HF_TOKEN'] ?? ''; // Hugging Face Token
   static String get openRouterApiKey => dotenv.env['OPEN_ROUTER_API'] ?? '';
   static String get gptGodApiKey2 => dotenv.env['GPTGOD_API_KEY2'] ?? ''; // مفتاح احتياطي
 
   // API URLs
   static const String groqApiUrl = 'https://api.groq.com/openai/v1';
   static const String groqApiUrl2 = 'https://api.groq.com/openai/v1'; // URL احتياطي
+  static const String huggingFaceApiUrl = 'https://api-inference.huggingface.co'; // Hugging Face API URL
 
   // Default API Keys (هدية مؤقتة للمستخدمين الجدد من .env)
   static Map<String, String> get defaultApiKeys => {
@@ -25,6 +27,7 @@ class AppConfig {
     'gptgod': gptGodApiKey, // مفتاح مؤقت من .env
     'tavily': tavilyApiKey, // مفتاح مؤقت من .env
     'huggingface': huggingFaceApiKey, // مفتاح مؤقت من .env
+    'hf_token': hfToken, // Hugging Face Token من .env
     'openrouter': openRouterApiKey, // مفتاح OpenRouter من .env
   };
 
@@ -71,21 +74,57 @@ class AppConfig {
     'gptgod': [
       {
         'id': 'gpt-3.5-turbo',
-        'name': 'GPT-3.5 Turbo',
-        'description': 'نموذج OpenAI السريع والموثوق (مجاني)',
-        'features': ['مجاني', 'سريع', 'موثوق', 'مناسب للاستخدام العام'],
+        'name': 'GPT-3.5 Turbo (مجاني)',
+        'description': 'نموذج OpenAI للتوليد الذكي، أداء ممتاز للنصوص والمحادثة',
+        'features': ['مجاني', 'تكلفة منخفضة', 'أداء ممتاز', 'دعم API'],
         'speed': 'سريع جداً',
         'quality': 'جيد جداً',
         'context': '16K tokens',
+        'provider': 'OpenAI',
+        'requiresKey': true,
+        'parameters': '1.8B',
+        'isFree': true,
       },
       {
         'id': 'gpt-4o-mini',
-        'name': 'GPT-4o Mini',
-        'description': 'نموذج OpenAI مصغر ومجاني مع قدرات متقدمة',
-        'features': ['مجاني', 'سريع', 'ذكي', 'مناسب للمهام المتنوعة'],
+        'name': 'GPT-4o Mini (مجاني)',
+        'description': 'نسخة خفيفة من GPT-4o، أسرع وأقل تكلفة مع جودة عالية',
+        'features': ['مجاني', 'سريع', 'نسخة خفيفة', 'جودة عالية'],
         'speed': 'سريع جداً',
         'quality': 'ممتاز',
         'context': '128K tokens',
+        'provider': 'OpenAI',
+        'requiresKey': true,
+        'parameters': '3B',
+        'isFree': true,
+      },
+      {
+        'id': 'gpt-4o',
+        'name': 'GPT-4o (مجاني)',
+        'description': 'النموذج الأكثر تطوراً في GPT-4 مع دعم متعدد الوسائط',
+        'features': ['متقدم جداً', 'دعم الصور', 'دعم الصوت', 'أقصى جودة'],
+        'speed': 'سريع',
+        'quality': 'ممتاز جداً',
+        'context': '128K tokens',
+        'provider': 'OpenAI',
+        'requiresKey': true,
+        'parameters': '6B',
+        'isFree': true,
+        'modality': 'text + vision + audio',
+      },
+      {
+        'id': 'gpt-4o-vision',
+        'name': 'GPT-4o Vision (مجاني)',
+        'description': 'نموذج متخصص في معالجة الصور والرسوم المتحركة',
+        'features': ['تحليل الصور', 'معالجة بصرية', 'رسوم متحركة', 'تحليل متقدم'],
+        'speed': 'سريع',
+        'quality': 'ممتاز جداً',
+        'context': '128K tokens',
+        'provider': 'OpenAI',
+        'requiresKey': true,
+        'parameters': '6B',
+        'isFree': true,
+        'modality': 'text + vision',
       },
     ],
     'openrouter': [
@@ -262,6 +301,19 @@ class AppConfig {
         'context': '1K tokens',
         'provider': 'Microsoft',
         'requiresKey': true,
+      },
+      {
+        'id': 'black-forest-labs/FLUX.1-dev',
+        'name': 'FLUX.1-dev (Text-to-Image)',
+        'description': 'نموذج FLUX المتقدم لتوليد الصور من النص - جودة عالية ومتطور',
+        'features': ['توليد الصور', 'جودة عالية', 'سريع', 'مفتوح المصدر'],
+        'speed': 'سريع',
+        'quality': 'ممتاز جداً',
+        'context': 'Text-to-Image',
+        'provider': 'Black Forest Labs',
+        'requiresKey': true,
+        'type': 'image_generation',
+        'isFree': true,
       },
       {
         'id': 'Qwen/Qwen2-VL-7B-Instruct',

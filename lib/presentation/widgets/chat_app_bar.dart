@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/chat_selection_provider.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 /// شريط العلوي المخصص لصفحة المحادثة
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {

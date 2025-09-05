@@ -4,7 +4,6 @@ import '../providers/chat_selection_provider.dart';
 import '../../data/models/message_model.dart';
 import '../../core/utils/responsive_helper.dart';
 import '../../core/services/chat_export_service.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 class ChatExportDialog extends StatefulWidget {
   final List<MessageModel> messages;

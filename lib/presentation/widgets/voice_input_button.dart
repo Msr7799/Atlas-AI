@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import '../../core/services/speech_service.dart';
-import '../../generated/l10n/app_localizations.dart';
 
-/// زر إدخال الصوت مع تأثيرات بصرية متقدمة
+/// زر إدخال الصوت محسن نفس WhatsApp
 class VoiceInputButton extends StatefulWidget {
   final Function(String) onSpeechResult;
   final VoidCallback? onStartListening;
   final VoidCallback? onStopListening;
+  final VoidCallback? onDeleteRecording;
   final bool enabled;
   final Color? primaryColor;
   final Color? accentColor;
+  final bool putTextInInput; // وضع النص في input بدلاً من الإرسال
 
   const VoiceInputButton({
     super.key,
     required this.onSpeechResult,
     this.onStartListening,
     this.onStopListening,
+    this.onDeleteRecording,
     this.enabled = true,
     this.primaryColor,
     this.accentColor,
+    this.putTextInInput = true, // افتراضياً وضع النص في input
   });
 
   @override
@@ -34,9 +36,13 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
   bool _isListening = false;
   bool _isInitialized = false;
   String _currentText = '';
-  
+  bool _isSlideToCancel = false;
+  double _slideOffset = 0.0;
+  bool _canDelete = false;
+  // Animations
   late AnimationController _pulseController;
   late AnimationController _waveController;
+  late AnimationController _slideController;
   late Animation<double> _pulseAnimation;
   late Animation<double> _waveAnimation;
 
@@ -73,6 +79,12 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
       parent: _waveController,
       curve: Curves.easeInOut,
     ));
+
+    // Animation للسحب (slide to cancel)
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
   }
 
   Future<void> _initializeSpeechService() async {
@@ -155,8 +167,8 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
           _currentText = result;
         });
         
-        // إذا كانت النتيجة نهائية، أرسلها وأوقف الاستماع
-        if (result.isNotEmpty && !_speechService.isListening) {
+        // في وضع input، لا نرسل النتيجة تلقائياً
+        if (result.isNotEmpty && !_speechService.isListening && !widget.putTextInInput) {
           widget.onSpeechResult(result);
           _stopListening();
         }
@@ -179,18 +191,79 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
     // استدعاء callback
     widget.onStopListening?.call();
 
-    // إرسال النتيجة النهائية إذا وجدت
-    if (_currentText.isNotEmpty) {
+    // إرسال أو وضع النتيجة النهائية حسب الوضع
+    if (_currentText.isNotEmpty && !_isSlideToCancel) {
       widget.onSpeechResult(_currentText);
+    } else if (_isSlideToCancel) {
+      // تم الإلغاء
+      widget.onDeleteRecording?.call();
     }
+    
+    // إعادة تعيين الحالة
+    _isSlideToCancel = false;
+    _slideOffset = 0.0;
+    _canDelete = false;
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
     _waveController.dispose();
+    _slideController.dispose();
     _speechService.dispose();
     super.dispose();
+  }
+
+  void _handlePanUpdate(DragUpdateDetails details) {
+    if (!_isListening) return;
+
+    setState(() {
+      _slideOffset += details.delta.dx;
+      _slideOffset = _slideOffset.clamp(-200.0, 0.0);
+      _canDelete = _slideOffset < -100;
+      _isSlideToCancel = _canDelete;
+    });
+  }
+
+  void _handlePanEnd(DragEndDetails details) {
+    if (!_isListening) return;
+
+    if (_isSlideToCancel) {
+      // إلغاء التسجيل
+      _cancelRecording();
+    } else {
+      // العودة للموضع الأصلي
+      _slideController.reverse();
+      setState(() {
+        _slideOffset = 0.0;
+        _canDelete = false;
+      });
+    }
+  }
+
+  Future<void> _cancelRecording() async {
+    setState(() {
+      _isListening = false;
+      _isSlideToCancel = true;
+    });
+
+    _pulseController.stop();
+    _waveController.stop();
+    await _speechService.stopListening();
+    
+    widget.onDeleteRecording?.call();
+    
+    // إعادة تعيين الحالة
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _isSlideToCancel = false;
+          _slideOffset = 0.0;
+          _canDelete = false;
+          _currentText = '';
+        });
+      }
+    });
   }
 
   @override
@@ -201,19 +274,31 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
 
     return GestureDetector(
       onTap: _toggleListening,
-      onLongPress: _toggleListening,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: primaryColor.withOpacity(0.3),
-              blurRadius: 8,
-              spreadRadius: 2,
-            ),
-          ],
+      onPanUpdate: _handlePanUpdate,
+      onPanEnd: _handlePanEnd,
+      child: Transform.translate(
+        offset: Offset(_slideOffset, 0),
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: primaryColor.withOpacity(0.3),
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+              if (_canDelete)
+                BoxShadow(
+                  color: Colors.red.withOpacity(0.5),
+                  blurRadius: 12,
+                  spreadRadius: 3,
+                ),
+            
+                
+            ],
+          
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -236,15 +321,32 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
                     height: 56,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: _isListening
-                            ? [Colors.red.shade400, Colors.red.shade600]
-                            : _isInitialized
-                                ? [primaryColor, accentColor]
-                                : [Colors.grey.shade400, Colors.grey.shade600],
-                      ),
+                      gradient: _isSlideToCancel
+                          ? LinearGradient(
+                              colors: [
+                                Colors.red.withOpacity(0.9),
+                                Colors.red.withOpacity(0.7),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : _isListening
+                              ? LinearGradient(
+                                  colors: [
+                                    accentColor.withOpacity(0.9),
+                                    primaryColor.withOpacity(0.7),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                )
+                              : LinearGradient(
+                                  colors: [
+                                    primaryColor.withOpacity(0.8),
+                                    accentColor.withOpacity(0.6),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
                     ),
                     child: Icon(
                       _isListening ? Icons.mic : Icons.mic_none,
@@ -280,6 +382,7 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
               ),
           ],
         ),
+      ),
       ),
     );
   }

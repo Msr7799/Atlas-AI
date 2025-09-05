@@ -6,7 +6,6 @@ import '../providers/chat_provider.dart';
 import '../providers/theme_provider.dart';
 import '../../data/models/message_model.dart';
 import '../providers/chat_selection_provider.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 class ChatDrawer extends StatelessWidget {
   const ChatDrawer({super.key});
@@ -239,9 +238,8 @@ class ChatDrawer extends StatelessWidget {
             title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الإعدادات' : 'Settings'),
             onTap: () {
               Navigator.pop(context);
-              showDialog(
-                context: context,
-                builder: (context) => const SettingsDialog(),
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const SettingsDialog()),
               );
             },
           ),

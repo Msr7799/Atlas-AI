@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/services/prompt_enhancer_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/responsive_helper.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 class PromptEnhancementDialog extends StatefulWidget {
   final PromptEnhancementResult result;

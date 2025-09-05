@@ -42,7 +42,7 @@ class SpeechService {
     'ar-DZ': 'العربية (الجزائر)',
     'ar-LY': 'العربية (ليبيا)',
     'ar-SD': 'العربية (السودان)',
-    
+
     // الإنجليزية واللهجات
     'en-US': 'English (United States)',
     'en-GB': 'English (United Kingdom)',
@@ -54,7 +54,7 @@ class SpeechService {
     'en-ZA': 'English (South Africa)',
     'en-SG': 'English (Singapore)',
     'en-HK': 'English (Hong Kong)',
-    
+
     // لغات أخرى مفيدة
     'fr-FR': 'Français (France)',
     'de-DE': 'Deutsch (Deutschland)',
@@ -62,8 +62,8 @@ class SpeechService {
     'it-IT': 'Italiano (Italia)',
     'pt-BR': 'Português (Brasil)',
     'ru-RU': 'Русский (Россия)',
-    'zh-CN': '中文 (中国)',
-    'ja-JP': '日本語 (日本)',
+    'zh-CN': 'Chinese (China)',
+    'ja-JP': 'Japanese (Japan)',
     'ko-KR': '한국어 (대한민국)',
     'tr-TR': 'Türkçe (Türkiye)',
     'fa-IR': 'فارسی (ایران)',
@@ -77,7 +77,8 @@ class SpeechService {
   bool get ttsEnabled => _ttsEnabled;
   String get lastWords => _lastWords;
   String get currentLocale => _currentLocale;
-  Map<String, String> get supportedLocales => Map.unmodifiable(_supportedLocales);
+  Map<String, String> get supportedLocales =>
+      Map.unmodifiable(_supportedLocales);
 
   /// تهيئة خدمة الصوت
   Future<bool> initialize() async {
@@ -95,13 +96,17 @@ class SpeechService {
       _speechToText = stt.SpeechToText();
       _speechEnabled = await _speechToText.initialize(
         onStatus: (status) {
-          if (kDebugMode) print('[SPEECH_SERVICE] 📊 حالة التعرف على الصوت: $status');
+          if (kDebugMode) {
+            print('[SPEECH_SERVICE] 📊 حالة التعرف على الصوت: $status');
+          }
           if (status == 'notListening') {
             _isListening = false;
           }
         },
         onError: (error) {
-          if (kDebugMode) print('[SPEECH_SERVICE] ❌ خطأ في التعرف على الصوت: $error');
+          if (kDebugMode) {
+            print('[SPEECH_SERVICE] ❌ خطأ في التعرف على الصوت: $error');
+          }
           _isListening = false;
         },
       );
@@ -141,7 +146,9 @@ class SpeechService {
       });
 
       _flutterTts.setErrorHandler((msg) {
-        if (kDebugMode) print('[SPEECH_SERVICE] ❌ خطأ في تشغيل النص المنطوق: $msg');
+        if (kDebugMode) {
+          print('[SPEECH_SERVICE] ❌ خطأ في تشغيل النص المنطوق: $msg');
+        }
       });
     } catch (e) {
       if (kDebugMode) print('[SPEECH_SERVICE] ❌ فشل في إعداد TTS: $e');
@@ -152,25 +159,43 @@ class SpeechService {
   Future<void> _printAvailableLocales() async {
     try {
       final locales = await getAvailableLocales();
-      if (kDebugMode) print('[SPEECH_SERVICE] 🌍 اللغات المتاحة للتعرف على الصوت:');
-      
+      if (kDebugMode) {
+        print('[SPEECH_SERVICE] 🌍 اللغات المتاحة للتعرف على الصوت:');
+      }
+
       // فلترة اللغات العربية والإنجليزية
-      final arabicLocales = locales.where((l) => l.localeId.startsWith('ar')).toList();
-      final englishLocales = locales.where((l) => l.localeId.startsWith('en')).toList();
-      
-      if (kDebugMode) print('[SPEECH_SERVICE] 🇸🇦 اللغات العربية المتاحة: ${arabicLocales.length}');
+      final arabicLocales = locales
+          .where((l) => l.localeId.startsWith('ar'))
+          .toList();
+      final englishLocales = locales
+          .where((l) => l.localeId.startsWith('en'))
+          .toList();
+
+      if (kDebugMode) {
+        print(
+          '[SPEECH_SERVICE] 🇸🇦 اللغات العربية المتاحة: ${arabicLocales.length}',
+        );
+      }
       for (final locale in arabicLocales) {
         if (kDebugMode) print('  - ${locale.localeId}: ${locale.name}');
       }
-      
-      if (kDebugMode) print('[SPEECH_SERVICE] 🇺🇸 اللغات الإنجليزية المتاحة: ${englishLocales.length}');
+
+      if (kDebugMode) {
+        print(
+          '[SPEECH_SERVICE] 🇺🇸 اللغات الإنجليزية المتاحة: ${englishLocales.length}',
+        );
+      }
       for (final locale in englishLocales) {
         if (kDebugMode) print('  - ${locale.localeId}: ${locale.name}');
       }
-      
-      if (kDebugMode) print('[SPEECH_SERVICE] 🌐 إجمالي اللغات المتاحة: ${locales.length}');
+
+      if (kDebugMode) {
+        print('[SPEECH_SERVICE] 🌐 إجمالي اللغات المتاحة: ${locales.length}');
+      }
     } catch (e) {
-      if (kDebugMode) print('[SPEECH_SERVICE] ❌ فشل في الحصول على اللغات المتاحة: $e');
+      if (kDebugMode) {
+        print('[SPEECH_SERVICE] ❌ فشل في الحصول على اللغات المتاحة: $e');
+      }
     }
   }
 
@@ -178,20 +203,22 @@ class SpeechService {
   Future<bool> setLocale(String localeId) async {
     try {
       final availableLocales = await getAvailableLocales();
-      final isSupported = availableLocales.any((locale) => locale.localeId == localeId);
-      
+      final isSupported = availableLocales.any(
+        (locale) => locale.localeId == localeId,
+      );
+
       if (!isSupported) {
         if (kDebugMode) print('[SPEECH_SERVICE] ⚠️ اللغة $localeId غير مدعومة');
         return false;
       }
-      
+
       _currentLocale = localeId;
-      
+
       // تحديث TTS أيضاً
       if (_ttsEnabled) {
         await _flutterTts.setLanguage(localeId);
       }
-      
+
       if (kDebugMode) print('[SPEECH_SERVICE] ✅ تم تغيير اللغة إلى: $localeId');
       return true;
     } catch (e) {
@@ -203,17 +230,19 @@ class SpeechService {
   /// الكشف التلقائي عن اللغة من النص
   String detectLanguage(String text) {
     // تحقق من وجود أحرف عربية
-    final arabicRegex = RegExp(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]');
+    final arabicRegex = RegExp(
+      r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]',
+    );
     if (arabicRegex.hasMatch(text)) {
       return 'ar-SA'; // افتراضي للعربية السعودية
     }
-    
+
     // تحقق من وجود أحرف فارسية/أردو
     final persianRegex = RegExp(r'[\u06A9\u06AF\u06CC\u067E\u0686\u0698]');
     if (persianRegex.hasMatch(text)) {
       return text.contains('پ') || text.contains('ٹ') ? 'ur-PK' : 'fa-IR';
     }
-    
+
     // افتراضي للإنجليزية
     return 'en-US';
   }
@@ -226,7 +255,9 @@ class SpeechService {
     bool enableAlternatives = true,
   }) async {
     if (!_speechEnabled) {
-      if (kDebugMode) print('[SPEECH_SERVICE] ❌ خدمة التعرف على الصوت غير مفعلة');
+      if (kDebugMode) {
+        print('[SPEECH_SERVICE] ❌ خدمة التعرف على الصوت غير مفعلة');
+      }
       return;
     }
 
@@ -246,17 +277,23 @@ class SpeechService {
         onResult: (result) {
           _lastWords = result.recognizedWords;
           onResult(_lastWords);
-          
+
           if (result.finalResult) {
             _isListening = false;
-            if (kDebugMode) print('[SPEECH_SERVICE] ✅ انتهاء الاستماع: $_lastWords');
-            if (kDebugMode) print('[SPEECH_SERVICE] 📊 مستوى الثقة: ${result.confidence}');
-            
+            if (kDebugMode) {
+              print('[SPEECH_SERVICE] ✅ انتهاء الاستماع: $_lastWords');
+            }
+            if (kDebugMode) {
+              print('[SPEECH_SERVICE] 📊 مستوى الثقة: ${result.confidence}');
+            }
+
             // طباعة البدائل إذا كانت متاحة
             if (result.alternates.isNotEmpty) {
               if (kDebugMode) print('[SPEECH_SERVICE] 🔄 البدائل المقترحة:');
               for (var alt in result.alternates) {
-                if (kDebugMode) print('  - ${alt.recognizedWords} (ثقة: ${alt.confidence})');
+                if (kDebugMode) {
+                  print('  - ${alt.recognizedWords} (ثقة: ${alt.confidence})');
+                }
               }
             }
           }
@@ -270,7 +307,9 @@ class SpeechService {
         sampleRate: 16000, // معدل العينة الأمثل
       );
 
-      if (kDebugMode) print('[SPEECH_SERVICE] 🎤 بدء الاستماع المحسن باللغة: $targetLocale');
+      if (kDebugMode) {
+        print('[SPEECH_SERVICE] 🎤 بدء الاستماع المحسن باللغة: $targetLocale');
+      }
     } catch (e) {
       if (kDebugMode) print('[SPEECH_SERVICE] ❌ فشل في بدء الاستماع: $e');
       _isListening = false;
@@ -278,12 +317,13 @@ class SpeechService {
   }
 
   /// تحسين دقة التعرف بناءً على السياق
-  String enhanceRecognitionAccuracy(String recognizedText, {
+  String enhanceRecognitionAccuracy(
+    String recognizedText, {
     String? expectedLanguage,
     List<String>? contextWords,
   }) {
     String enhanced = recognizedText;
-    
+
     // تصحيح الأخطاء الشائعة في العربية
     final arabicCorrections = {
       'انا': 'أنا',
@@ -295,7 +335,7 @@ class SpeechService {
       'التى': 'التي',
       'اللى': 'التي',
     };
-    
+
     // تصحيح الأخطاء الشائعة في الإنجليزية
     final englishCorrections = {
       'ur': 'your',
@@ -305,7 +345,7 @@ class SpeechService {
       'wanna': 'want to',
       'gotta': 'got to',
     };
-    
+
     // تطبيق التصحيحات
     if (expectedLanguage?.startsWith('ar') == true) {
       arabicCorrections.forEach((wrong, correct) {
@@ -316,50 +356,60 @@ class SpeechService {
         enhanced = enhanced.replaceAll(wrong, correct);
       });
     }
-    
+
     // تحسين بناءً على الكلمات المتوقعة
     if (contextWords != null) {
       for (String contextWord in contextWords) {
-        // البحث عن كلمات مشابهة وتصحيحها
-        // يمكن تطوير هذا أكثر باستخدام خوارزميات المسافة
+        // تطبيع الكلمات المتوقعة (خاصة الإنجليزية) عبر استبدال مطابقات غير حساسة لحالة الأحرف
+        if (contextWord.isEmpty) continue;
+        if (expectedLanguage?.startsWith('en') == true) {
+          final pattern = RegExp('\\b${RegExp.escape(contextWord)}\\b', caseSensitive: false);
+          enhanced = enhanced.replaceAllMapped(pattern, (m) => contextWord);
+        }
       }
     }
-    
+
     return enhanced.trim();
   }
 
   /// اختبار دقة التعرف على الصوت
   Future<Map<String, dynamic>> testSpeechRecognitionAccuracy() async {
     final testResults = <String, dynamic>{};
-    
+
     try {
       // الحصول على اللغات المتاحة
       final availableLocales = await getAvailableLocales();
       testResults['available_locales'] = availableLocales.length;
-      testResults['arabic_locales'] = availableLocales.where((l) => l.localeId.startsWith('ar')).length;
-      testResults['english_locales'] = availableLocales.where((l) => l.localeId.startsWith('en')).length;
-      
+      testResults['arabic_locales'] = availableLocales
+          .where((l) => l.localeId.startsWith('ar'))
+          .length;
+      testResults['english_locales'] = availableLocales
+          .where((l) => l.localeId.startsWith('en'))
+          .length;
+
       // اختبار الميكروفون
-      testResults['microphone_available'] = await Permission.microphone.isGranted;
-      
+      testResults['microphone_available'] =
+          await Permission.microphone.isGranted;
+
       // اختبار تهيئة الخدمة
       testResults['speech_service_initialized'] = _speechEnabled;
       testResults['tts_service_initialized'] = _ttsEnabled;
-      
+
       // معلومات النظام
       testResults['current_locale'] = _currentLocale;
       testResults['supported_locales_count'] = _supportedLocales.length;
-      
-      if (kDebugMode) print('[SPEECH_SERVICE] 📊 نتائج اختبار دقة التعرف على الصوت:');
+
+      if (kDebugMode) {
+        print('[SPEECH_SERVICE] 📊 نتائج اختبار دقة التعرف على الصوت:');
+      }
       testResults.forEach((key, value) {
         if (kDebugMode) print('  $key: $value');
       });
-      
     } catch (e) {
       testResults['error'] = e.toString();
       if (kDebugMode) print('[SPEECH_SERVICE] ❌ خطأ في اختبار دقة التعرف: $e');
     }
-    
+
     return testResults;
   }
 
@@ -379,7 +429,9 @@ class SpeechService {
   /// تحويل النص إلى صوت
   Future<void> speak(String text) async {
     if (!_ttsEnabled) {
-      if (kDebugMode) print('[SPEECH_SERVICE] ❌ خدمة تحويل النص إلى صوت غير مفعلة');
+      if (kDebugMode) {
+        print('[SPEECH_SERVICE] ❌ خدمة تحويل النص إلى صوت غير مفعلة');
+      }
       return;
     }
 
@@ -388,10 +440,14 @@ class SpeechService {
     try {
       // إيقاف أي تشغيل سابق
       await _flutterTts.stop();
-      
+
       // تشغيل النص الجديد
       await _flutterTts.speak(text);
-      if (kDebugMode) print('[SPEECH_SERVICE] 🔊 تشغيل النص: ${text.substring(0, text.length > 50 ? 50 : text.length)}...');
+      if (kDebugMode) {
+        print(
+          '[SPEECH_SERVICE] 🔊 تشغيل النص: ${text.substring(0, text.length > 50 ? 50 : text.length)}...',
+        );
+      }
     } catch (e) {
       if (kDebugMode) print('[SPEECH_SERVICE] ❌ فشل في تشغيل النص: $e');
     }
@@ -400,7 +456,9 @@ class SpeechService {
   /// تحويل النص إلى صوت مع دعم اللغات المتعددة
   Future<void> speakWithLanguageSupport(String text, {String? localeId}) async {
     if (!_ttsEnabled) {
-      if (kDebugMode) print('[SPEECH_SERVICE] ❌ خدمة تحويل النص إلى صوت غير مفعلة');
+      if (kDebugMode) {
+        print('[SPEECH_SERVICE] ❌ خدمة تحويل النص إلى صوت غير مفعلة');
+      }
       return;
     }
 
@@ -409,19 +467,25 @@ class SpeechService {
     try {
       // إيقاف أي تشغيل سابق
       await _flutterTts.stop();
-      
+
       // تحديد اللغة المناسبة
       final targetLocale = localeId ?? detectLanguage(text);
-      
+
       // تغيير اللغة إذا لزم الأمر
       if (targetLocale != _currentLocale) {
         await _flutterTts.setLanguage(targetLocale);
-        if (kDebugMode) print('[SPEECH_SERVICE] 🔄 تم تغيير لغة TTS إلى: $targetLocale');
+        if (kDebugMode) {
+          print('[SPEECH_SERVICE] 🔄 تم تغيير لغة TTS إلى: $targetLocale');
+        }
       }
-      
+
       // تشغيل النص الجديد
       await _flutterTts.speak(text);
-      if (kDebugMode) print('[SPEECH_SERVICE] 🔊 تشغيل النص باللغة $targetLocale: ${text.substring(0, text.length > 50 ? 50 : text.length)}...');
+      if (kDebugMode) {
+        print(
+          '[SPEECH_SERVICE] 🔊 تشغيل النص باللغة $targetLocale: ${text.substring(0, text.length > 50 ? 50 : text.length)}...',
+        );
+      }
     } catch (e) {
       if (kDebugMode) print('[SPEECH_SERVICE] ❌ فشل في تشغيل النص: $e');
     }
@@ -440,11 +504,13 @@ class SpeechService {
   /// الحصول على اللغات المتاحة للتعرف على الصوت
   Future<List<stt.LocaleName>> getAvailableLocales() async {
     if (!_speechEnabled) return [];
-    
+
     try {
       return await _speechToText.locales();
     } catch (e) {
-      if (kDebugMode) print('[SPEECH_SERVICE] ❌ فشل في الحصول على اللغات المتاحة: $e');
+      if (kDebugMode) {
+        print('[SPEECH_SERVICE] ❌ فشل في الحصول على اللغات المتاحة: $e');
+      }
       return [];
     }
   }
@@ -452,9 +518,10 @@ class SpeechService {
   /// التحقق من توفر اللغة العربية
   Future<bool> isArabicSupported() async {
     final locales = await getAvailableLocales();
-    return locales.any((locale) => 
-      locale.localeId.startsWith('ar') || 
-      locale.name.toLowerCase().contains('arabic')
+    return locales.any(
+      (locale) =>
+          locale.localeId.startsWith('ar') ||
+          locale.name.toLowerCase().contains('arabic'),
     );
   }
 

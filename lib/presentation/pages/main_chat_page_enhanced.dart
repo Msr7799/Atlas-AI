@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import '../providers/chat_provider.dart';
 import '../providers/theme_provider.dart';
-import '../widgets/attachment_preview.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/enhanced/chat_app_bar.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,6 +14,8 @@ import '../../core/utils/performance_monitor.dart';
 import '../widgets/enhanced/chat_message_list.dart';
 import '../../core/services/permissions_manager.dart';
 import '../widgets/enhanced/chat_welcome_screen.dart';
+import '../../generated/l10n/app_localizations.dart';
+import '../../data/models/message_model.dart';
 
 // Core Services
 
@@ -40,13 +41,12 @@ class MainChatPageEnhanced extends StatefulWidget {
 
 class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     with TickerProviderStateMixin, PerformanceMonitoringMixin {
-  
   // Controllers - منظمة في مجموعة واحدة
   late final _ChatControllers _controllers;
-  
+
   // Animation Controllers - منظمة في مجموعة واحدة
   late final _ChatAnimations _animations;
-  
+
   // State Variables - منظمة في مجموعة واحدة
   late final _ChatState _chatState;
 
@@ -56,13 +56,13 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
   @override
   void initState() {
     super.initState();
-    
+
     // تسجيل الأحداث
     if (kDebugMode) {
       print('📱 MainChatPage initialized');
       print('🎯 Starting component initialization...');
     }
-    
+
     _initializeComponents();
     _setupInitialData();
   }
@@ -72,22 +72,22 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     if (kDebugMode) {
       print('🔧 Initializing components...');
     }
-    
+
     _controllers = _ChatControllers();
     _animations = _ChatAnimations(this);
     _chatState = _ChatState();
     _speechService = SpeechService();
-    
+
     if (kDebugMode) {
       print('✅ Controllers initialized');
       print('✅ Animations initialized');
       print('✅ Chat state initialized');
       print('✅ Speech service initialized');
     }
-    
+
     _controllers.initialize();
     _animations.initialize();
-    
+
     if (kDebugMode) {
       print('🎬 All components initialized successfully');
     }
@@ -98,13 +98,13 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     if (kDebugMode) {
       print('📊 Setting up initial data...');
     }
-    
+
     await Future.wait([
       _initializeSpeechService(),
       _requestInitialPermissions(),
       _loadInputHistory(),
     ]);
-    
+
     if (kDebugMode) {
       print('✅ Initial data setup completed');
     }
@@ -115,14 +115,14 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     if (kDebugMode) {
       print('🧹 Disposing MainChatPage...');
     }
-    
+
     _controllers.dispose();
     _animations.dispose();
-    
+
     if (kDebugMode) {
       print('✅ MainChatPage disposed successfully');
     }
-    
+
     super.dispose();
   }
 
@@ -167,7 +167,7 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
   /// بناء خلفية الصفحة
   BoxDecoration? _buildBackgroundDecoration(ThemeProvider themeProvider) {
     if (!themeProvider.hasCustomBackground) return null;
-    
+
     return BoxDecoration(
       image: DecorationImage(
         image: FileImage(themeProvider.getCustomBackgroundFile()!),
@@ -235,40 +235,12 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
 
   /// بناء منطقة الإدخال
   Widget _buildInputArea() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildAttachmentsPreview(),
-        ChatInputArea(
-          controllers: _controllers,
-          animations: _animations,
-          chatState: _chatState,
-          speechService: _speechService,
-          onSendMessage: _sendMessage,
-        ),
-      ],
-    );
-  }
-
-  /// بناء معاينة المرفقات
-  Widget _buildAttachmentsPreview() {
-    return Consumer<ChatProvider>(
-      builder: (context, chatProvider, child) {
-        if (chatProvider.attachments.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
-          child: AttachmentPreview(
-            attachments: chatProvider.attachments,
-            onRemove: chatProvider.removeAttachment,
-          ),
-        );
-      },
+    return ChatInputArea(
+      controllers: _controllers,
+      animations: _animations,
+      chatState: _chatState,
+      speechService: _speechService,
+      onSendMessage: _sendMessage,
     );
   }
 
@@ -279,7 +251,7 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     if (kDebugMode) {
       print('🎤 Initializing speech service...');
     }
-    
+
     try {
       final available = await _speechService.initialize();
       if (mounted) {
@@ -304,7 +276,7 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     if (kDebugMode) {
       print('🔐 Requesting initial permissions...');
     }
-    
+
     try {
       final permissionsManager = PermissionsManager();
       await permissionsManager.checkAndRequestAllPermissions(context);
@@ -326,7 +298,7 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     if (kDebugMode) {
       print('📚 Loading input history...');
     }
-    
+
     try {
       final chatProvider = context.read<ChatProvider>();
       final history = await chatProvider.getInputHistory();
@@ -347,68 +319,24 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     if (content.trim().isEmpty) return;
 
     if (kDebugMode) {
-      print('📤 Sending message: ${content.substring(0, content.length > 50 ? 50 : content.length)}...');
+      print(
+        '📤 Sending message: ${content.substring(0, content.length > 50 ? 50 : content.length)}...',
+      );
       if (attachedImages != null && attachedImages.isNotEmpty) {
-        print('📎 With ${attachedImages.length} attached images');
+        print('📎 With ${attachedImages.length} attached files');
       }
     }
 
     _chatState.resetHistory();
 
-    // إضافة الصور المرفقة إلى ChatProvider قبل إرسال الرسالة
+    // إضافة الملفات المرفقة إلى ChatProvider قبل الإرسال
+    final chatProvider = context.read<ChatProvider>();
     if (attachedImages != null && attachedImages.isNotEmpty) {
-      try {
-        // إظهار مؤشر تحميل
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 12),
-                  Text('جاري معالجة ${attachedImages.length} صورة...'),
-                ],
-              ),
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-
-        final chatProvider = context.read<ChatProvider>();
-        for (final image in attachedImages) {
-          await _addImageAttachment(chatProvider, image);
-        }
-
-        // إخفاء مؤشر التحميل
-        if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        }
-
-      } catch (e) {
-        if (kDebugMode) {
-          print('❌ Error processing images: $e');
-        }
-
-        // إخفاء مؤشر التحميل وإظهار رسالة خطأ
-        if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('خطأ في معالجة الصور: $e'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 5),
-            ),
-          );
-        }
-        return; // إيقاف الإرسال في حالة الخطأ
-      }
+      // معالجة الملفات بشكل متزامن لضمان وصولها قبل الإرسال
+      await _processAttachmentsSync(chatProvider, attachedImages);
     }
 
-    context.read<ChatProvider>().sendMessage(
+    chatProvider.sendMessage(
       content,
       settingsProvider: context.read<SettingsProvider>(),
     );
@@ -420,35 +348,45 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     }
   }
 
-  /// إضافة صورة كمرفق إلى ChatProvider
-  Future<void> _addImageAttachment(ChatProvider chatProvider, XFile image) async {
+  /// معالجة الملفات المرفقة بشكل متزامن
+  Future<void> _processAttachmentsSync(
+    ChatProvider chatProvider,
+    List<XFile> attachedImages,
+  ) async {
     try {
-      if (kDebugMode) {
-        print('🔄 Adding image attachment: ${image.name}');
-      }
+      for (final file in attachedImages) {
+        try {
+          await chatProvider.addImageAttachment(file);
+        } catch (e) {
+          print(
+            '⚠️ [ATTACHMENT] فشل في إضافة الملف كصورة، محاولة كملف عادي: $e',
+          );
+          // إنشاء AttachmentModel مباشرة للملفات النصية
+          final extension = file.name.split('.').last.toLowerCase();
+          int fileSize = 0;
+          try {
+            fileSize = await file.length();
+          } catch (sizeError) {
+            print('⚠️ [ATTACHMENT] خطأ في قراءة حجم الملف: $sizeError');
+            fileSize = 0;
+          }
 
-      await chatProvider.addImageAttachment(image);
-
-      if (kDebugMode) {
-        print('✅ Successfully added image attachment: ${image.name}');
+          final attachment = AttachmentModel(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            name: file.name,
+            path: file.path,
+            type: extension,
+            size: fileSize,
+            uploadedAt: DateTime.now(),
+          );
+          // إضافة المرفق بشكل آمن لتجنب Concurrent modification
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            chatProvider.attachments.add(attachment);
+          });
+        }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error adding image attachment: $e');
-      }
-
-      // إظهار رسالة خطأ للمستخدم
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('خطأ في إضافة الصورة: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
-
-      // لا نرمي الخطأ مرة أخرى لتجنب crash التطبيق
+      print('❌ [ATTACHMENT] خطأ عام في معالجة الملفات: $e');
     }
   }
 
@@ -457,7 +395,7 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
     if (kDebugMode) {
       print('📜 Scrolling to bottom...');
     }
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_controllers.scrollController.hasClients) {
         _controllers.scrollController.animateTo(
@@ -483,14 +421,14 @@ class _MainChatPageEnhancedState extends State<MainChatPageEnhanced>
       print('🔍 Details: $error');
       print('📍 Stack trace: ${StackTrace.current}');
     }
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
-            label: 'موافق',
+            label: AppLocalizations.of(context).ok,
             onPressed: () {},
           ),
         ),
@@ -512,12 +450,12 @@ class _ChatControllers {
     if (kDebugMode) {
       print('🎮 Initializing chat controllers...');
     }
-    
+
     messageController = TextEditingController();
     scrollController = ScrollController();
     textFieldFocusNode = FocusNode();
     scaffoldKey = GlobalKey<ScaffoldState>();
-    
+
     if (kDebugMode) {
       print('✅ Chat controllers initialized successfully');
     }
@@ -527,11 +465,11 @@ class _ChatControllers {
     if (kDebugMode) {
       print('🧹 Disposing chat controllers...');
     }
-    
+
     messageController.dispose();
     scrollController.dispose();
     textFieldFocusNode.dispose();
-    
+
     if (kDebugMode) {
       print('✅ Chat controllers disposed successfully');
     }
@@ -541,12 +479,12 @@ class _ChatControllers {
 /// كلاس لإدارة جميع الرسوم المتحركة
 class _ChatAnimations {
   final TickerProviderStateMixin _vsync;
-  
+
   late final AnimationController fadeController;
   late final AnimationController slideController;
   late final AnimationController glowController;
   late final AnimationController waveController;
-  
+
   late final Animation<double> fadeAnimation;
   late final Animation<Offset> slideAnimation;
   late final Animation<double> waveAnimation;
@@ -557,18 +495,18 @@ class _ChatAnimations {
     if (kDebugMode) {
       print('🎬 Initializing chat animations...');
     }
-    
+
     // Animation Controllers
     fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: _vsync,
     );
-    
+
     slideController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: _vsync,
     );
-    
+
     glowController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: _vsync,
@@ -581,33 +519,24 @@ class _ChatAnimations {
 
     // Animations
     fadeAnimation = Tween<double>(
-      begin: 0.0, 
+      begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: fadeController, 
-      curve: Curves.easeInOut,
-    ));
+    ).animate(CurvedAnimation(parent: fadeController, curve: Curves.easeInOut));
 
-    slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3), 
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: slideController, 
-      curve: Curves.elasticOut,
-    ));
+    slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: slideController, curve: Curves.elasticOut),
+        );
 
     waveAnimation = Tween<double>(
-      begin: 0.0, 
+      begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: waveController, 
-      curve: Curves.easeInOut,
-    ));
+    ).animate(CurvedAnimation(parent: waveController, curve: Curves.easeInOut));
 
     // Start animations
     fadeController.forward();
     slideController.forward();
-    
+
     if (kDebugMode) {
       print('✅ Chat animations initialized successfully');
     }
@@ -617,12 +546,12 @@ class _ChatAnimations {
     if (kDebugMode) {
       print('🧹 Disposing chat animations...');
     }
-    
+
     fadeController.dispose();
     slideController.dispose();
     glowController.dispose();
     waveController.dispose();
-    
+
     if (kDebugMode) {
       print('✅ Chat animations disposed successfully');
     }
@@ -646,14 +575,12 @@ class _ChatState {
 
   // Setters
   void setHistoryIndex(int index) {
-    if (kDebugMode) {
-      print('📊 Setting history index: $index');
-    }
     _historyIndex = index;
   }
 
   String? getNextHistoryItem() {
-    if (_messageHistory.isEmpty || _historyIndex >= _messageHistory.length - 1) {
+    if (_messageHistory.isEmpty ||
+        _historyIndex >= _messageHistory.length - 1) {
       if (kDebugMode) {
         print('⚠️ No next history item available');
       }
@@ -686,7 +613,7 @@ class _ChatState {
     }
     _isListening = listening;
   }
-  
+
   void setSpeechEnabled(bool enabled) {
     if (kDebugMode) {
       print('🔊 Setting speech enabled: $enabled');
@@ -717,23 +644,17 @@ class _ModelInfoBar extends StatelessWidget {
   final String selectedModel;
   final _ChatAnimations animations;
 
-  const _ModelInfoBar({
-    required this.selectedModel,
-    required this.animations,
-  });
+  const _ModelInfoBar({required this.selectedModel, required this.animations});
 
   @override
   Widget build(BuildContext context) {
     if (kDebugMode) {
       print('🏷️ Building model info bar for: $selectedModel');
     }
-    
+
     return Container(
       margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16, 
-        vertical: 1,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
       decoration: _buildDecoration(context),
       child: Row(
         children: [
@@ -793,7 +714,9 @@ class _ModelInfoBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'النموذج النشط',
+            Localizations.localeOf(context).languageCode == 'ar'
+                ? 'النموذج النشط'
+                : 'Active Model',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,

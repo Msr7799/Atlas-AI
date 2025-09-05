@@ -5,8 +5,7 @@ import '../providers/language_provider.dart';
 import '../providers/settings_provider.dart';
 import '../../core/services/api_key_manager.dart';
 import 'settings/settings_sections.dart';
-import 'settings/api_keys_section.dart';
-import '../../generated/l10n/app_localizations.dart';
+import 'settings/custom_models_section.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/utils/responsive_helper.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -48,79 +47,59 @@ class _SettingsDialogState extends State<SettingsDialog>
     super.dispose();
   }
 
+  // Handle language change with proper feedback
+  void _handleLanguageChange(Locale? value, LanguageProvider languageProvider, 
+      ThemeProvider themeProvider, BuildContext context) async {
+    if (value != null) {
+      await languageProvider.changeLanguage(value);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              value.languageCode == 'ar' 
+                ? 'تم تغيير اللغة إلى العربية' 
+                : 'Language changed to English',
+              style: TextStyle(fontFamily: themeProvider.fontFamily),
+            ),
+            backgroundColor: themeProvider.accentColor,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ResponsiveBuilder(
       builder: (context, constraints, deviceType) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              ResponsiveHelper.getResponsiveWidth(
-                context,
-                mobile: 12,
-                tablet: 16,
-                desktop: 20,
-              ),
-            ),
-          ),
-          child: SizedBox(
-            width: ResponsiveHelper.getResponsiveConstraints(
-              context,
-              mobile: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.95,
-                maxHeight: MediaQuery.of(context).size.height * 0.9,
-              ),
-              tablet: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.8,
-                maxHeight: MediaQuery.of(context).size.height * 0.85,
-              ),
-              desktop: BoxConstraints(
-                maxWidth: 1200,
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-              ),
-            ).maxWidth,
-            height: ResponsiveHelper.getResponsiveConstraints(
-              context,
-              mobile: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.95,
-                maxHeight: MediaQuery.of(context).size.height * 0.9,
-              ),
-              tablet: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.8,
-                maxHeight: MediaQuery.of(context).size.height * 0.85,
-              ),
-              desktop: BoxConstraints(
-                maxWidth: 1200,
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-              ),
-            ).maxHeight,
-            child: Consumer3<ThemeProvider, SettingsProvider, LanguageProvider>(
-              builder: (context, themeProvider, settingsProvider, languageProvider, child) {
-                return Column(
-                  children: [
-                    // Header
-                    _buildEnhancedHeader(context, themeProvider),
-                    const Divider(height: 1),
+        return Scaffold(
+          body: Consumer3<ThemeProvider, SettingsProvider, LanguageProvider>(
+            builder: (context, themeProvider, settingsProvider, languageProvider, child) {
+              return Column(
+                children: [
+                  // Header
+                  _buildEnhancedHeader(context, themeProvider),
+                  const Divider(height: 1),
 
-                    // Enhanced Tabs
-                    _buildEnhancedTabs(context, themeProvider),
+                  // Enhanced Tabs
+                  _buildEnhancedTabs(context, themeProvider),
 
-                    // Tab Content
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildAISettingsTab(context, settingsProvider, themeProvider),
-                          _buildAppearanceTab(context, themeProvider, languageProvider),
-                          _buildAdvancedOptionsTab(context, settingsProvider, themeProvider),
-                          _buildAboutTab(deviceType),
-                        ],
-                      ),
+                  // Tab Content
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildAISettingsTab(context, settingsProvider, themeProvider),
+                        _buildAppearanceTab(context, themeProvider, languageProvider),
+                        _buildAdvancedOptionsTab(context, settingsProvider, themeProvider),
+                        _buildAboutTab(deviceType),
+                      ],
                     ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ],
+              );
+            },
           ),
         );
       },
@@ -129,7 +108,12 @@ class _SettingsDialogState extends State<SettingsDialog>
 
   Widget _buildEnhancedHeader(BuildContext context, ThemeProvider themeProvider) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 8,
+        left: 20,
+        right: 20,
+        bottom: 20,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -139,13 +123,15 @@ class _SettingsDialogState extends State<SettingsDialog>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(12),
-          topRight: Radius.circular(12),
-        ),
       ),
       child: Row(
         children: [
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'العودة' : 'Back',
+          ),
+          const SizedBox(width: 8),
           Icon(
             Icons.settings,
             color: Colors.white,
@@ -162,11 +148,6 @@ class _SettingsDialogState extends State<SettingsDialog>
                 fontFamily: themeProvider.fontFamily,
               ),
             ),
-          ),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, color: Colors.white),
-            tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إغلاق' : 'Close',
           ),
         ],
       ),
@@ -201,20 +182,16 @@ class _SettingsDialogState extends State<SettingsDialog>
         ),
         tabs: [
           Tab(
-            icon: Icon(Icons.psychology, size: 20),
-            text: Localizations.localeOf(context).languageCode == 'ar' ? 'الذكاء الاصطناعي' : 'AI',
+            icon: Icon(Icons.psychology, size: 24),
           ),
           Tab(
-            icon: Icon(Icons.palette, size: 20),
-            text: Localizations.localeOf(context).languageCode == 'ar' ? 'المظهر' : 'Appearance',
+            icon: Icon(Icons.palette, size: 24),
           ),
           Tab(
-            icon: Icon(Icons.tune, size: 20),
-            text: Localizations.localeOf(context).languageCode == 'ar' ? 'خيارات متقدمة' : 'Advanced Options',
+            icon: Icon(Icons.tune, size: 24),
           ),
           Tab(
-            icon: Icon(Icons.info_outline, size: 20),
-            text: Localizations.localeOf(context).languageCode == 'ar' ? 'حول التطبيق' : 'About',
+            icon: Icon(Icons.info_outline, size: 24),
           ),
         ],
       ),
@@ -230,6 +207,8 @@ class _SettingsDialogState extends State<SettingsDialog>
           // استخدام الأقسام المحدثة
           ModelSettingsSection(),
           SizedBox(height: 16),
+          CustomModelsSection(),
+          SizedBox(height: 16),
           McpServersSection(),
           SizedBox(height: 16),
           AdvancedSettingsSection(),
@@ -241,95 +220,8 @@ class _SettingsDialogState extends State<SettingsDialog>
 
 
 
-  // الحصول على اسم الخدمة للعرض
-  String _getServiceDisplayName(String serviceName) {
-    switch (serviceName) {
-      case 'groq':
-        return 'Groq';
-      case 'gptgod':
-        return 'GPTGod';
-      case 'openrouter':
-        return 'OpenRouter';
-      case 'huggingface':
-        return 'HuggingFace';
-      case 'tavily':
-        return 'Tavily';
-      case 'localai':
-        return 'LocalAI/Ollama';
-      default:
-        return serviceName;
-    }
-  }
 
-  // عرض حوار إدارة مفاتيح API
-  void _showApiKeysDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          width: 500,
-          height: 600,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.key, color: Colors.blue),
-                  const SizedBox(width: 8),
-                  Text(
-                    Localizations.localeOf(context).languageCode == 'ar' ? 'إدارة مفاتيح API' : 'Manage API Keys',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const Divider(),
-              const Expanded(
-                child: ApiKeysSection(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  // تأكيد حذف مفتاح API
-  void _confirmDeleteApiKey(BuildContext context, String serviceName, ThemeProvider themeProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'),
-        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'هل تريد حذف مفتاح ${_getServiceDisplayName(serviceName)}؟' : 'Do you want to delete the ${_getServiceDisplayName(serviceName)} key?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              await ApiKeyManager.clearApiKey(serviceName);
-              Navigator.pop(context);
-              setState(() {}); // تحديث الواجهة
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم حذف مفتاح ${_getServiceDisplayName(serviceName)}' : '${_getServiceDisplayName(serviceName)} key deleted'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حذف' : 'Delete'),
-          ),
-        ],
-      ),
-    );
-  }
 
   // تأكيد مسح جميع مفاتيح API
   void _confirmClearAllApiKeys(BuildContext context, ThemeProvider themeProvider) {
@@ -453,88 +345,384 @@ class _SettingsDialogState extends State<SettingsDialog>
           ),
           const SizedBox(height: 16),
 
-          // Language Selection
+          // Language Selection - Responsive
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: ResponsiveHelper.getResponsivePadding(
+                context,
+                mobile: const EdgeInsets.all(12),
+                tablet: const EdgeInsets.all(16),
+                desktop: const EdgeInsets.all(20),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     Localizations.localeOf(context).languageCode == 'ar' ? '🌐 اللغة' : '🌐 Language',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: ResponsiveHelper.getResponsiveFontSize(
+                        context,
+                        mobile: 14,
+                        tablet: 16,
+                        desktop: 18,
+                      ),
                       fontWeight: FontWeight.bold,
                       fontFamily: themeProvider.fontFamily,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile<Locale>(
-                          title: Text(
-                            Localizations.localeOf(context).languageCode == 'ar' ? 'العربية' : 'Arabic',
-                            style: TextStyle(fontFamily: themeProvider.fontFamily),
+                  SizedBox(height: ResponsiveHelper.getResponsiveHeight(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  )),
+                  
+                  // Responsive Language Selection Layout
+                  ResponsiveHelper.buildResponsiveLayout(
+                    context,
+                    mobile: Column(
+                      children: [
+                        // Arabic Option - Mobile
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: languageProvider.currentLocale.languageCode == 'ar' 
+                                ? themeProvider.accentColor 
+                                : Colors.grey.shade300,
+                              width: languageProvider.currentLocale.languageCode == 'ar' ? 2 : 1,
+                            ),
+                            color: languageProvider.currentLocale.languageCode == 'ar' 
+                              ? themeProvider.accentColor.withOpacity(0.1) 
+                              : null,
                           ),
-                          value: const Locale('ar'),
-                          groupValue: languageProvider.currentLocale,
-                          onChanged: (value) async {
-                            if (value != null) {
-                              await languageProvider.changeLanguage(value);
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      Localizations.localeOf(context).languageCode == 'ar' ? 'تم تغيير اللغة إلى العربية' : 'Language changed to Arabic',
-                                      style: TextStyle(fontFamily: themeProvider.fontFamily),
-                                    ),
-                                    backgroundColor: themeProvider.accentColor,
-                                    duration: const Duration(seconds: 2),
+                          child: RadioListTile<Locale>(
+                            title: Row(
+                              children: [
+                                Text(
+                                  'العربية',
+                                  style: TextStyle(
+                                    fontFamily: themeProvider.fontFamily,
+                                    fontSize: 14,
+                                    fontWeight: languageProvider.currentLocale.languageCode == 'ar' 
+                                      ? FontWeight.bold 
+                                      : FontWeight.normal,
                                   ),
-                                );
-                              }
-                            }
-                          },
-                          activeColor: themeProvider.accentColor,
-                        ),
-                      ),
-                      Expanded(
-                        child: RadioListTile<Locale>(
-                          title: Text(
-                            Localizations.localeOf(context).languageCode == 'ar' ? 'الإنجليزية' : 'English',
-                            style: TextStyle(fontFamily: themeProvider.fontFamily),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Arabic',
+                                  style: TextStyle(
+                                    fontFamily: themeProvider.fontFamily,
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            value: const Locale('ar'),
+                            groupValue: languageProvider.currentLocale,
+                            onChanged: (value) => _handleLanguageChange(value, languageProvider, themeProvider, context),
+                            activeColor: themeProvider.accentColor,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
-                          value: const Locale('en'),
-                          groupValue: languageProvider.currentLocale,
-                          onChanged: (value) async {
-                            if (value != null) {
-                              await languageProvider.changeLanguage(value);
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Language changed to English',
-                                      style: TextStyle(fontFamily: themeProvider.fontFamily),
-                                    ),
-                                    backgroundColor: themeProvider.accentColor,
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          activeColor: themeProvider.accentColor,
                         ),
-                      ),
-                    ],
+                        
+                        // English Option - Mobile
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: languageProvider.currentLocale.languageCode == 'en' 
+                                ? themeProvider.accentColor 
+                                : Colors.grey.shade300,
+                              width: languageProvider.currentLocale.languageCode == 'en' ? 2 : 1,
+                            ),
+                            color: languageProvider.currentLocale.languageCode == 'en' 
+                              ? themeProvider.accentColor.withOpacity(0.1) 
+                              : null,
+                          ),
+                          child: RadioListTile<Locale>(
+                            title: Row(
+                              children: [
+                                Text(
+                                  'English',
+                                  style: TextStyle(
+                                    fontFamily: themeProvider.fontFamily,
+                                    fontSize: 14,
+                                    fontWeight: languageProvider.currentLocale.languageCode == 'en' 
+                                      ? FontWeight.bold 
+                                      : FontWeight.normal,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'الإنجليزية',
+                                  style: TextStyle(
+                                    fontFamily: themeProvider.fontFamily,
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            value: const Locale('en'),
+                            groupValue: languageProvider.currentLocale,
+                            onChanged: (value) => _handleLanguageChange(value, languageProvider, themeProvider, context),
+                            activeColor: themeProvider.accentColor,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                        ),
+                      ],
+                    ),
+                    tablet: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: languageProvider.currentLocale.languageCode == 'ar' 
+                                  ? themeProvider.accentColor 
+                                  : Colors.grey.shade300,
+                                width: languageProvider.currentLocale.languageCode == 'ar' ? 2 : 1,
+                              ),
+                              color: languageProvider.currentLocale.languageCode == 'ar' 
+                                ? themeProvider.accentColor.withOpacity(0.1) 
+                                : null,
+                            ),
+                            child: RadioListTile<Locale>(
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'العربية',
+                                    style: TextStyle(
+                                      fontFamily: themeProvider.fontFamily,
+                                      fontSize: 15,
+                                      fontWeight: languageProvider.currentLocale.languageCode == 'ar' 
+                                        ? FontWeight.bold 
+                                        : FontWeight.normal,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Arabic',
+                                    style: TextStyle(
+                                      fontFamily: themeProvider.fontFamily,
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              value: const Locale('ar'),
+                              groupValue: languageProvider.currentLocale,
+                              onChanged: (value) => _handleLanguageChange(value, languageProvider, themeProvider, context),
+                              activeColor: themeProvider.accentColor,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: languageProvider.currentLocale.languageCode == 'en' 
+                                  ? themeProvider.accentColor 
+                                  : Colors.grey.shade300,
+                                width: languageProvider.currentLocale.languageCode == 'en' ? 2 : 1,
+                              ),
+                              color: languageProvider.currentLocale.languageCode == 'en' 
+                                ? themeProvider.accentColor.withOpacity(0.1) 
+                                : null,
+                            ),
+                            child: RadioListTile<Locale>(
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'English',
+                                    style: TextStyle(
+                                      fontFamily: themeProvider.fontFamily,
+                                      fontSize: 15,
+                                      fontWeight: languageProvider.currentLocale.languageCode == 'en' 
+                                        ? FontWeight.bold 
+                                        : FontWeight.normal,
+                                    ),
+                                  ),
+                                  Text(
+                                    'الإنجليزية',
+                                    style: TextStyle(
+                                      fontFamily: themeProvider.fontFamily,
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              value: const Locale('en'),
+                              groupValue: languageProvider.currentLocale,
+                              onChanged: (value) => _handleLanguageChange(value, languageProvider, themeProvider, context),
+                              activeColor: themeProvider.accentColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    desktop: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: languageProvider.currentLocale.languageCode == 'ar' 
+                                  ? themeProvider.accentColor 
+                                  : Colors.grey.shade300,
+                                width: languageProvider.currentLocale.languageCode == 'ar' ? 3 : 1,
+                              ),
+                              color: languageProvider.currentLocale.languageCode == 'ar' 
+                                ? themeProvider.accentColor.withOpacity(0.1) 
+                                : null,
+                              boxShadow: languageProvider.currentLocale.languageCode == 'ar' 
+                                ? [BoxShadow(
+                                    color: themeProvider.accentColor.withOpacity(0.2),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  )]
+                                : null,
+                            ),
+                            child: InkWell(
+                              onTap: () => _handleLanguageChange(const Locale('ar'), languageProvider, themeProvider, context),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Column(
+                                children: [
+                                  Radio<Locale>(
+                                    value: const Locale('ar'),
+                                    groupValue: languageProvider.currentLocale,
+                                    onChanged: (value) => _handleLanguageChange(value, languageProvider, themeProvider, context),
+                                    activeColor: themeProvider.accentColor,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'العربية',
+                                    style: TextStyle(
+                                      fontFamily: themeProvider.fontFamily,
+                                      fontSize: 16,
+                                      fontWeight: languageProvider.currentLocale.languageCode == 'ar' 
+                                        ? FontWeight.bold 
+                                        : FontWeight.normal,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Arabic',
+                                    style: TextStyle(
+                                      fontFamily: themeProvider.fontFamily,
+                                      fontSize: 13,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.only(left: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: languageProvider.currentLocale.languageCode == 'en' 
+                                  ? themeProvider.accentColor 
+                                  : Colors.grey.shade300,
+                                width: languageProvider.currentLocale.languageCode == 'en' ? 3 : 1,
+                              ),
+                              color: languageProvider.currentLocale.languageCode == 'en' 
+                                ? themeProvider.accentColor.withOpacity(0.1) 
+                                : null,
+                              boxShadow: languageProvider.currentLocale.languageCode == 'en' 
+                                ? [BoxShadow(
+                                    color: themeProvider.accentColor.withOpacity(0.2),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  )]
+                                : null,
+                            ),
+                            child: InkWell(
+                              onTap: () => _handleLanguageChange(const Locale('en'), languageProvider, themeProvider, context),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Column(
+                                children: [
+                                  Radio<Locale>(
+                                    value: const Locale('en'),
+                                    groupValue: languageProvider.currentLocale,
+                                    onChanged: (value) => _handleLanguageChange(value, languageProvider, themeProvider, context),
+                                    activeColor: themeProvider.accentColor,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'English',
+                                    style: TextStyle(
+                                      fontFamily: themeProvider.fontFamily,
+                                      fontSize: 16,
+                                      fontWeight: languageProvider.currentLocale.languageCode == 'en' 
+                                        ? FontWeight.bold 
+                                        : FontWeight.normal,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'الإنجليزية',
+                                    style: TextStyle(
+                                      fontFamily: themeProvider.fontFamily,
+                                      fontSize: 13,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  
+                  SizedBox(height: ResponsiveHelper.getResponsiveHeight(
+                    context,
+                    mobile: 8,
+                    tablet: 12,
+                    desktop: 16,
+                  )),
+                  
+                  // Info Container - Responsive
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: ResponsiveHelper.getResponsivePadding(
+                      context,
+                      mobile: const EdgeInsets.all(8),
+                      tablet: const EdgeInsets.all(10),
+                      desktop: const EdgeInsets.all(12),
+                    ),
                     decoration: BoxDecoration(
                       color: themeProvider.accentColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(
+                        ResponsiveHelper.getResponsiveWidth(
+                          context,
+                          mobile: 8,
+                          tablet: 10,
+                          desktop: 12,
+                        ),
+                      ),
                       border: Border.all(
                         color: themeProvider.accentColor.withOpacity(0.3),
                       ),
@@ -543,17 +731,32 @@ class _SettingsDialogState extends State<SettingsDialog>
                       children: [
                         Icon(
                           Icons.info_outline,
-                          size: 16,
+                          size: ResponsiveHelper.getResponsiveIconSize(
+                            context,
+                            mobile: 16,
+                            tablet: 18,
+                            desktop: 20,
+                          ),
                           color: themeProvider.accentColor,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: ResponsiveHelper.getResponsiveWidth(
+                          context,
+                          mobile: 8,
+                          tablet: 10,
+                          desktop: 12,
+                        )),
                         Expanded(
                           child: Text(
                             languageProvider.currentLocale.languageCode == 'ar' 
                               ? 'قد تحتاج لإعادة تشغيل التطبيق لتطبيق تغييرات اللغة بالكامل'
                               : 'You may need to restart the app to fully apply language changes',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                                context,
+                                mobile: 11,
+                                tablet: 12,
+                                desktop: 13,
+                              ),
                               color: themeProvider.accentColor,
                               fontFamily: themeProvider.fontFamily,
                             ),
@@ -601,7 +804,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                           onPressed: () => _showColorPicker(context, themeProvider),
                           icon: const Icon(Icons.palette),
                           label: Text(
-                            'اختيار لون جديد',
+                            Localizations.localeOf(context).languageCode == 'ar' ? 'اختيار لون جديد' : 'Choose New Color',
                             style: TextStyle(fontFamily: themeProvider.fontFamily),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -635,7 +838,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '🔤 الخط المستخدم',
+                    Localizations.localeOf(context).languageCode == 'ar' ? '🔤 الخط المستخدم' : '🔤 Font Family',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -675,7 +878,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '📏 حجم الخط',
+                    Localizations.localeOf(context).languageCode == 'ar' ? '📏 حجم الخط' : '📏 Font Size',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -686,7 +889,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                   Row(
                     children: [
                       Text(
-                        'صغير',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'صغير' : 'Small',
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: themeProvider.fontFamily,
@@ -703,7 +906,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                         ),
                       ),
                       Text(
-                        'كبير',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'كبير' : 'Large',
                         style: TextStyle(
                           fontSize: 16,
                           fontFamily: themeProvider.fontFamily,
@@ -721,7 +924,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                         border: Border.all(color: Colors.grey.shade300),
                       ),
                       child: Text(
-                        'نموذج للنص بالحجم المحدد (${themeProvider.fontSize.toInt()})',
+                        Localizations.localeOf(context).languageCode == 'ar' ? 'نموذج للنص بالحجم المحدد (${themeProvider.fontSize.toInt()})' : 'Text sample with selected size (${themeProvider.fontSize.toInt()})',
                         style: TextStyle(
                           fontSize: themeProvider.fontSize,
                           fontFamily: themeProvider.fontFamily,
@@ -748,7 +951,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '🖼️ الخلفية المخصصة',
+                    Localizations.localeOf(context).languageCode == 'ar' ? '🖼️ الخلفية المخصصة' : '🖼️ Custom Background',
                     style: TextStyle(
                       fontSize: ResponsiveHelper.getResponsiveFontSize(
                         context,
@@ -1209,7 +1412,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '🎬 إعدادات الحركة والانيميشن',
+                    Localizations.localeOf(context).languageCode == 'ar' ? '🎬 إعدادات الحركة والانيميشن' : '🎬 Animation Settings',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1220,11 +1423,11 @@ class _SettingsDialogState extends State<SettingsDialog>
                   ListTile(
                     leading: Icon(Icons.animation),
                     title: Text(
-                      'إعدادات الحركة',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'إعدادات الحركة' : 'Animation Settings',
                       style: TextStyle(fontFamily: themeProvider.fontFamily),
                     ),
                     subtitle: Text(
-                      'قريباً - سيتم إضافة المزيد من إعدادات الحركة',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'قريباً - سيتم إضافة المزيد من إعدادات الحركة' : 'Coming soon - More animation settings will be added',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -1246,7 +1449,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '⚡ إعدادات الأداء',
+                    Localizations.localeOf(context).languageCode == 'ar' ? '⚡ إعدادات الأداء' : '⚡ Performance Settings',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1256,11 +1459,11 @@ class _SettingsDialogState extends State<SettingsDialog>
                   const SizedBox(height: 12),
                   SwitchListTile(
                     title: Text(
-                      'البحث على الويب',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'البحث على الويب' : 'Web Search',
                       style: TextStyle(fontFamily: themeProvider.fontFamily),
                     ),
                     subtitle: Text(
-                      'تفعيل البحث على الإنترنت للحصول على معلومات محدثة',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'تفعيل البحث على الإنترنت للحصول على معلومات محدثة' : 'Enable internet search for updated information',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -1273,11 +1476,11 @@ class _SettingsDialogState extends State<SettingsDialog>
                   ),
                   SwitchListTile(
                     title: Text(
-                      'الاستجابة المباشرة',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'الاستجابة المباشرة' : 'Streaming Response',
                       style: TextStyle(fontFamily: themeProvider.fontFamily),
                     ),
                     subtitle: Text(
-                      'إظهار الاستجابة أثناء الكتابة (أسرع)',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'إظهار الاستجابة أثناء الكتابة (أسرع)' : 'Show response while typing (faster)',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -1290,11 +1493,11 @@ class _SettingsDialogState extends State<SettingsDialog>
                   ),
                   SwitchListTile(
                     title: Text(
-                      'المعالجة التلقائية للنص',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'المعالجة التلقائية للنص' : 'Auto Text Processing',
                       style: TextStyle(fontFamily: themeProvider.fontFamily),
                     ),
                     subtitle: Text(
-                      'تحسين تنسيق النص تلقائياً (Markdown، قوائم، أكواد)',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'تحسين تنسيق النص تلقائياً (Markdown، قوائم، أكواد)' : 'Automatically improve text formatting (Markdown, lists, code)',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -1319,7 +1522,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '🔧 خيارات المطور',
+                    Localizations.localeOf(context).languageCode == 'ar' ? '🔧 خيارات المطور' : '🔧 Developer Options',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1329,11 +1532,11 @@ class _SettingsDialogState extends State<SettingsDialog>
                   const SizedBox(height: 12),
                   SwitchListTile(
                     title: Text(
-                      'خوادم MCP',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'خوادم MCP' : 'MCP Servers',
                       style: TextStyle(fontFamily: themeProvider.fontFamily),
                     ),
                     subtitle: Text(
-                      'تفعيل خوادم Model Context Protocol',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'تفعيل خوادم Model Context Protocol' : 'Enable Model Context Protocol servers',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -1358,7 +1561,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'خوادم MCP المتاحة:',
+                            Localizations.localeOf(context).languageCode == 'ar' ? 'خوادم MCP المتاحة:' : 'Available MCP Servers:',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontFamily: themeProvider.fontFamily,
@@ -1401,7 +1604,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                             onPressed: () => _showDebugInfo(context, themeProvider),
                             icon: const Icon(Icons.bug_report),
                             label: Text(
-                              'معلومات التشخيص',
+                              Localizations.localeOf(context).languageCode == 'ar' ? 'معلومات التشخيص' : 'Debug Info',
                               style: TextStyle(fontFamily: themeProvider.fontFamily),
                             ),
                             style: ElevatedButton.styleFrom(
@@ -1432,107 +1635,6 @@ class _SettingsDialogState extends State<SettingsDialog>
           ),
           const SizedBox(height: 16),
 
-          // API Keys Management
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '🔑 إدارة مفاتيح API',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: themeProvider.fontFamily,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // عرض حالة المفاتيح
-                  FutureBuilder<Map<String, Map<String, dynamic>>>(
-                    future: ApiKeyManager.getKeysStatus(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final keysStatus = snapshot.data!;
-                      return Column(
-                        children: [
-                          ...keysStatus.entries.map((entry) {
-                            final serviceName = entry.key;
-                            final status = entry.value;
-                            final hasKey = status['hasKey'] as bool;
-                            final isValid = status['isValid'] as bool;
-
-                            return ListTile(
-                              leading: Icon(
-                                hasKey ? (isValid ? Icons.check_circle : Icons.error) : Icons.key_off,
-                                color: hasKey ? (isValid ? Colors.green : Colors.red) : Colors.grey,
-                              ),
-                              title: Text(
-                                _getServiceDisplayName(serviceName),
-                                style: TextStyle(fontFamily: themeProvider.fontFamily),
-                              ),
-                              subtitle: Text(
-                                hasKey ? (isValid ? 'مفتاح صالح' : 'مفتاح غير صالح') : 'لا يوجد مفتاح',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: hasKey ? (isValid ? Colors.green : Colors.red) : Colors.grey,
-                                  fontFamily: themeProvider.fontFamily,
-                                ),
-                              ),
-                              trailing: hasKey ? IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _confirmDeleteApiKey(context, serviceName, themeProvider),
-                              ) : null,
-                            );
-                          }),
-
-                          const SizedBox(height: 12),
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () => _showApiKeysDialog(context),
-                                  icon: const Icon(Icons.edit),
-                                  label: Text(
-                                    'تحرير مفاتيح API',
-                                    style: TextStyle(fontFamily: themeProvider.fontFamily),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: themeProvider.accentColor,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              ElevatedButton.icon(
-                                onPressed: () => _confirmClearAllApiKeys(context, themeProvider),
-                                icon: const Icon(Icons.clear_all),
-                                label: Text(
-                                  'مسح الكل',
-                                  style: TextStyle(fontFamily: themeProvider.fontFamily),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
           // Reset Settings
           Card(
             child: Padding(
@@ -1541,7 +1643,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '🔄 إعادة تعيين',
+                    Localizations.localeOf(context).languageCode == 'ar' ? '🔄 إعادة تعيين' : '🔄 Reset Settings',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1553,7 +1655,7 @@ class _SettingsDialogState extends State<SettingsDialog>
                     onPressed: () => _showResetDialog(context, settingsProvider, themeProvider),
                     icon: const Icon(Icons.restore),
                     label: Text(
-                      'إعادة تعيين جميع الإعدادات',
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة تعيين جميع الإعدادات' : 'Reset All Settings',
                       style: TextStyle(fontFamily: themeProvider.fontFamily),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -1613,21 +1715,12 @@ class _SettingsDialogState extends State<SettingsDialog>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          'تأكيد إعادة التعيين',
-          style: TextStyle(fontFamily: themeProvider.fontFamily),
-        ),
-        content: Text(
-          'هل أنت متأكد من رغبتك في إعادة تعيين جميع الإعدادات إلى القيم الافتراضية؟ لا يمكن التراجع عن هذا الإجراء.',
-          style: TextStyle(fontFamily: themeProvider.fontFamily),
-        ),
+        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تأكيد إعادة التعيين' : 'Confirm Reset'),
+        content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'هل أنت متأكد من رغبتك في إعادة تعيين جميع الإعدادات إلى القيم الافتراضية؟ لا يمكن التراجع عن هذا الإجراء.' : 'Are you sure you want to reset all settings to their default values? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'إلغاء',
-              style: TextStyle(fontFamily: themeProvider.fontFamily),
-            ),
+            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1645,7 +1738,7 @@ class _SettingsDialogState extends State<SettingsDialog>
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    'تم إعادة تعيين الإعدادات بنجاح',
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'تم إعادة تعيين الإعدادات بنجاح' : 'Settings reset successfully',
                     style: TextStyle(fontFamily: themeProvider.fontFamily),
                   ),
                 ),
@@ -1664,6 +1757,7 @@ class _SettingsDialogState extends State<SettingsDialog>
       ),
     );
   }
+
 
   Widget _buildAboutTab(DeviceType deviceType) {
     return SingleChildScrollView(
@@ -1769,7 +1863,7 @@ class _SettingsDialogState extends State<SettingsDialog>
 
           // Version
           Text(
-            'الإصدار 1.0.0',
+            Localizations.localeOf(context).languageCode == 'ar' ? 'الإصدار 1.0.0' : 'Version 1.0.0',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               fontSize: ResponsiveHelper.getResponsiveFontSize(
@@ -1792,7 +1886,7 @@ class _SettingsDialogState extends State<SettingsDialog>
 
           // Description
           Text(
-            'مساعد ذكي يدعم اللغة العربية مع إمكانيات تدريب متقدمة للنماذج',
+            Localizations.localeOf(context).languageCode == 'ar' ? 'مساعد ذكي يدعم اللغة العربية مع إمكانيات تدريب متقدمة للنماذج' : 'Smart assistant supporting Arabic language with advanced model training capabilities',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: ResponsiveHelper.getResponsiveFontSize(
                 context,
@@ -1815,7 +1909,7 @@ class _SettingsDialogState extends State<SettingsDialog>
 
           // Developer Info
           _buildInfoCard(
-            'المطور',
+            Localizations.localeOf(context).languageCode == 'ar' ? 'المطور' : 'Developer',
             'Mohamed S AL-Romaihi',
             Icons.person,
             deviceType,
@@ -1832,7 +1926,7 @@ class _SettingsDialogState extends State<SettingsDialog>
 
           // Contact Info
           _buildInfoCard(
-            'الإبلاغ عن المشاكل',
+            Localizations.localeOf(context).languageCode == 'ar' ? 'الإبلاغ عن المشاكل' : 'Report Issues',
             'alromaihi2224@gmail.com',
             Icons.bug_report,
             deviceType,
@@ -1862,7 +1956,7 @@ class _SettingsDialogState extends State<SettingsDialog>
 
           // Copyright
           Text(
-            '© 2025 Atlas AI\nجميع الحقوق محفوظة',
+            Localizations.localeOf(context).languageCode == 'ar' ? '© 2025 Atlas AI\nجميع الحقوق محفوظة' : '© 2025 Atlas AI\nAll rights reserved',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               fontSize: ResponsiveHelper.getResponsiveFontSize(
@@ -1996,7 +2090,7 @@ class _SettingsDialogState extends State<SettingsDialog>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '✨ المميزات الرئيسية',
+              Localizations.localeOf(context).languageCode == 'ar' ? '✨ المميزات الرئيسية' : '✨ Key Features',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 fontSize: ResponsiveHelper.getResponsiveFontSize(
@@ -2015,14 +2109,14 @@ class _SettingsDialogState extends State<SettingsDialog>
                 desktop: 20,
               ),
             ),
-            _buildFeatureItem('🤖', 'دعم نماذج AI متعددة (GPT, Llama, Mixtral)', deviceType),
-            _buildFeatureItem('🌙', 'وضع ليلي ونهاري', deviceType),
-            _buildFeatureItem('🎨', 'تخصيص الألوان والخطوط', deviceType),
-            _buildFeatureItem('💾', 'حفظ المحادثات تلقائياً', deviceType),
-            _buildFeatureItem('⚡', 'أداء سريع ومحسّن', deviceType),
-            _buildFeatureItem('🔒', 'حماية وأمان البيانات', deviceType),
-            _buildFeatureItem('🎯', 'تدريب النماذج المحلية', deviceType),
-            _buildFeatureItem('🌍', 'دعم متعدد اللغات', deviceType),
+            _buildFeatureItem('🤖', Localizations.localeOf(context).languageCode == 'ar' ? 'دعم نماذج AI متعددة (GPT, Llama, Mixtral)' : 'Multiple AI models support (GPT, Llama, Mixtral)', deviceType),
+            _buildFeatureItem('🌙', Localizations.localeOf(context).languageCode == 'ar' ? 'وضع ليلي ونهاري' : 'Dark and light mode', deviceType),
+            _buildFeatureItem('🎨', Localizations.localeOf(context).languageCode == 'ar' ? 'تخصيص الألوان والخطوط' : 'Colors and fonts customization', deviceType),
+            _buildFeatureItem('💾', Localizations.localeOf(context).languageCode == 'ar' ? 'حفظ المحادثات تلقائياً' : 'Automatic conversation saving', deviceType),
+            _buildFeatureItem('⚡', Localizations.localeOf(context).languageCode == 'ar' ? 'أداء سريع ومحسّن' : 'Fast and optimized performance', deviceType),
+            _buildFeatureItem('🔒', Localizations.localeOf(context).languageCode == 'ar' ? 'حماية وأمان البيانات' : 'Data protection and security', deviceType),
+            _buildFeatureItem('🎯', Localizations.localeOf(context).languageCode == 'ar' ? 'تدريب النماذج المحلية' : 'Local model training', deviceType),
+            _buildFeatureItem('🌍', Localizations.localeOf(context).languageCode == 'ar' ? 'دعم متعدد اللغات' : 'Multi-language support', deviceType),
           ],
         ),
       ),

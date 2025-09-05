@@ -9,7 +9,6 @@ import '../../providers/theme_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../providers/chat_selection_provider.dart';
 import '../../pages/advanced_model_training_page.dart';
-import '../../../generated/l10n/app_localizations.dart';
 
 /// شريط التطبيق المحسن للمحادثة
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -359,7 +358,9 @@ class _SettingsAction extends StatelessWidget {
   }
 
   void _showSettingsDialog(BuildContext context) {
-    showDialog(context: context, builder: (context) => const SettingsDialog());
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const SettingsDialog()),
+    );
   }
 }
 

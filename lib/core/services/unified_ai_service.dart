@@ -4,8 +4,10 @@ import 'api_key_manager.dart';
 import 'package:flutter/foundation.dart';
 import '../../data/models/message_model.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../config/app_config.dart';
+import 'custom_models_manager.dart';
 
-/// خدمة AI موحدة تدمج جميع مقدمي الخدمة
+/// خدمة AI موحدة مع معالجة أخطاء محسنة وتبديل تلقائي بين الخدمات
 class UnifiedAIService {
   static final UnifiedAIService _instance = UnifiedAIService._internal();
   factory UnifiedAIService() => _instance;
@@ -14,6 +16,17 @@ class UnifiedAIService {
   Dio? _dio;
   String _lastUsedService = '';
   String _lastUsedModel = '';
+  
+  // تتبع حالة الخدمات
+  final Map<String, bool> _serviceHealth = {
+    'groq': true,
+    'gptgod': true,
+    'openrouter': true,
+    'huggingface': true,
+  };
+  
+  // تتبع أخطاء الخدمات لتجنب التكرار
+  final Map<String, DateTime> _serviceErrors = {};
 
   // مفاتيح API
   String _groqApiKey = '';
@@ -22,45 +35,42 @@ class UnifiedAIService {
   String _gptgodApiKey2 = '';
   String _openRouterApiKey = '';
   String _huggingfaceApiKey = '';
+  String _hfToken = '';
   String _tavilyApiKey = '';
 
   // Getters
   String get lastUsedService => _lastUsedService;
   String get lastUsedModel => _lastUsedModel;
+  Map<String, bool> get serviceHealth => Map.from(_serviceHealth);
 
   // تهيئة الخدمة
   Future<void> initialize() async {
-    if (_dio != null) return; // منع التهيئة المتكررة
+    if (_dio != null) return;
 
-    // تحميل مفاتيح API من .env و ApiKeyManager
     await _loadApiKeys();
 
-    _dio = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 120),
-      headers: {'Content-Type': 'application/json'},
-    ));
+    _dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 120),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    );
 
     if (kDebugMode) {
-      _dio!.interceptors.add(LogInterceptor(
-        requestBody: false,
-        responseBody: false,
-        logPrint: (obj) => debugPrint('[AI_SERVICE] $obj'),
-      ));
+      _dio!.interceptors.add(
+        LogInterceptor(
+          requestBody: false,
+          responseBody: false,
+          logPrint: (obj) => debugPrint('[AI_SERVICE] $obj'),
+        ),
+      );
     }
 
     print('✅ [UNIFIED_AI] تم تهيئة الخدمة الموحدة');
-    if (kDebugMode) {
-      print('🔑 [UNIFIED_AI] Keys Status:');
-      print('  - Groq: ${_groqApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
-      print('  - GPTGod: ${_gptgodApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
-      print('  - OpenRouter: ${_openRouterApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
-      print('  - HuggingFace: ${_huggingfaceApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
-      print('  - Tavily: ${_tavilyApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
-    }
+    _logServiceStatus();
   }
 
-  // تحميل مفاتيح API
   Future<void> _loadApiKeys() async {
     try {
       // تحميل من .env أولاً
@@ -69,7 +79,7 @@ class UnifiedAIService {
       _gptgodApiKey = dotenv.env['GPTGOD_API_KEY'] ?? '';
       _gptgodApiKey2 = dotenv.env['GPTGOD_API_KEY2'] ?? '';
       _openRouterApiKey = dotenv.env['OPEN_ROUTER_API'] ?? '';
-      _huggingfaceApiKey = dotenv.env['HUGGINGFACE_API_KEY'] ?? '';
+      _hfToken = dotenv.env['HF_TOKEN'] ?? '';
       _tavilyApiKey = dotenv.env['TAVILY_API_KEY'] ?? '';
 
       // إذا لم توجد في .env، جرب ApiKeyManager
@@ -85,6 +95,9 @@ class UnifiedAIService {
       if (_huggingfaceApiKey.isEmpty) {
         _huggingfaceApiKey = await ApiKeyManager.getApiKey('huggingface');
       }
+      if (_hfToken.isEmpty) {
+        _hfToken = await ApiKeyManager.getApiKey('hf_token');
+      }
       if (_tavilyApiKey.isEmpty) {
         _tavilyApiKey = await ApiKeyManager.getApiKey('tavily');
       }
@@ -99,7 +112,18 @@ class UnifiedAIService {
     }
   }
 
-  // إرسال رسالة مع اختيار أفضل خدمة تلقائياً
+  void _logServiceStatus() {
+    if (kDebugMode) {
+      print('🔑 [UNIFIED_AI] Keys Status:');
+      print('  - Groq: ${_groqApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
+      print('  - GPTGod: ${_gptgodApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
+      print('  - OpenRouter: ${_openRouterApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
+      print('  - HuggingFace: ${_huggingfaceApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
+      print('  - Tavily: ${_tavilyApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
+    }
+  }
+
+  // إرسال رسالة مع معالجة أخطاء محسنة وتبديل تلقائي
   Future<String> sendMessage({
     required List<MessageModel> messages,
     required String model,
@@ -107,89 +131,466 @@ class UnifiedAIService {
     int? maxTokens,
     String? systemPrompt,
     bool? enableAutoFormatting,
+    List<String>? attachedFiles,
   }) async {
-    try {
-      final service = _determineService(model);
-      _lastUsedService = service;
-      _lastUsedModel = model;
-
-      print('🚀 [UNIFIED_AI] استخدام خدمة: $service للنموذج: $model');
-
-      switch (service) {
-        case 'groq':
-          return await _sendToGroq(
-            messages: messages,
-            model: model,
-            temperature: temperature,
-            maxTokens: maxTokens,
-            systemPrompt: systemPrompt,
-          );
-        case 'openrouter':
-          return await _sendToOpenRouter(
-            messages: messages,
-            model: model,
-            temperature: temperature,
-            maxTokens: maxTokens,
-            systemPrompt: systemPrompt,
-          );
-        case 'gptgod':
-          return await _sendToGPTGod(
-            messages: messages,
-            model: model,
-            temperature: temperature,
-            maxTokens: maxTokens,
-            systemPrompt: systemPrompt,
-          );
-        case 'huggingface':
-          return await _sendToHuggingFace(
-            messages: messages,
-            model: model,
-            temperature: temperature,
-            maxTokens: maxTokens,
-            systemPrompt: systemPrompt,
-          );
-        default:
-          throw Exception('خدمة غير مدعومة: $service');
+    // منع إرسال نماذج توليد الصور كطلبات محادثة
+    if (_isImageGenerationModel(model)) {
+      throw Exception(
+        'نموذج "$model" مخصص لتوليد الصور وليس للمحادثة. استخدم generateImage() بدلاً من ذلك.'
+      );
+    }
+    
+    String? lastError;
+    
+    // قائمة الخدمات المرتبة حسب الأولوية للنموذج المحدد
+    final servicesForModel = _getServicesForModel(model);
+    
+    for (final service in servicesForModel) {
+      // تخطي الخدمة إذا كانت معطلة مؤقتاً
+      if (!_isServiceHealthy(service)) {
+        print('⚠️ [UNIFIED_AI] تخطي خدمة $service (معطلة مؤقتاً)');
+        continue;
       }
-    } catch (e) {
-      print('❌ [UNIFIED_AI] خطأ في الإرسال: $e');
+
+      try {
+        _lastUsedService = service;
+        _lastUsedModel = model;
+
+        print('🚀 [UNIFIED_AI] محاولة استخدام خدمة: $service للنموذج: $model');
+
+        String response;
+        switch (service) {
+          case 'groq':
+            response = await _sendToGroq(
+              messages: messages,
+              model: model,
+              temperature: temperature,
+              maxTokens: maxTokens,
+              systemPrompt: systemPrompt,
+            );
+            break;
+          case 'openrouter':
+            response = await _sendToOpenRouter(
+              messages: messages,
+              model: model,
+              temperature: temperature,
+              maxTokens: maxTokens,
+              systemPrompt: systemPrompt,
+              attachedFiles: attachedFiles,
+            );
+            break;
+          case 'gptgod':
+            response = await _sendToGPTGod(
+              messages: messages,
+              model: model,
+              temperature: temperature ?? 0.7,
+              maxTokens: maxTokens ?? 1024,
+              systemPrompt: systemPrompt,
+              attachedFiles: attachedFiles?.cast<String>(),
+            );
+            break;
+          case 'huggingface':
+            response = await _sendToHuggingFace(
+              messages: messages,
+              model: model,
+              temperature: temperature,
+              maxTokens: maxTokens,
+              systemPrompt: systemPrompt,
+            );
+            break;
+          case 'Custom':
+            response = await _sendToCustomModel(
+              messages: messages,
+              model: model,
+              temperature: temperature,
+              maxTokens: maxTokens,
+              systemPrompt: systemPrompt,
+              attachedFiles: attachedFiles,
+            );
+            break;
+          default:
+            throw Exception('خدمة غير مدعومة: $service');
+        }
+
+        // إذا نجح الطلب، أعد تعيين حالة الخدمة للصحة
+        _markServiceHealthy(service);
+        
+        print('✅ [UNIFIED_AI] نجح الإرسال عبر: $service');
+        return response;
+
+      } catch (e) {
+        lastError = e.toString();
+        print('❌ [UNIFIED_AI] فشل في خدمة $service: $e');
+        
+        // تحديد نوع الخطأ
+        if (_isTemporaryError(e)) {
+          _markServiceUnhealthy(service);
+          print('⚠️ [UNIFIED_AI] تم تعطيل $service مؤقتاً');
+        } else if (_isPermanentError(e)) {
+          print('🚫 [UNIFIED_AI] خطأ دائم في $service - لا يمكن التبديل');
+          // للأخطاء الدائمة (مثل مفتاح API خاطئ)، لا نجرب خدمات أخرى
+          break;
+        }
+        
+        // استمر في المحاولة مع الخدمة التالية
+        continue;
+      }
+    }
+
+    // إذا فشلت جميع الخدمات
+    throw Exception('فشل في جميع الخدمات المتاحة. آخر خطأ: ${lastError ?? "غير معروف"}');
+  }
+
+  // تحديد الخدمات المناسبة للنموذج - نظام مرن وقابل للتوسع
+  List<String> _getServicesForModel(String model) {
+    print('🔍 [UNIFIED_AI] تحديد الخدمات للنموذج: $model');
+    
+    // أولاً: النماذج المخصصة لها الأولوية المطلقة
+    final customModels = CustomModelsManager.instance.customModels;
+    final customModelIndex = customModels.indexWhere((config) => config.name == model);
+    
+    if (customModelIndex != -1) {
+      final customModel = customModels[customModelIndex];
+      print('✅ [UNIFIED_AI] نموذج مخصص موجود: ${customModel.name}');
+      return ['Custom']; // النماذج المخصصة تستخدم تكوينها الخاص حصرياً
+    }
+
+    // ثانياً: البحث في AppConfig عن النموذج
+    final modelConfig = _findModelInAppConfig(model);
+    if (modelConfig != null) {
+      final services = _getServicesForModelType(modelConfig);
+      print('✅ [UNIFIED_AI] نموذج معروف في AppConfig: $model -> خدمات: $services');
+      return services;
+    }
+
+    // ثالثاً: ترتيب افتراضي للنماذج غير المعروفة (مرن وقابل للتعديل)
+    final defaultServices = _getDefaultServiceOrder();
+    print('⚠️ [UNIFIED_AI] نموذج غير معروف: $model -> خدمات افتراضية: $defaultServices');
+    return defaultServices;
+  }
+
+  // ترتيب الخدمات الافتراضي - قابل للتخصيص
+  List<String> _getDefaultServiceOrder() {
+    return ['groq', 'gptgod', 'openrouter', 'huggingface'];
+  }
+
+  // البحث عن النموذج في AppConfig
+  Map<String, dynamic>? _findModelInAppConfig(String modelId) {
+    for (final serviceModels in AppConfig.freeModels.values) {
+      for (final model in serviceModels) {
+        if (model['id'] == modelId) {
+          return model;
+        }
+      }
+    }
+    return null;
+  }
+
+  // تحديد الخدمات حسب نوع النموذج - نظام مرن بدون أسماء مُرمزة
+  List<String> _getServicesForModelType(Map<String, dynamic> modelConfig) {
+    final features = List<String>.from(modelConfig['features'] ?? []);
+    final provider = modelConfig['provider']?.toString().toLowerCase() ?? '';
+    final preferredServices = List<String>.from(modelConfig['preferredServices'] ?? []);
+    
+    // إذا كان النموذج يحدد خدمات مفضلة في التكوين، استخدمها
+    if (preferredServices.isNotEmpty) {
+      print('📋 [UNIFIED_AI] استخدام خدمات مفضلة من التكوين: $preferredServices');
+      return _validateAndOrderServices(preferredServices);
+    }
+    
+    // نظام ذكي لترتيب الخدمات حسب الميزات والمزود
+    final orderedServices = <String>[];
+    
+    // للنماذج البصرية، أولوية للخدمات التي تدعم الرؤية
+    if (features.contains('vision')) {
+      orderedServices.addAll(_getVisionCapableServices());
+    }
+    
+    // ترتيب حسب المزود بطريقة مرنة
+    orderedServices.addAll(_getServicesForProvider(provider));
+    
+    // إضافة باقي الخدمات المتاحة
+    orderedServices.addAll(_getAllAvailableServices());
+    
+    // إزالة التكرارات والحفاظ على الترتيب
+    final uniqueServices = orderedServices.toSet().toList();
+    
+    print('🎯 [UNIFIED_AI] ترتيب الخدمات للمزود "$provider" والميزات $features: $uniqueServices');
+    return uniqueServices;
+  }
+
+  // الحصول على خدمات قادرة على معالجة الصور
+  List<String> _getVisionCapableServices() {
+    return ['gptgod', 'openrouter', 'groq'];
+  }
+
+  // الحصول على خدمات مناسبة للمزود
+  List<String> _getServicesForProvider(String provider) {
+    final providerServiceMap = {
+      'openai': ['gptgod', 'openrouter'],
+      'google': ['openrouter', 'gptgod'],
+      'gemini': ['openrouter', 'gptgod'],
+      'anthropic': ['openrouter', 'gptgod'],
+      'claude': ['openrouter', 'gptgod'],
+      'meta': ['groq', 'huggingface'],
+      'llama': ['groq', 'huggingface'],
+      'huggingface': ['huggingface', 'groq'],
+      'mistral': ['groq', 'openrouter'],
+    };
+    
+    return providerServiceMap[provider] ?? [];
+  }
+
+  // الحصول على جميع الخدمات المتاحة - نظام مرن وقابل للتطوير
+  List<String> _getAllAvailableServices() {
+    final standardServices = ['groq', 'gptgod', 'openrouter', 'huggingface'];
+    
+    // إضافة Custom إذا كان هناك نماذج مخصصة
+    if (CustomModelsManager.instance.customModels.isNotEmpty) {
+      return ['Custom', ...standardServices];
+    }
+    
+    return standardServices;
+  }
+
+  // التحقق من صحة وترتيب الخدمات
+  List<String> _validateAndOrderServices(List<String> services) {
+    final allServices = _getAllAvailableServices();
+    return services.where((service) => allServices.contains(service)).toList();
+  }
+
+  // فحص صحة الخدمة - نظام محسن
+  bool _isServiceHealthy(String service) {
+    // الخدمة المخصصة صحية إذا كان هناك نماذج مخصصة
+    if (service == 'Custom') {
+      return CustomModelsManager.instance.customModels.isNotEmpty;
+    }
+    
+    // تحقق من وجود مفتاح API للخدمات الأخرى
+    if (!_hasValidApiKey(service)) {
+      print('⚠️ [UNIFIED_AI] مفتاح API غير صالح للخدمة: $service');
+      return false;
+    }
+
+    // إذا كان هناك خطأ حديث، انتظر قبل المحاولة مرة أخرى
+    final lastError = _serviceErrors[service];
+    if (lastError != null) {
+      final timeSinceError = DateTime.now().difference(lastError);
+      if (timeSinceError.inMinutes < 5) { // انتظار 5 دقائق
+        return false;
+      }
+      // إزالة الخطأ القديم
+      _serviceErrors.remove(service);
+    }
+
+    return _serviceHealth[service] ?? true;
+  }
+
+  // فحص وجود مفتاح API صحيح
+  bool _hasValidApiKey(String service) {
+    switch (service) {
+      case 'groq':
+        return _groqApiKey.isNotEmpty || _groqApiKey2.isNotEmpty;
+      case 'gptgod':
+        return _gptgodApiKey.isNotEmpty || _gptgodApiKey2.isNotEmpty;
+      case 'openrouter':
+        return _openRouterApiKey.isNotEmpty;
+      case 'huggingface':
+        return _huggingfaceApiKey.isNotEmpty;
+      case 'Custom':
+        // للنماذج المخصصة، تحقق من وجود نماذج مخصصة مع مفاتيح API
+        final customModels = CustomModelsManager.instance.customModels;
+        return customModels.isNotEmpty;
+      default:
+        return false;
+    }
+  }
+
+  // تحديد نوع الخطأ
+  bool _isTemporaryError(dynamic error) {
+    final errorStr = error.toString().toLowerCase();
+    return errorStr.contains('500') ||           // خطأ خادم
+           errorStr.contains('502') ||           // Bad Gateway
+           errorStr.contains('503') ||           // Service Unavailable
+           errorStr.contains('504') ||           // Gateway Timeout
+           errorStr.contains('timeout') ||       // انتهاء المهلة
+           errorStr.contains('connection') ||    // مشاكل الاتصال
+           errorStr.contains('network');         // مشاكل الشبكة
+  }
+
+  bool _isPermanentError(dynamic error) {
+    final errorStr = error.toString().toLowerCase();
+    return errorStr.contains('401') ||           // Unauthorized
+           errorStr.contains('403') ||           // Forbidden
+           errorStr.contains('invalid key') ||   // مفتاح خاطئ
+           errorStr.contains('quota');           // تجاوز الحصة
+  }
+
+  // تعليم الخدمة كمعطلة مؤقتاً
+  void _markServiceUnhealthy(String service) {
+    _serviceHealth[service] = false;
+    _serviceErrors[service] = DateTime.now();
+    
+    // إعادة تفعيل الخدمة بعد 10 دقائق
+    Timer(const Duration(minutes: 10), () {
+      _serviceHealth[service] = true;
+      print('🔄 [UNIFIED_AI] إعادة تفعيل خدمة: $service');
+    });
+  }
+
+  // تعليم الخدمة كصحية
+  void _markServiceHealthy(String service) {
+    _serviceHealth[service] = true;
+    _serviceErrors.remove(service);
+  }
+
+  // فحص ما إذا كان النموذج مخصص لتوليد الصور
+  bool _isImageGenerationModel(String model) {
+    final imageModels = [
+      'black-forest-labs/FLUX.1-dev',
+      'black-forest-labs/flux.1-dev',
+      'flux.1-dev',
+      'flux-dev',
+      'dall-e-2',
+      'dall-e-3',
+      'midjourney',
+      'stable-diffusion',
+    ];
+    
+    final lowerModel = model.toLowerCase();
+    return imageModels.any((imageModel) => 
+      lowerModel.contains(imageModel.toLowerCase())
+    );
+  }
+
+  // فحص ما إذا كان الملف صورة
+  bool _isImageFile(String file) {
+    final lowerFile = file.toLowerCase();
+    return lowerFile.contains('data:image/') || 
+           lowerFile.endsWith('.jpg') || 
+           lowerFile.endsWith('.jpeg') || 
+           lowerFile.endsWith('.png') || 
+           lowerFile.endsWith('.gif') || 
+           lowerFile.endsWith('.webp');
+  }
+
+  // فحص ما إذا كان النموذج يدعم الرؤية
+  bool _isVisionModel(String model) {
+    return model.contains('vision') || 
+           model.contains('gpt-4o') || 
+           model.contains('claude');
+  }
+
+  // إرسال إلى GPTGod مع معالجة محسنة للأخطاء
+  Future<String> _sendToGPTGod({
+    required List<MessageModel> messages,
+    required String model,
+    double temperature = 0.7,
+    int maxTokens = 1024,
+    String? systemPrompt,
+    List<String>? attachedFiles,
+  }) async {
+    final apiKey = _gptgodApiKey.isNotEmpty ? _gptgodApiKey : _gptgodApiKey2;
+    if (apiKey.isEmpty) throw Exception('مفتاح GPTGod غير متوفر');
+
+    final requestMessages = <Map<String, dynamic>>[];
+    
+    if (systemPrompt != null && systemPrompt.isNotEmpty) {
+      requestMessages.add({'role': 'system', 'content': systemPrompt});
+    }
+
+    String actualModel = model;
+    if (model == 'gpt-4o-vision') {
+      actualModel = 'gpt-4o';
+    } else if (model == 'gpt-4o-mini') {
+      actualModel = 'gpt-4o-mini';
+    }
+
+    for (final message in messages) {
+      if (_isVisionModel(model) && 
+          message == messages.last && 
+          message.role == MessageRole.user && 
+          attachedFiles != null && 
+          attachedFiles.isNotEmpty &&
+          attachedFiles.any((file) => _isImageFile(file))) {
+        
+        final contentParts = <Map<String, dynamic>>[];
+        
+        if (message.content.isNotEmpty) {
+          contentParts.add({
+            'type': 'text',
+            'text': message.content,
+          });
+        }
+        
+        for (final file in attachedFiles) {
+          if (_isImageFile(file)) {
+            // البيانات تأتي مُنسقة بالفعل من ChatProvider كـ data URI
+            contentParts.add({
+              'type': 'image_url',
+              'image_url': {
+                'url': file,
+                'detail': 'auto',
+              },
+            });
+          }
+        }
+        
+        requestMessages.add({
+          'role': message.role.name,
+          'content': contentParts,
+        });
+      } else {
+        requestMessages.add({
+          'role': message.role.name,
+          'content': message.content,
+        });
+      }
+    }
+
+    final requestData = {
+      'model': actualModel,
+      'messages': requestMessages,
+      'temperature': temperature,
+      'max_tokens': maxTokens,
+      'stream': false,
+    };
+
+    print('🔧 [GPT_GOD_DEBUG] تفاصيل الطلب:');
+    print('  - النموذج الأصلي: $model');
+    print('  - النموذج المرسل: $actualModel');
+    print('  - عدد الرسائل: ${requestMessages.length}');
+
+    try {
+      final response = await _dio!.post(
+        'https://api.gptgod.online/v1/chat/completions',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $apiKey',
+            'Content-Type': 'application/json',
+          },
+          validateStatus: (status) => status != null && status < 500,
+        ),
+        data: requestData,
+      );
+
+      if (response.statusCode == 200) {
+        final content = response.data['choices'][0]['message']['content'];
+        return content ?? 'رد فارغ من GPTGod';
+      } else {
+        final errorMessage = response.data?['error']?['message'] ?? 
+                           'خطأ غير معروف من GPTGod';
+        throw Exception('خطأ GPTGod ${response.statusCode}: $errorMessage');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 500) {
+        throw Exception('خطأ خادم GPTGod مؤقت - سيتم المحاولة مع خدمة أخرى');
+      }
       rethrow;
     }
   }
 
-  // تحديد الخدمة المناسبة للنموذج مع التحقق من وجود المفاتيح
-  String _determineService(String model) {
-    // Groq models
-    if ((model.startsWith('llama') || model.startsWith('mixtral') || model.startsWith('gemma')) && _groqApiKey.isNotEmpty) {
-      return 'groq';
-    }
-
-    // OpenRouter models (تحتوي على /)
-    if (model.contains('/') && _openRouterApiKey.isNotEmpty) {
-      return 'openrouter';
-    }
-
-    // GPTGod models
-    if ((model.startsWith('gpt-4.5') || model.startsWith('claude-3.5') || model.startsWith('gpt-4o') || model.startsWith('claude-3-5')) && _gptgodApiKey.isNotEmpty) {
-      return 'gptgod';
-    }
-
-    // HuggingFace models
-    if ((model.startsWith('meta-llama/') || model.startsWith('microsoft/') || model.startsWith('Qwen/')) && _huggingfaceApiKey.isNotEmpty) {
-      return 'huggingface';
-    }
-
-    // Fallback: استخدم أول خدمة متاحة
-    if (_groqApiKey.isNotEmpty) return 'groq';
-    if (_gptgodApiKey.isNotEmpty) return 'gptgod';
-    if (_openRouterApiKey.isNotEmpty) return 'openrouter';
-    if (_huggingfaceApiKey.isNotEmpty) return 'huggingface';
-
-    // إذا لم توجد مفاتيح، استخدم Groq كافتراضي
-    return 'groq';
-  }
-
-  // إرسال إلى Groq
+  // إرسال إلى Groq مع معالجة محسنة للأخطاء
   Future<String> _sendToGroq({
     required List<MessageModel> messages,
     required String model,
@@ -201,11 +602,16 @@ class UnifiedAIService {
     if (apiKey.isEmpty) throw Exception('مفتاح Groq غير متوفر');
 
     final requestMessages = <Map<String, dynamic>>[];
-    
+
+    // إضافة رسالة النظام إذا وجدت
     if (systemPrompt != null && systemPrompt.isNotEmpty) {
-      requestMessages.add({'role': 'system', 'content': systemPrompt});
+      requestMessages.add({
+        'role': 'system',
+        'content': systemPrompt,
+      });
     }
 
+    // إضافة الرسائل
     for (final message in messages) {
       requestMessages.add({
         'role': message.role.name,
@@ -213,148 +619,246 @@ class UnifiedAIService {
       });
     }
 
-    final response = await _dio!.post(
-      'https://api.groq.com/openai/v1/chat/completions',
-      options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
-      data: {
-        'messages': requestMessages,
-        'model': model,
-        'temperature': temperature ?? 0.7,
-        'max_completion_tokens': maxTokens ?? 2048,
-      },
-    );
+    final requestData = {
+      'model': model,
+      'messages': requestMessages,
+      'temperature': temperature ?? 0.7,
+      'max_completion_tokens': maxTokens ?? 2048,
+      'stream': false,
+    };
 
-    return response.data['choices'][0]['message']['content'];
+    if (kDebugMode) {
+      print('🚀 [GROQ_SERVICE] إرسال طلب للنموذج: $model');
+      print('📊 [GROQ_SERVICE] عدد الرسائل: ${requestMessages.length}');
+    }
+
+    try {
+      final response = await _dio!.post(
+        'https://api.groq.com/openai/v1/chat/completions',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $apiKey',
+            'Content-Type': 'application/json',
+          },
+          validateStatus: (status) => status != null && status < 500,
+        ),
+        data: requestData,
+      );
+
+      if (response.statusCode == 200) {
+        final content = response.data['choices'][0]['message']['content'];
+        
+        if (kDebugMode) {
+          print('✅ [GROQ_SERVICE] تم استلام الرد بنجاح');
+        }
+        
+        return content ?? 'رد فارغ من Groq';
+      } else {
+        final errorMessage = response.data?['error']?['message'] ?? 
+                           'خطأ غير معروف من Groq';
+        throw Exception('خطأ Groq ${response.statusCode}: $errorMessage');
+      }
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        print('❌ [GROQ_SERVICE] خطأ Dio: ${e.type}');
+        print('   الرسالة: ${e.message}');
+        print('   Status Code: ${e.response?.statusCode}');
+      }
+
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+          throw Exception('انتهت مهلة الاتصال مع Groq');
+        case DioExceptionType.receiveTimeout:
+          throw Exception('انتهت مهلة استقبال الرد من Groq');
+        case DioExceptionType.badResponse:
+          if (e.response?.statusCode == 401) {
+            throw Exception('مفتاح Groq غير صالح');
+          } else if (e.response?.statusCode == 429) {
+            throw Exception('تم تجاوز حد الطلبات لـ Groq');
+          } else if (e.response?.statusCode == 500) {
+            throw Exception('خطأ خادم Groq مؤقت');
+          }
+          throw Exception('رد خاطئ من Groq: ${e.response?.statusCode}');
+        case DioExceptionType.cancel:
+          throw Exception('تم إلغاء الطلب');
+        default:
+          throw Exception('خطأ في الشبكة مع Groq: ${e.message}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ [GROQ_SERVICE] خطأ عام: $e');
+      }
+      rethrow;
+    }
   }
 
-  // إرسال إلى OpenRouter
+  // إرسال إلى OpenRouter مع دعم Vision
   Future<String> _sendToOpenRouter({
     required List<MessageModel> messages,
     required String model,
     double? temperature,
     int? maxTokens,
     String? systemPrompt,
+    List<String>? attachedFiles,
   }) async {
-    final apiKey = _openRouterApiKey;
-    if (apiKey.isEmpty) throw Exception('مفتاح OpenRouter غير متوفر');
+    if (_openRouterApiKey.isEmpty) {
+      throw Exception('مفتاح OpenRouter غير متوفر');
+    }
 
     final requestMessages = <Map<String, dynamic>>[];
-    
+
+    // إضافة رسالة النظام إذا وجدت
     if (systemPrompt != null && systemPrompt.isNotEmpty) {
-      requestMessages.add({'role': 'system', 'content': systemPrompt});
-    }
-
-    for (final message in messages) {
-      final content = _formatMessageForVision(message, model);
       requestMessages.add({
-        'role': message.role.name,
-        'content': content,
+        'role': 'system',
+        'content': systemPrompt,
       });
     }
 
-    final response = await _dio!.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      options: Options(headers: {
-        'Authorization': 'Bearer $apiKey',
-        'HTTP-Referer': 'https://atlas-ai.app',
-        'X-Title': 'Atlas AI',
-      }),
-      data: {
-        'model': model,
-        'messages': requestMessages,
-        'temperature': temperature ?? 0.7,
-        'max_tokens': maxTokens ?? 2048,
-      },
-    );
-
-    return response.data['choices'][0]['message']['content'];
-  }
-
-  // تنسيق الرسائل للنماذج التي تدعم الرؤية
-  dynamic _formatMessageForVision(MessageModel message, String model) {
-    if (!_isVisionModel(model)) return message.content;
-
-    final content = message.content;
-    final imagePattern = RegExp(r'data:(image/[^;]+);base64,([A-Za-z0-9+/=]+)');
-    final matches = imagePattern.allMatches(content);
-
-    if (matches.isEmpty) return content;
-
-    final contentParts = <Map<String, dynamic>>[];
-    String textContent = content;
-    
-    for (final match in matches) {
-      textContent = textContent.replaceAll(match.group(0)!, '');
-    }
-    
-    textContent = textContent
-        .replaceAll(RegExp(r'📁 الملف:.*?\n'), '')
-        .replaceAll(RegExp(r'📏 الحجم:.*?\n'), '')
-        .replaceAll(RegExp(r'🗂️ النوع:.*?\n'), '')
-        .replaceAll(RegExp(r'🖼️ صورة.*?:\n'), '')
-        .trim();
-
-    if (textContent.isNotEmpty) {
-      contentParts.add({'type': 'text', 'text': textContent});
+    // تحديد النموذج المناسب لـ OpenRouter
+    String actualModel = model;
+    if (model == 'gpt-4o-vision') {
+      actualModel = 'openai/gpt-4o';
+    } else if (model == 'gpt-4o') {
+      actualModel = 'openai/gpt-4o';
+    } else if (model == 'gpt-4o-mini') {
+      actualModel = 'openai/gpt-4o-mini';
+    } else if (model == 'Qwen2-VL-7B-Instruct') {
+      actualModel = 'qwen/qwen2-vl-7b-instruct';
     }
 
-    for (final match in matches) {
-      final mimeType = match.group(1)!;
-      final base64Data = match.group(2)!;
-      contentParts.add({
-        'type': 'image_url',
-        'image_url': {'url': 'data:$mimeType;base64,$base64Data'},
-      });
-    }
-
-    return contentParts;
-  }
-
-  // تحقق من دعم النموذج للرؤية
-  bool _isVisionModel(String model) {
-    final visionKeywords = ['vision', 'vl', '4o', 'claude-3', 'gemini-1.5'];
-    return visionKeywords.any((keyword) => model.toLowerCase().contains(keyword));
-  }
-
-  // إرسال إلى GPTGod
-  Future<String> _sendToGPTGod({
-    required List<MessageModel> messages,
-    required String model,
-    double? temperature,
-    int? maxTokens,
-    String? systemPrompt,
-  }) async {
-    final apiKey = _gptgodApiKey.isNotEmpty ? _gptgodApiKey : _gptgodApiKey2;
-    if (apiKey.isEmpty) throw Exception('مفتاح GPTGod غير متوفر');
-
-    final requestMessages = <Map<String, dynamic>>[];
-    
-    if (systemPrompt != null && systemPrompt.isNotEmpty) {
-      requestMessages.add({'role': 'system', 'content': systemPrompt});
-    }
-
+    // إضافة الرسائل مع دعم Vision
     for (final message in messages) {
-      requestMessages.add({
-        'role': message.role.name,
-        'content': message.content,
-      });
+      // تطبيق تنسيق Vision للرسالة الأخيرة مع الصور
+      if (_isVisionModel(model) && 
+          message == messages.last && 
+          message.role == MessageRole.user && 
+          attachedFiles != null && 
+          attachedFiles.isNotEmpty &&
+          attachedFiles.any((file) => _isImageFile(file))) {
+        
+        final contentParts = <Map<String, dynamic>>[];
+        
+        // إضافة النص
+        if (message.content.isNotEmpty) {
+          contentParts.add({
+            'type': 'text',
+            'text': message.content,
+          });
+        }
+        
+        // إضافة الصور
+        for (final file in attachedFiles) {
+          if (_isImageFile(file)) {
+            // البيانات تأتي مُنسقة بالفعل من ChatProvider كـ data URI
+            contentParts.add({
+              'type': 'image_url',
+              'image_url': {
+                'url': file,
+                'detail': 'auto',
+              },
+            });
+          }
+        }
+        
+        requestMessages.add({
+          'role': message.role.name,
+          'content': contentParts,
+        });
+      } else {
+        // تنسيق عادي للرسائل الأخرى
+        requestMessages.add({
+          'role': message.role.name,
+          'content': message.content,
+        });
+      }
     }
 
-    final response = await _dio!.post(
-      'https://api.gptgod.online/v1/chat/completions',
-      options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
-      data: {
-        'model': model,
-        'messages': requestMessages,
-        'temperature': temperature ?? 0.7,
-        'max_tokens': maxTokens ?? 2048,
-      },
-    );
+    final requestData = {
+      'model': actualModel,
+      'messages': requestMessages,
+      'temperature': temperature ?? 0.7,
+      'max_tokens': maxTokens ?? 2048,
+      'stream': false,
+    };
 
-    return response.data['choices'][0]['message']['content'];
+    if (kDebugMode) {
+      print('🚀 [OPENROUTER_V2] إرسال طلب للنموذج: $actualModel');
+      print('📊 [OPENROUTER_V2] عدد الرسائل: ${requestMessages.length}');
+      print('🖼️ [OPENROUTER_V2] يحتوي على صور: ${attachedFiles?.any((file) => _isImageFile(file)) ?? false}');
+    }
+
+    try {
+      final response = await _dio!.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $_openRouterApiKey',
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://atlas-ai.app',
+            'X-Title': 'Atlas AI',
+          },
+          validateStatus: (status) => status != null && status < 500,
+        ),
+        data: requestData,
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        if (responseData != null && 
+            responseData['choices'] != null && 
+            responseData['choices'].isNotEmpty) {
+          
+          final content = responseData['choices'][0]['message']['content'];
+          
+          if (kDebugMode) {
+            print('✅ [OPENROUTER_V2] تم استلام الرد بنجاح');
+          }
+          
+          return content ?? 'رد فارغ من OpenRouter';
+        } else {
+          throw Exception('رد غير صالح من OpenRouter: بنية البيانات غير صحيحة');
+        }
+      } else {
+        final errorMessage = response.data?['error']?['message'] ?? 
+                           'خطأ غير معروف من OpenRouter';
+        throw Exception('خطأ OpenRouter ${response.statusCode}: $errorMessage');
+      }
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        print('❌ [OPENROUTER_V2] خطأ Dio: ${e.type}');
+        print('   الرسالة: ${e.message}');
+        print('   Status Code: ${e.response?.statusCode}');
+      }
+
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+          throw Exception('انتهت مهلة الاتصال مع OpenRouter');
+        case DioExceptionType.receiveTimeout:
+          throw Exception('انتهت مهلة استقبال الرد من OpenRouter');
+        case DioExceptionType.badResponse:
+          if (e.response?.statusCode == 401) {
+            throw Exception('مفتاح OpenRouter غير صالح');
+          } else if (e.response?.statusCode == 429) {
+            throw Exception('تم تجاوز حد الطلبات لـ OpenRouter');
+          } else if (e.response?.statusCode == 500) {
+            throw Exception('خطأ خادم OpenRouter مؤقت');
+          }
+          throw Exception('رد خاطئ من OpenRouter: ${e.response?.statusCode}');
+        case DioExceptionType.cancel:
+          throw Exception('تم إلغاء الطلب');
+        default:
+          throw Exception('خطأ في الشبكة مع OpenRouter: ${e.message}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ [OPENROUTER_V2] خطأ عام: $e');
+      }
+      rethrow;
+    }
   }
 
-  // إرسال إلى HuggingFace
+  // إرسال إلى HuggingFace مع معالجة محسنة للأخطاء
   Future<String> _sendToHuggingFace({
     required List<MessageModel> messages,
     required String model,
@@ -362,130 +866,186 @@ class UnifiedAIService {
     int? maxTokens,
     String? systemPrompt,
   }) async {
-    final apiKey = _huggingfaceApiKey;
-    if (apiKey.isEmpty) throw Exception('مفتاح HuggingFace غير متوفر');
-
-    String prompt = '';
-    if (systemPrompt != null && systemPrompt.isNotEmpty) {
-      prompt += '$systemPrompt\n\n';
+    if (_huggingfaceApiKey.isEmpty) {
+      throw Exception('مفتاح HuggingFace غير متوفر');
     }
 
-    for (final message in messages) {
-      prompt += '${message.role.name}: ${message.content}\n';
+    // منع إرسال نماذج توليد الصور هنا
+    if (_isImageGenerationModel(model)) {
+      throw Exception('نموذج "$model" مخصص لتوليد الصور. استخدم generateImage() بدلاً من _sendToHuggingFace().');
     }
-    prompt += 'assistant:';
 
-    final response = await _dio!.post(
-      'https://api-inference.huggingface.co/models/$model',
-      options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
-      data: {
-        'inputs': prompt,
-        'parameters': {
-          'temperature': temperature ?? 0.7,
-          'max_new_tokens': maxTokens ?? 2048,
-          'return_full_text': false,
-        },
+    // بناء النص (Prompt) للنموذج
+    String prompt = _buildPromptForHuggingFace(messages, systemPrompt);
+
+    final requestData = {
+      'inputs': prompt,
+      'parameters': {
+        'max_new_tokens': maxTokens ?? 512,
+        'temperature': temperature ?? 0.7,
+        'top_p': 0.9,
+        'do_sample': true,
+        'return_full_text': false,
+        'repetition_penalty': 1.1,
       },
-    );
+      'options': {
+        'wait_for_model': true,
+        'use_cache': false,
+      },
+    };
 
-    if (response.data is List && response.data.isNotEmpty) {
-      return response.data[0]['generated_text'] ?? 'لا يوجد رد';
-    }
-    
-    return response.data['generated_text'] ?? 'لا يوجد رد';
-  }
-
-
-
-  // البحث باستخدام Tavily
-  Future<String> searchWithTavily(String query) async {
-    if (_tavilyApiKey.isEmpty) {
-      throw Exception('مفتاح Tavily غير متوفر');
+    if (kDebugMode) {
+      print('🚀 [HUGGINGFACE_V2] إرسال طلب للنموذج: $model');
+      print('📊 [HUGGINGFACE_V2] طول النص: ${prompt.length} حرف');
+      print('🔧 [HUGGINGFACE_V2] المعاملات: maxTokens=${maxTokens ?? 512}, temp=${temperature ?? 0.7}');
     }
 
     try {
       final response = await _dio!.post(
-        'https://api.tavily.com/search',
-        options: Options(headers: {'Authorization': 'Bearer $_tavilyApiKey'}),
-        data: {
-          'query': query,
-          'search_depth': 'basic',
-          'include_answer': true,
-          'include_raw_content': false,
-          'max_results': 5,
-        },
+        'https://api-inference.huggingface.co/models/$model',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $_huggingfaceApiKey',
+            'Content-Type': 'application/json',
+          },
+          validateStatus: (status) => status != null && status < 500,
+        ),
+        data: requestData,
       );
 
-      if (response.data['results'] != null && response.data['results'].isNotEmpty) {
-        final results = response.data['results'] as List;
-        String searchResults = 'نتائج البحث:\n\n';
-
-        for (int i = 0; i < results.length && i < 3; i++) {
-          final result = results[i];
-          searchResults += '${i + 1}. ${result['title']}\n';
-          searchResults += '${result['content']}\n';
-          searchResults += 'المصدر: ${result['url']}\n\n';
+      if (response.statusCode == 200) {
+        // HuggingFace يرجع قائمة من الاستجابات
+        final responseData = response.data;
+        
+        if (responseData is List && responseData.isNotEmpty) {
+          final firstResult = responseData[0];
+          
+          if (firstResult is Map<String, dynamic>) {
+            final generatedText = firstResult['generated_text'] as String?;
+            
+            if (generatedText != null && generatedText.isNotEmpty) {
+              if (kDebugMode) {
+                print('✅ [HUGGINGFACE_V2] تم استلام الرد بنجاح');
+                print('📝 [HUGGINGFACE_V2] طول الرد: ${generatedText.length} حرف');
+              }
+              
+              return generatedText.trim();
+            }
+          }
         }
-
-        return searchResults;
+        
+        // إذا لم نجد النص المولد
+        throw Exception('رد فارغ أو غير صالح من HuggingFace');
+        
+      } else if (response.statusCode == 503) {
+        // النموذج يحتاج وقت للتحميل
+        throw Exception('النموذج قيد التحميل. يرجى المحاولة بعد قليل');
+      } else {
+        final errorMessage = response.data?['error'] ?? 
+                           'خطأ غير معروف من HuggingFace';
+        throw Exception('خطأ HuggingFace ${response.statusCode}: $errorMessage');
+      }
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        print('❌ [HUGGINGFACE_V2] خطأ Dio: ${e.type}');
+        print('   الرسالة: ${e.message}');
+        print('   Status Code: ${e.response?.statusCode}');
+        print('   Response Data: ${e.response?.data}');
       }
 
-      return 'لم يتم العثور على نتائج للبحث: $query';
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+          throw Exception('انتهت مهلة الاتصال مع HuggingFace');
+        case DioExceptionType.receiveTimeout:
+          throw Exception('انتهت مهلة استقبال الرد من HuggingFace - النموذج قد يحتاج وقت أطول');
+        case DioExceptionType.badResponse:
+          if (e.response?.statusCode == 401) {
+            throw Exception('مفتاح HuggingFace غير صالح');
+          } else if (e.response?.statusCode == 429) {
+            throw Exception('تم تجاوز حد الطلبات لـ HuggingFace');
+          } else if (e.response?.statusCode == 503) {
+            throw Exception('النموذج قيد التحميل في HuggingFace. يرجى المحاولة بعد دقيقتين');
+          } else if (e.response?.statusCode == 500) {
+            throw Exception('خطأ خادم HuggingFace مؤقت');
+          }
+          throw Exception('رد خاطئ من HuggingFace: ${e.response?.statusCode}');
+        case DioExceptionType.cancel:
+          throw Exception('تم إلغاء الطلب');
+        default:
+          throw Exception('خطأ في الشبكة مع HuggingFace: ${e.message}');
+      }
     } catch (e) {
-      print('❌ [TAVILY] خطأ في البحث: $e');
-      return 'حدث خطأ أثناء البحث: $e';
+      if (kDebugMode) {
+        print('❌ [HUGGINGFACE_V2] خطأ عام: $e');
+      }
+      rethrow;
     }
   }
 
-  // الحصول على النماذج المتاحة حسب الخدمة
-  List<String> getAvailableModels() {
-    List<String> models = [];
+  // بناء النص (Prompt) لنماذج HuggingFace
+  String _buildPromptForHuggingFace(List<MessageModel> messages, String? systemPrompt) {
+    final buffer = StringBuffer();
 
-    if (_groqApiKey.isNotEmpty) {
-      models.addAll([
-        'llama-3.1-8b-instant',
-        'llama-3.1-70b-versatile',
-        'llama-3.2-1b-preview',
-        'llama-3.2-3b-preview',
-        'mixtral-8x7b-32768',
-        'gemma-7b-it',
-        'gemma2-9b-it',
-      ]);
+    // إضافة رسالة النظام إذا وجدت
+    if (systemPrompt != null && systemPrompt.isNotEmpty) {
+      buffer.writeln('System: $systemPrompt');
+      buffer.writeln();
     }
 
-    if (_gptgodApiKey.isNotEmpty) {
-      models.addAll([
-        'gpt-4o',
-        'gpt-4o-mini',
-        'gpt-4.5-turbo',
-        'claude-3-5-sonnet-20241022',
-        'claude-3-5-haiku-20241022',
-        'gemini-1.5-pro',
-        'gemini-1.5-flash',
-      ]);
+    // إضافة الرسائل
+    for (final message in messages) {
+      if (message.role == MessageRole.user) {
+        buffer.writeln('Human: ${message.content}');
+      } else if (message.role == MessageRole.assistant) {
+        buffer.writeln('Assistant: ${message.content}');
+      } else if (message.role == MessageRole.system) {
+        buffer.writeln('System: ${message.content}');
+      }
+      buffer.writeln();
     }
 
-    if (_openRouterApiKey.isNotEmpty) {
-      models.addAll([
-        'anthropic/claude-3.5-sonnet',
-        'openai/gpt-4o',
-        'google/gemini-pro-1.5',
-        'meta-llama/llama-3.1-405b-instruct',
-        'mistralai/mixtral-8x7b-instruct',
-        'qwen/qwen-2.5-72b-instruct',
-      ]);
-    }
+    // إضافة بداية رد المساعد
+    buffer.write('Assistant: ');
+    
+    return buffer.toString();
+  }
 
-    if (_huggingfaceApiKey.isNotEmpty) {
-      models.addAll([
-        'meta-llama/Llama-2-7b-chat-hf',
-        'microsoft/DialoGPT-medium',
-        'Qwen/Qwen2.5-7B-Instruct',
-        'google/flan-t5-large',
-      ]);
-    }
 
-    return models;
+
+  // الحصول على النماذج المتاحة
+  List<Map<String, dynamic>> getAvailableModels() {
+    final List<Map<String, dynamic>> allModels = [];
+    
+    AppConfig.freeModels.forEach((service, models) {
+      for (final model in models) {
+        allModels.add({
+          ...model,
+          'service': service,
+          'healthy': _isServiceHealthy(service),
+        });
+      }
+    });
+    
+    // إضافة النماذج المخصصة
+    final customModels = CustomModelsManager.instance.customModels;
+    for (final customModel in customModels) {
+      allModels.add({
+        'id': customModel.name,
+        'name': customModel.name,
+        'description': customModel.description,
+        'service': 'Custom',
+        'healthy': true,
+        'features': ['chat', 'text'],
+        'speed': 'medium',
+        'quality': 'custom',
+        'context': 'variable',
+        'provider': 'custom',
+        'isCustom': true,
+        'customConfig': customModel,
+      });
+    }
+    
+    return allModels;
   }
 
   // تحديث مفتاح API
@@ -508,8 +1068,10 @@ class UnifiedAIService {
         break;
     }
 
-    // حفظ في ApiKeyManager أيضاً
     await ApiKeyManager.saveApiKey(service, apiKey);
+    
+    // إعادة تفعيل الخدمة عند تحديث المفتاح
+    _markServiceHealthy(service);
 
     if (kDebugMode) {
       print('🔑 [UNIFIED_AI] تم تحديث مفتاح $service');
@@ -522,25 +1084,183 @@ class UnifiedAIService {
       _dio?.close(force: true);
       _dio = null;
       
-      // تنظيف المفاتيح الحساسة من الذاكرة
       _groqApiKey = '';
       _groqApiKey2 = '';
       _gptgodApiKey = '';
       _gptgodApiKey2 = '';
       _openRouterApiKey = '';
       _huggingfaceApiKey = '';
+      _hfToken = '';
       _tavilyApiKey = '';
       
       _lastUsedService = '';
       _lastUsedModel = '';
+      _serviceHealth.clear();
+      _serviceErrors.clear();
       
+      print('🧹 [UNIFIED_AI] تم تنظيف الموارد');
+    } catch (e) {
+      print('⚠️ [UNIFIED_AI] خطأ في تنظيف الموارد: $e');
+    }
+  }
+
+  // إرسال إلى النموذج المخصص - مرن وقابل للتطوير
+  Future<String> _sendToCustomModel({
+    required List<MessageModel> messages,
+    required String model,
+    double? temperature,
+    int? maxTokens,
+    String? systemPrompt,
+    List<String>? attachedFiles,
+  }) async {
+    print('🔧 [CUSTOM_MODEL] محاولة استخدام النموذج المخصص: $model');
+    
+    try {
+      // البحث عن النموذج المخصص
+      final customModels = CustomModelsManager.instance.customModels;
+      final customModel = customModels.firstWhere(
+        (config) => config.name == model,
+        orElse: () => throw Exception('النموذج المخصص "$model" غير موجود في القائمة'),
+      );
+
+      print('✅ [CUSTOM_MODEL] تم العثور على النموذج: ${customModel.name}');
+      print('🌐 [CUSTOM_MODEL] URL: ${customModel.url}');
+      print('🔑 [CUSTOM_MODEL] Headers count: ${customModel.headers.length}');
+
+      // بناء محفوظات الرسائل للنموذج المخصص - بدون تكرار system prompt
+      final conversationHistory = messages.map((msg) => {
+        'role': msg.isUser ? 'user' : 'assistant',
+        'content': msg.content,
+      }).toList();
+
+      // ملاحظة: system prompt يتم إضافته مسبقاً في chat_provider.dart لتجنب التكرار
+
+      // استخدام CustomModelsManager للاستدعاء مع تمرير جميع المعاملات
+      final response = await CustomModelsManager.instance.makeApiCall(
+        customModel,
+        messages.isNotEmpty ? messages.last.content : '',
+        conversationHistory: conversationHistory,
+        temperature: temperature,
+        maxTokens: maxTokens,
+        systemPrompt: systemPrompt,
+        attachedFiles: attachedFiles,
+      );
+
+      if (response == null || response.trim().isEmpty) {
+        throw Exception('النموذج المخصص "$model" أرجع رداً فارغاً');
+      }
+
+      print('✅ [CUSTOM_MODEL] تم الحصول على رد بنجاح من: $model');
+      return response;
+      
+    } catch (e) {
+      print('❌ [CUSTOM_MODEL] خطأ في النموذج المخصص "$model": $e');
+      rethrow; // إعادة رمي الخطأ ليتم التعامل معه في الطبقة العليا
+    }
+  }
+
+  // إنتاج الصور من النص باستخدام Hugging Face FLUX.1-dev
+  Future<Map<String, dynamic>> generateImage({
+    required String prompt,
+    String model = 'black-forest-labs/FLUX.1-dev',
+    Map<String, dynamic>? parameters,
+  }) async {
+    if (_hfToken.isEmpty) {
+      throw Exception('مفتاح Hugging Face Token (HF_TOKEN) غير متوفر');
+    }
+
+    if (prompt.trim().isEmpty) {
+      throw Exception('نص الوصف (Prompt) فارغ');
+    }
+
+    final requestData = {
+      'inputs': prompt,
+      'parameters': parameters ?? {
+        'width': 1024,
+        'height': 1024,
+        'num_inference_steps': 20,
+        'guidance_scale': 7.5,
+      },
+      'options': {
+        'wait_for_model': true,
+        'use_cache': false,
+      },
+    };
+
+    if (kDebugMode) {
+      print('🎨 [IMAGE_GENERATION] إنتاج صورة بالنموذج: $model');
+      print('📝 [IMAGE_GENERATION] النص: $prompt');
+      print('🔧 [IMAGE_GENERATION] المعاملات: ${requestData['parameters']}');
+    }
+
+    try {
+      final response = await _dio!.post(
+        'https://api-inference.huggingface.co/models/$model',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $_hfToken',
+            'Content-Type': 'application/json',
+          },
+          responseType: ResponseType.bytes, // للحصول على الصورة
+          validateStatus: (status) => status != null && status < 500,
+        ),
+        data: requestData,
+      );
+
+      if (response.statusCode == 200) {
+        final imageBytes = response.data as List<int>;
+        
+        if (imageBytes.isNotEmpty) {
+          if (kDebugMode) {
+            print('✅ [IMAGE_GENERATION] تم إنتاج الصورة بنجاح');
+            print('📊 [IMAGE_GENERATION] حجم الصورة: ${imageBytes.length} بايت');
+          }
+
+          return {
+            'success': true,
+            'data': imageBytes,
+            'model': model,
+            'prompt': prompt,
+            'timestamp': DateTime.now().toIso8601String(),
+          };
+        } else {
+          throw Exception('تم إنتاج صورة فارغة');
+        }
+      } else if (response.statusCode == 503) {
+        throw Exception('النموذج قيد التحميل. يرجى المحاولة بعد قليل');
+      } else {
+        final errorMessage = 'خطأ في إنتاج الصورة ${response.statusCode}';
+        throw Exception(errorMessage);
+      }
+    } on DioException catch (e) {
       if (kDebugMode) {
-        print('✅ [UNIFIED_AI] تم تنظيف الموارد بنجاح');
+        print('❌ [IMAGE_GENERATION] خطأ Dio: ${e.message}');
+      }
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          throw Exception('انتهت مهلة الاتصال مع Hugging Face');
+        case DioExceptionType.badResponse:
+          if (e.response?.statusCode == 401) {
+            throw Exception('مفتاح HF_TOKEN غير صحيح');
+          } else if (e.response?.statusCode == 429) {
+            throw Exception('تم تجاوز حد الطلبات لـ Hugging Face');
+          } else if (e.response?.statusCode == 500) {
+            throw Exception('خطأ خادم Hugging Face مؤقت');
+          }
+          throw Exception('رد خاطئ من Hugging Face: ${e.response?.statusCode}');
+        case DioExceptionType.cancel:
+          throw Exception('تم إلغاء الطلب');
+        default:
+          throw Exception('خطأ في الشبكة مع Hugging Face: ${e.message}');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ [UNIFIED_AI] خطأ في تنظيف الموارد: $e');
+        print('❌ [IMAGE_GENERATION] خطأ عام: $e');
       }
+      rethrow;
     }
   }
+
 }

@@ -25,7 +25,6 @@ import 'generated/l10n/app_localizations.dart';
 
 // === استيراد الخدمات المطلوبة ===
 
-
 // === تعريف المتغيرات العامة الجديدة ===
 final performanceManager = PerformanceManager();
 final appMonitor = AppMonitor.instance;
@@ -36,12 +35,12 @@ void main() async {
     print('🚀 Starting Atlas AI...');
     print('📱 Debug mode enabled');
   }
-  
+
   runZonedGuarded(
     () async {
       try {
         WidgetsFlutterBinding.ensureInitialized();
-        
+
         // تحميل .env بشكل آمن
         try {
           await dotenv.load(fileName: ".env");
@@ -54,10 +53,10 @@ void main() async {
             print('🔄 سيتم استخدام القيم الافتراضية');
           }
         }
-        
+
         // === تهيئة الخدمات بشكل متوازي ===
         final initializationFutures = <Future<void>>[];
-        
+
         // إضافة المهام المتوازية
         initializationFutures.add(
           PerformanceManager.initialize().catchError((e) {
@@ -66,7 +65,7 @@ void main() async {
             }
           }),
         );
-        
+
         initializationFutures.add(
           Future.sync(() => AppMonitor.initialize()).catchError((e) {
             if (kDebugMode) {
@@ -74,7 +73,7 @@ void main() async {
             }
           }),
         );
-        
+
         initializationFutures.add(
           LazyServiceInitializer().initializeServices().catchError((e) {
             if (kDebugMode) {
@@ -82,7 +81,7 @@ void main() async {
             }
           }),
         );
-        
+
         // تنفيذ جميع المهام بشكل متوازي
         try {
           await Future.wait(initializationFutures);
@@ -94,7 +93,7 @@ void main() async {
             print('⚠️ Some services failed during parallel initialization: $e');
           }
         }
-        
+
         // === تحميل مسبق للأصول المهمة ===
         try {
           await AppUtils.preloadImportantAssets();
@@ -106,19 +105,18 @@ void main() async {
             print('⚠️ فشل في التحميل المسبق للأصول: $e');
           }
         }
-        
+
         if (kDebugMode) {
           print('🎯 All services initialized, starting app...');
         }
-        
+
         runApp(const MyApp());
-        
       } catch (e, stack) {
         if (kDebugMode) {
           print('❌ خطأ في بدء التطبيق: $e');
           print('🔍 Stack trace: $stack');
         }
-        
+
         // تشغيل التطبيق بوضع آمن
         if (kDebugMode) {
           print('🛡️ Starting Safe Mode App...');
@@ -131,7 +129,7 @@ void main() async {
         print('❌ خطأ في Zone: $error');
         print('🔍 Stack trace: $stack');
       }
-      
+
       // في حالة خطأ Zone، تشغيل التطبيق الآمن
       WidgetsFlutterBinding.ensureInitialized();
       runApp(const SafeModeApp());
@@ -205,7 +203,10 @@ class MyApp extends StatelessWidget {
                         const SizedBox(height: 16),
                         const Text(
                           'حدث خطأ في التطبيق',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -216,7 +217,9 @@ class MyApp extends StatelessWidget {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.of(context).pushReplacementNamed('/mainChatPage');
+                            Navigator.of(
+                              context,
+                            ).pushReplacementNamed('/mainChatPage');
                           },
                           child: const Text('إعادة المحاولة'),
                         ),
@@ -267,19 +270,13 @@ class SafeModeApp extends StatelessWidget {
                   const SizedBox(height: 24),
                   const Text(
                     'تم تشغيل التطبيق في الوضع الآمن',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     'حدث خطأ أثناء بدء التطبيق. يمكنك إعادة المحاولة أو الاتصال بالدعم الفني.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -306,7 +303,9 @@ class SafeModeApp extends StatelessWidget {
                         onPressed: () {
                           // إعادة تشغيل التطبيق
                           Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const MyApp()),
+                            MaterialPageRoute(
+                              builder: (context) => const MyApp(),
+                            ),
                             (route) => false,
                           );
                         },

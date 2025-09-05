@@ -43,9 +43,7 @@ dependencies:
   # إزالة flutter_bloc لتقليل حجم الحزمة
   # flutter_bloc: ^8.1.3
   
-  # HTTP & API - تحسين: استخدام http فقط
-  http: ^1.1.0
-  # إزالة dio لتقليل حجم الحزمة
+  # HTTP & API - استخدام dio فقط لتوحيد المكتبة
   dio: ^5.3.4
   
   # Cryptography for API key encryption
@@ -134,7 +132,6 @@ dev_dependencies:
 
   # Test dependencies
   mockito: ^5.4.2
-  sqflite_common_ffi: ^2.3.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -168,9 +165,12 @@ flutter:
     # - assets/sounds/
     - assets/data/
     - assets/data/specialized_datasets/
+    - assets/data/specialized_datasets/training_data.json
+    - assets/data/specialized_datasets/fine_Tuning.json
+
     - .env
     # إزالة config.md
-    # - config.md
+    
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

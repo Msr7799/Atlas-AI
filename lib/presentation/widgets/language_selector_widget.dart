@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/services/speech_service.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 /// Widget لاختيار لغة التعرف على الصوت
 class LanguageSelectorWidget extends StatefulWidget {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../data/models/message_model.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 class ThinkingProcessWidget extends StatelessWidget {
   final ThinkingProcessModel thinkingProcess;

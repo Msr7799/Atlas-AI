@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/training_provider.dart';
-import '../../../generated/l10n/app_localizations.dart';
 
 /// Widget موحد لجميع وظائف التدريب
 class UnifiedTrainingWidget extends StatefulWidget {

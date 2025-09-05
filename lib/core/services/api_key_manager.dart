@@ -59,6 +59,8 @@ class ApiKeyManager {
         return apiKey.startsWith('sk-or-') || apiKey.startsWith('or-');
       case 'huggingface':
         return apiKey.startsWith('hf_') && apiKey.length >= 32;
+      case 'hf_token':
+        return apiKey.startsWith('hf_') && apiKey.length >= 32;
       case 'localai':
         return true; // LocalAI لا يحتاج مفتاح // LocalAI doesn't need a key
       default:

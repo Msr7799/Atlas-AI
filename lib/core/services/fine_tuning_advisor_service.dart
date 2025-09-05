@@ -23,29 +23,29 @@ class FineTuningAdvisorService {
       // تحميل بيانات التدريب المتخصصة
       // Load specialized training data
       final datasetString = await rootBundle.loadString(
-        'assets/data/specialized_datasets/fine_Tuning.json',
+        'assets/data/specialized_datasets/your_traning_Dataset.csv',
       );
-      _fineTuningDataset = jsonDecode(datasetString);
+      _fineTuningDataset = _parseCSVDataset(datasetString);
       _fineTuningKnowledgeBase = _getAdvancedPythonKnowledgeBase();
 
       // تحقق من تحميل البيانات بنجاح
       // Verify successful data loading
-      final cellsCount = _fineTuningDataset?['cells']?.length ?? 0;
+      final samplesCount = _fineTuningDataset?['samples']?.length ?? 0;
       if (kDebugMode) {
         print(
-        '[FINE_TUNING_ADVISOR] ✅ Dataset loaded successfully with $cellsCount cells',
+        '[FINE_TUNING_ADVISOR] ✅ Dataset loaded successfully with $samplesCount samples',
       );
       }
 
-      // استخراج أمثلة الكود للتحقق
-      // Extract code examples for verification
+      // استخراج أمثلة البيانات للتحقق
+      // Extract data samples for verification
       if (_fineTuningDataset != null) {
-        final cells = _fineTuningDataset?['cells'] as List?;
-        final codeCells =
-            cells?.where((cell) => cell['cell_type'] == 'code').length ?? 0;
+        final samples = _fineTuningDataset?['samples'] as List?;
+        final positiveCount = samples?.where((sample) => sample['polarity'] == '1').length ?? 0;
+        final negativeCount = samples?.where((sample) => sample['polarity'] == '0').length ?? 0;
         if (kDebugMode) {
           print(
-          '[FINE_TUNING_ADVISOR] 📊 Found $codeCells code cells in dataset',
+          '[FINE_TUNING_ADVISOR] 📊 Found $positiveCount positive and $negativeCount negative samples',
         );
         }
       }
@@ -56,6 +56,68 @@ class FineTuningAdvisorService {
     }
   }
 
+  // تحليل ملف CSV وتحويله إلى تنسيق قابل للاستخدام
+  // Parse CSV file and convert to usable format
+  Map<String, dynamic> _parseCSVDataset(String csvContent) {
+    final lines = csvContent.split('\n');
+    if (lines.isEmpty) return {'samples': []};
+    
+    // تخطي العنوان الأول
+    final samples = <Map<String, dynamic>>[];
+    
+    for (int i = 1; i < lines.length; i++) {
+      final line = lines[i].trim();
+      if (line.isEmpty) continue;
+      
+      // تحليل CSV مع التعامل مع النصوص المحاطة بعلامات اقتباس
+      final parts = _parseCSVLine(line);
+      if (parts.length >= 2) {
+        samples.add({
+          'polarity': parts[0],
+          'text': parts[1],
+          'language': 'ar', // اللغة العربية
+          'domain': 'sentiment_analysis', // تحليل المشاعر
+        });
+      }
+    }
+    
+    return {
+      'samples': samples,
+      'total_count': samples.length,
+      'positive_count': samples.where((s) => s['polarity'] == '1').length,
+      'negative_count': samples.where((s) => s['polarity'] == '0').length,
+      'language': 'ar',
+      'task_type': 'sentiment_analysis',
+    };
+  }
+  
+  // تحليل سطر CSV مع التعامل مع علامات الاقتباس
+  // Parse CSV line handling quotes
+  List<String> _parseCSVLine(String line) {
+    final result = <String>[];
+    bool inQuotes = false;
+    String current = '';
+    
+    for (int i = 0; i < line.length; i++) {
+      final char = line[i];
+      
+      if (char == '"') {
+        inQuotes = !inQuotes;
+      } else if (char == ',' && !inQuotes) {
+        result.add(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    
+    if (current.isNotEmpty) {
+      result.add(current.trim());
+    }
+    
+    return result;
+  }
+
   // قاعدة المعرفة المتقدمة للبرمجة بالبايثون والتدريب المتقدم
   // Advanced knowledge base for Python programming and advanced training
   String _getAdvancedPythonKnowledgeBase() {
@@ -63,14 +125,21 @@ class FineTuningAdvisorService {
 === قاعدة المعرفة المتقدمة للبرمجة بالبايثون والتدريب المتقدم ===
 
 ## تقنيات التدريب المتقدم (Fine-Tuning):
-### نماذج الرؤية الحاسوبية:
-- SigLIP 2 (Sigmoid Loss for Language-Image Pre-training)
-- Vision Transformers (ViT)
-- CLIP Models
-- ResNet وتطبيقاتها المتقدمة
-- EfficientNet للتصنيف الفعال
-- ConvNeXt للشبكات التطويرية الحديثة
-- DINO للتعلم الذاتي
+### نماذج معالجة اللغات الطبيعية:
+- BERT وتطبيقاته في اللغة العربية (AraBERT, CAMeLBERT)
+- GPT Models للنصوص العربية
+- T5 للمهام المتعددة
+- RoBERTa للفهم العميق
+- XLM-R للغات المتعددة
+- ELECTRA للتدريب الفعال
+- DeBERTa للأداء المحسن
+
+### نماذج تحليل المشاعر:
+- Sentiment Analysis Models
+- Emotion Detection Systems
+- Opinion Mining Techniques
+- Aspect-Based Sentiment Analysis
+- Multi-lingual Sentiment Models
 
 ### مكتبات Python المتقدمة:
 - PyTorch للتعلم العميق
@@ -78,8 +147,12 @@ class FineTuningAdvisorService {
 - Accelerate للتدريب المتوازي
 - Datasets لإدارة البيانات
 - Evaluate لتقييم النماذج
-- TorchVision للرؤية الحاسوبية
+- Scikit-learn للتعلم الآلي
+- Pandas لمعالجة البيانات
 - NumPy للحوسبة العلمية
+- NLTK ومعالجة اللغة العربية
+- spaCy للمعالجة المتقدمة
+- Farasapy للمعالجة العربية
 
 ## تقنيات التدريب المتقدمة:
 ### استراتيجيات التحسين:
@@ -325,56 +398,44 @@ Important Instructions:
       // Add context from available dataset
       String datasetContext = '';
       if (_fineTuningDataset != null) {
-        final cells = _fineTuningDataset?['cells'] as List?;
-        if (cells != null && cells.isNotEmpty) {
+        final samples = _fineTuningDataset?['samples'] as List?;
+        if (samples != null && samples.isNotEmpty) {
           // استخراج أمثلة محددة من الـ dataset بناءً على الموضوع
-          List<dynamic> relevantCells = [];
+          List<dynamic> relevantSamples = [];
 
           if (specificTopic != null) {
-            // البحث عن خلايا ذات صلة بالموضوع المطلوب
-            // Search for cells related to requested topic
-            relevantCells = cells
-                .where((cell) {
-                  if (cell['cell_type'] == 'code' && cell['source'] != null) {
-                    final source = cell['source'] is List
-                        ? (cell['source'] as List).join('')
-                        : cell['source'].toString();
-                    return source.toLowerCase().contains(
+            // البحث عن عينات ذات صلة بالموضوع المطلوب
+            // Search for samples related to requested topic
+            relevantSamples = samples
+                .where((sample) {
+                  if (sample['text'] != null) {
+                    final text = sample['text'].toString();
+                    return text.toLowerCase().contains(
                           specificTopic.toLowerCase(),
                         ) ||
-                        source.contains('SigLIP') ||
-                        source.contains('fine') ||
-                        source.contains('train') ||
-                        source.contains('PyTorch') ||
-                        source.contains('transformers');
+                        specificTopic.toLowerCase().contains('sentiment') ||
+                        specificTopic.toLowerCase().contains('تحليل') ||
+                        specificTopic.toLowerCase().contains('مشاعر');
                   }
                   return false;
                 })
-                .take(5)
+                .take(3)
                 .toList();
           } else {
             // استخراج أمثلة عامة متنوعة
             // Extract diverse general examples
-            relevantCells = cells
-                .where(
-                  (cell) =>
-                      cell['cell_type'] == 'code' && cell['source'] != null,
-                )
-                .take(5)
-                .toList();
+            relevantSamples = samples.take(3).toList();
           }
 
-          if (relevantCells.isNotEmpty) {
+          if (relevantSamples.isNotEmpty) {
             datasetContext =
                 '📊 **أمثلة عملية من قاعدة البيانات المتخصصة / Practical examples from specialized database:**\n\n';
-            for (var i = 0; i < relevantCells.length; i++) {
-              final cell = relevantCells[i];
-              final source = cell['source'];
-              if (source is List && source.isNotEmpty) {
-                final codeText = source.join('');
-                datasetContext +=
-                    '**مثال / Example ${i + 1}:**\n```python\n${codeText.length > 1000 ? '${codeText.substring(0, 1000)}...' : codeText}\n```\n\n';
-              }
+            for (var i = 0; i < relevantSamples.length; i++) {
+              final sample = relevantSamples[i];
+              final text = sample['text']?.toString() ?? '';
+              final polarity = sample['polarity'] == '1' ? 'إيجابي / Positive' : 'سلبي / Negative';
+              datasetContext +=
+                  '**مثال / Example ${i + 1} ($polarity):**\n${text.length > 200 ? '${text.substring(0, 200)}...' : text}\n\n';
             }
             datasetContext += '---\n\n';
           }
@@ -489,25 +550,38 @@ Important Instructions:
   // Test database access
   bool get isDatasetLoaded => _fineTuningDataset != null;
 
-  int get datasetSize => _fineTuningDataset?['cells']?.length ?? 0;
+  int get datasetSize => _fineTuningDataset?['samples']?.length ?? 0;
 
-  List<String> getAvailableCodeSamples({int limit = 3}) {
+  List<Map<String, dynamic>> getAvailableTextSamples({int limit = 3}) {
     if (_fineTuningDataset == null) return [];
 
-    final cells = _fineTuningDataset?['cells'] as List?;
-    if (cells == null) return [];
+    final samples = _fineTuningDataset?['samples'] as List?;
+    if (samples == null) return [];
 
-    return cells
-        .where((cell) => cell['cell_type'] == 'code' && cell['source'] != null)
+    return samples
+        .where((sample) => sample['text'] != null)
         .take(limit)
-        .map((cell) {
-          final source = cell['source'];
-          if (source is List && source.isNotEmpty) {
-            return source.join('');
-          }
-          return source.toString();
+        .map((sample) => {
+          'text': sample['text'].toString(),
+          'polarity': sample['polarity'],
+          'language': sample['language'] ?? 'ar',
+          'domain': sample['domain'] ?? 'sentiment_analysis',
         })
         .toList();
+  }
+  
+  // الحصول على إحصائيات البيانات
+  // Get dataset statistics
+  Map<String, dynamic> getDatasetStats() {
+    if (_fineTuningDataset == null) return {};
+    
+    return {
+      'total_samples': _fineTuningDataset?['total_count'] ?? 0,
+      'positive_samples': _fineTuningDataset?['positive_count'] ?? 0,
+      'negative_samples': _fineTuningDataset?['negative_count'] ?? 0,
+      'language': _fineTuningDataset?['language'] ?? 'ar',
+      'task_type': _fineTuningDataset?['task_type'] ?? 'sentiment_analysis',
+    };
   }
 }
 

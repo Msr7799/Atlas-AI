@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/utils/responsive_helper.dart';
-import '../../core/services/api_key_manager.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 class ModelsInfoDialog extends StatefulWidget {
   const ModelsInfoDialog({super.key});
@@ -11,1314 +8,869 @@ class ModelsInfoDialog extends StatefulWidget {
   State<ModelsInfoDialog> createState() => _ModelsInfoDialogState();
 }
 
-class _ModelsInfoDialogState extends State<ModelsInfoDialog>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _ModelsInfoDialogState extends State<ModelsInfoDialog> {
   String _searchQuery = '';
-  String _selectedFilter = 'all';
-  final Set<String> _selectedModelsForComparison = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+  int _selectedTab = 0;
 
   @override
   Widget build(BuildContext context) {
-    return ResponsiveBuilder(
-      builder: (context, constraints, deviceType) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              ResponsiveHelper.getResponsiveWidth(
-                context,
-                mobile: 12,
-                tablet: 16,
-                desktop: 20,
-              ),
+    final theme = Theme.of(context);
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final size = MediaQuery.of(context).size;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Container(
+        width: size.width * 0.9,
+        height: size.height * 0.85,
+        decoration: BoxDecoration(
+          color: theme.dialogBackgroundColor,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: theme.primaryColor.withOpacity(0.1),
+              blurRadius: 30,
+              offset: const Offset(0, 15),
             ),
-          ),
-          child: Container(
-            width: ResponsiveHelper.getResponsiveConstraints(
-              context,
-              mobile: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.95,
-                maxHeight: MediaQuery.of(context).size.height * 0.85,
-              ),
-              tablet: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.8,
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-              ),
-              desktop: BoxConstraints(
-                maxWidth: 1000,
-                maxHeight: MediaQuery.of(context).size.height * 0.75,
-              ),
-            ).maxWidth,
-            height: ResponsiveHelper.getResponsiveConstraints(
-              context,
-              mobile: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.95,
-                maxHeight: MediaQuery.of(context).size.height * 0.85,
-              ),
-              tablet: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.8,
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-              ),
-              desktop: BoxConstraints(
-                maxWidth: 1000,
-                maxHeight: MediaQuery.of(context).size.height * 0.75,
-              ),
-            ).maxHeight,
-            padding: ResponsiveHelper.getResponsivePadding(
-              context,
-              mobile: const EdgeInsets.all(12),
-              tablet: const EdgeInsets.all(16),
-              desktop: const EdgeInsets.all(20),
-            ),
-            child: Column(
-              children: [
-                // Header
-                _buildHeader(context),
-                const Divider(),
-
-                // Search and Filter Bar
-                _buildSearchAndFilterBar(context),
-
-                // Statistics Bar
-                _buildStatisticsBar(context),
-
-                // Tab Bar
-                _buildTabBar(context),
-
-                // Content
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildAllModelsTab(context),
-                      _buildFreeModelsTab(context),
-                      _buildPremiumModelsTab(context),
-                    ],
-                  ),
-                ),
-
-                // Close Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      padding: ResponsiveHelper.getResponsivePadding(
-                        context,
-                        mobile: const EdgeInsets.symmetric(vertical: 12),
-                        tablet: const EdgeInsets.symmetric(vertical: 14),
-                        desktop: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                    ),
-                    child: Text(
-                      Localizations.localeOf(context).languageCode == 'ar' ? 'إغلاق' : 'Close',
-                      style: TextStyle(
-                        fontSize: ResponsiveHelper.getResponsiveFontSize(
-                          context,
-                          mobile: 16,
-                          tablet: 18,
-                          desktop: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            Icons.psychology,
-            color: Colors.blue,
-            size: ResponsiveHelper.getResponsiveIconSize(
-              context,
-              mobile: 24,
-              tablet: 28,
-              desktop: 32,
-            ),
-          ),
+          ],
         ),
-        SizedBox(
-          width: ResponsiveHelper.getResponsiveWidth(
-            context,
-            mobile: 8,
-            tablet: 12,
-            desktop: 16,
-          ),
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                Localizations.localeOf(context).languageCode == 'ar' ? 'النماذج المتاحة' : 'Available Models',
-                style: TextStyle(
-                  fontSize: ResponsiveHelper.getResponsiveFontSize(
-                    context,
-                    mobile: 18,
-                    tablet: 20,
-                    desktop: 24,
-                  ),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                Localizations.localeOf(context).languageCode == 'ar' ? 'اكتشف النماذج المجانية والمدفوعة' : 'Discover free and paid models',
-                style: TextStyle(
-                  fontSize: ResponsiveHelper.getResponsiveFontSize(
-                    context,
-                    mobile: 12,
-                    tablet: 14,
-                    desktop: 16,
-                  ),
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Export Button
-        IconButton(
-          icon: Icon(
-            Icons.download,
-            size: ResponsiveHelper.getResponsiveIconSize(
-              context,
-              mobile: 20,
-              tablet: 24,
-              desktop: 28,
-            ),
-          ),
-          onPressed: () => _exportModelsList(context),
-          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'تصدير قائمة النماذج' : 'Export Models List',
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.close,
-            size: ResponsiveHelper.getResponsiveIconSize(
-              context,
-              mobile: 20,
-              tablet: 24,
-              desktop: 28,
-            ),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ],
-    );
-  }
-
-  void _exportModelsList(BuildContext context) {
-    final allModels = _getAllModels();
-    final buffer = StringBuffer();
-    
-    buffer.writeln(Localizations.localeOf(context).languageCode == 'ar' ? 'قائمة النماذج المتاحة في Atlas AI' : 'Available Models in Atlas AI');
-    buffer.writeln('=' * 50);
-    buffer.writeln('');
-    
-    // Group by service
-    final services = ['groq', 'gptgod', 'openrouter', 'huggingface'];
-    
-    for (final service in services) {
-      final serviceModels = allModels.where((model) => model['service'] == service).toList();
-      if (serviceModels.isEmpty) continue;
-      
-      final serviceName = {
-        'groq': 'Groq',
-        'gptgod': 'GPTGod',
-        'openrouter': 'OpenRouter',
-        'huggingface': 'HuggingFace',
-      }[service] ?? service;
-      
-      buffer.writeln('## $serviceName');
-      buffer.writeln('');
-      
-      for (final model in serviceModels) {
-        buffer.writeln('### ${model['name'] ?? model['id']}');
-        if (Localizations.localeOf(context).languageCode == 'ar') {
-          buffer.writeln('**المعرف:** `${model['id']}`');
-          buffer.writeln('**الوصف:** ${model['description'] ?? ''}');
-          buffer.writeln('**السرعة:** ${model['speed'] ?? ''}');
-          buffer.writeln('**الجودة:** ${model['quality'] ?? ''}');
-          buffer.writeln('**السياق:** ${model['context'] ?? ''}');
-        } else {
-          buffer.writeln('**ID:** `${model['id']}`');
-          buffer.writeln('**Description:** ${model['description'] ?? ''}');
-          buffer.writeln('**Speed:** ${model['speed'] ?? ''}');
-          buffer.writeln('**Quality:** ${model['quality'] ?? ''}');
-          buffer.writeln('**Context:** ${model['context'] ?? ''}');
-        }
-        
-        if (model['features'] != null) {
-          buffer.writeln(Localizations.localeOf(context).languageCode == 'ar' ? '**المميزات:** ${model['features'].join(', ')}' : '**Features:** ${model['features'].join(', ')}');
-        }
-        
-        if (model['requiresKey'] == true) {
-          buffer.writeln(Localizations.localeOf(context).languageCode == 'ar' ? '**النوع:** مدفوع (يتطلب مفتاح API)' : '**Type:** Paid (requires API key)');
-        } else {
-          buffer.writeln(Localizations.localeOf(context).languageCode == 'ar' ? '**النوع:** مجاني' : '**Type:** Free');
-        }
-        
-        buffer.writeln('');
-      }
-      
-      buffer.writeln('---');
-      buffer.writeln('');
-    }
-    
-    final modelsText = buffer.toString();
-    Clipboard.setData(ClipboardData(text: modelsText));
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
+        child: Column(
           children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
-            SizedBox(width: 8),
+            _buildHeader(context, theme, isArabic),
+            _buildSearchBar(context, theme, isArabic),
+            _buildTabSelector(context, theme, isArabic),
             Expanded(
-              child: Text(
-                Localizations.localeOf(context).languageCode == 'ar' ? 'تم تصدير قائمة النماذج إلى الحافظة' : 'Models list exported to clipboard',
-                style: TextStyle(fontSize: 14),
-              ),
+              child: _buildContent(context, theme, isArabic),
             ),
+            _buildFooter(context, theme, isArabic),
           ],
         ),
-        backgroundColor: Colors.blue,
-        duration: Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        action: SnackBarAction(
-          label: Localizations.localeOf(context).languageCode == 'ar' ? 'عرض' : 'View',
-          textColor: Colors.white,
-          onPressed: () => _showExportedModels(context, modelsText),
-        ),
       ),
     );
   }
 
-  void _showExportedModels(BuildContext context, String modelsText) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'قائمة النماذج المصدرة' : 'Exported Models List'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: SingleChildScrollView(
-            child: SelectableText(
-              modelsText,
-              style: TextStyle(
-                fontSize: 12,
-                fontFamily: 'monospace',
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إغلاق' : 'Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchAndFilterBar(BuildContext context) {
+  Widget _buildHeader(BuildContext context, ThemeData theme, bool isArabic) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Search Bar
-              Expanded(
-                child: TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في النماذج...' : 'Search models...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: ResponsiveHelper.getResponsivePadding(
-                      context,
-                      mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: ResponsiveHelper.getResponsiveWidth(
-                  context,
-                  mobile: 8,
-                  tablet: 12,
-                  desktop: 16,
-                ),
-              ),
-              // Filter Dropdown
-              DropdownButton<String>(
-                value: _selectedFilter,
-                items: [
-                  DropdownMenuItem(value: 'all', child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الكل' : 'All')),
-                  DropdownMenuItem(value: 'fast', child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'سريع' : 'Fast')),
-                  DropdownMenuItem(value: 'quality', child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'جودة عالية' : 'High Quality')),
-                  DropdownMenuItem(value: 'free', child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مجاني' : 'Free')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedFilter = value!;
-                  });
-                },
-              ),
-            ],
-          ),
-          // Comparison Bar
-          if (_selectedModelsForComparison.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.compare_arrows, color: Colors.blue, size: 16),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      Localizations.localeOf(context).languageCode == 'ar' ? '${_selectedModelsForComparison.length} نموذج محدد للمقارنة' : '${_selectedModelsForComparison.length} models selected for comparison',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _selectedModelsForComparison.length >= 2 
-                        ? () => _showComparisonDialog(context)
-                        : null,
-                    child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مقارنة' : 'Compare'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _selectedModelsForComparison.clear();
-                      });
-                    },
-                    child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مسح' : 'Clear'),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _showComparisonDialog(BuildContext context) {
-    final allModels = _getAllModels();
-    final selectedModels = allModels.where(
-      (model) => _selectedModelsForComparison.contains(model['id'])
-    ).toList();
-    
-    if (selectedModels.length < 2) return;
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'مقارنة النماذج' : 'Models Comparison'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: MediaQuery.of(context).size.height * 0.7,
-          child: SingleChildScrollView(
-            child: _buildComparisonTable(context, selectedModels),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إغلاق' : 'Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildComparisonTable(BuildContext context, List<Map<String, dynamic>> models) {
-    return Table(
-      border: TableBorder.all(color: Colors.grey[300]!),
-      columnWidths: {
-        0: FlexColumnWidth(2),
-        1: FlexColumnWidth(1),
-        2: FlexColumnWidth(1),
-        3: FlexColumnWidth(1),
-      },
-      children: [
-        // Header
-        TableRow(
-          decoration: BoxDecoration(color: Colors.grey[100]),
-          children: [
-            _buildTableHeader(context, Localizations.localeOf(context).languageCode == 'ar' ? 'المعيار' : 'Criteria'),
-            ...models.map((model) => _buildTableHeader(context, model['name'] ?? model['id'])),
-          ],
-        ),
-        // Model ID
-        TableRow(
-          children: [
-            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'معرف النموذج' : 'Model ID', isHeader: true),
-            ...models.map((model) => _buildTableCell(context, model['id'] ?? '')),
-          ],
-        ),
-        // Service
-        TableRow(
-          children: [
-            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'الخدمة' : 'Service', isHeader: true),
-            ...models.map((model) => _buildTableCell(context, _getServiceName(model['service']))),
-          ],
-        ),
-        // Speed
-        TableRow(
-          children: [
-            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'السرعة' : 'Speed', isHeader: true),
-            ...models.map((model) => _buildTableCell(context, model['speed'] ?? '')),
-          ],
-        ),
-        // Quality
-        TableRow(
-          children: [
-            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'الجودة' : 'Quality', isHeader: true),
-            ...models.map((model) => _buildTableCell(context, model['quality'] ?? '')),
-          ],
-        ),
-        // Context
-        TableRow(
-          children: [
-            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'السياق' : 'Context', isHeader: true),
-            ...models.map((model) => _buildTableCell(context, model['context'] ?? '')),
-          ],
-        ),
-        // Type
-        TableRow(
-          children: [
-            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'النوع' : 'Type', isHeader: true),
-            ...models.map((model) => _buildTableCell(
-              context, 
-              _isFreeModel(model) 
-                ? (Localizations.localeOf(context).languageCode == 'ar' ? 'مجاني' : 'Free')
-                : (Localizations.localeOf(context).languageCode == 'ar' ? 'مدفوع' : 'Paid'),
-              color: _isFreeModel(model) ? Colors.green : Colors.amber,
-            )),
-          ],
-        ),
-        // Features
-        TableRow(
-          children: [
-            _buildTableCell(context, Localizations.localeOf(context).languageCode == 'ar' ? 'المميزات' : 'Features', isHeader: true),
-            ...models.map((model) => _buildTableCell(
-              context, 
-              (model['features'] as List<dynamic>?)?.join(', ') ?? '',
-            )),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTableHeader(BuildContext context, String text) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: ResponsiveHelper.getResponsiveFontSize(
-            context,
-            mobile: 12,
-            tablet: 14,
-            desktop: 16,
-          ),
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  Widget _buildTableCell(BuildContext context, String text, {bool isHeader = false, Color? color}) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-          fontSize: ResponsiveHelper.getResponsiveFontSize(
-            context,
-            mobile: 10,
-            tablet: 12,
-            desktop: 14,
-          ),
-          color: color,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  String _getServiceName(String? service) {
-    switch (service) {
-      case 'groq': return 'Groq';
-      case 'gptgod': return 'GPTGod';
-      case 'openrouter': return 'OpenRouter';
-      case 'huggingface': return 'HuggingFace';
-      default: return service ?? '';
-    }
-  }
-
-  bool _isFreeModel(Map<String, dynamic> model) {
-    return model['requiresKey'] != true || 
-           model['service'] == 'groq' || 
-           model['service'] == 'gptgod';
-  }
-
-  Widget _buildStatisticsBar(BuildContext context) {
-    final allModels = _getAllModels();
-    final freeModels = allModels.where((model) => 
-      model['requiresKey'] != true || 
-      model['service'] == 'groq' || 
-      model['service'] == 'gptgod'
-    ).length;
-    final premiumModels = allModels.where((model) => 
-      model['requiresKey'] == true && 
-      model['service'] != 'groq' && 
-      model['service'] != 'gptgod'
-    ).length;
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: ResponsiveHelper.getResponsivePadding(
-        context,
-        mobile: const EdgeInsets.all(8),
-        tablet: const EdgeInsets.all(12),
-        desktop: const EdgeInsets.all(16),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.primaryColor.withOpacity(0.1),
+            theme.primaryColor.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
       ),
       child: Row(
         children: [
-          Expanded(
-            child: _buildStatItem(
-              context,
-              'إجمالي النماذج',
-              allModels.length.toString(),
-              Icons.psychology,
-              Colors.blue,
-            ),
-          ),
           Container(
-            width: 1,
-            height: 40,
-            color: Colors.grey[300],
-          ),
-          Expanded(
-            child: _buildStatItem(
-              context,
-              'النماذج المجانية',
-              freeModels.toString(),
-              Icons.free_breakfast,
-              Colors.green,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.primaryColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 20,
             ),
           ),
-          Container(
-            width: 1,
-            height: 40,
-            color: Colors.grey[300],
-          ),
+          const SizedBox(width: 12),
           Expanded(
-            child: _buildStatItem(
-              context,
-              'النماذج المدفوعة',
-              premiumModels.toString(),
-              Icons.star,
-              Colors.amber,
+            child: Text(
+              isArabic ? 'نماذج الذكاء الاصطناعي' : 'AI Models',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.primaryColor,
+              ),
             ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close_rounded),
+            iconSize: 24,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem(BuildContext context, String label, String value, IconData icon, Color color) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: color,
-          size: ResponsiveHelper.getResponsiveIconSize(
-            context,
-            mobile: 16,
-            tablet: 18,
-            desktop: 20,
-          ),
-        ),
-        SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: ResponsiveHelper.getResponsiveFontSize(
-              context,
-              mobile: 16,
-              tablet: 18,
-              desktop: 20,
-            ),
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: ResponsiveHelper.getResponsiveFontSize(
-              context,
-              mobile: 10,
-              tablet: 12,
-              desktop: 14,
-            ),
-            color: Colors.grey[600],
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTabBar(BuildContext context) {
+  Widget _buildSearchBar(BuildContext context, ThemeData theme, bool isArabic) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: TabBar(
-        controller: _tabController,
-        tabs: [
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.all_inclusive, size: 16),
-                SizedBox(width: 4),
-                Text('الكل'),
-              ],
-            ),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: TextField(
+        onChanged: (value) => setState(() => _searchQuery = value),
+        decoration: InputDecoration(
+          hintText: isArabic ? 'البحث في النماذج...' : 'Search models...',
+          prefixIcon: Icon(Icons.search_rounded, color: theme.primaryColor, size: 20),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded, size: 20),
+                  onPressed: () => setState(() => _searchQuery = ''),
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
           ),
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.free_breakfast, size: 16),
-                SizedBox(width: 4),
-                Text('مجاني'),
-              ],
-            ),
-          ),
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.star, size: 16),
-                SizedBox(width: 4),
-                Text('مدفوع'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAllModelsTab(BuildContext context) {
-    return _buildModelsList(context, _getAllModels());
-  }
-
-  Widget _buildFreeModelsTab(BuildContext context) {
-    return _buildModelsList(context, _getFreeModels());
-  }
-
-  Widget _buildPremiumModelsTab(BuildContext context) {
-    return _buildModelsList(context, _getPremiumModels());
-  }
-
-  Widget _buildModelsList(BuildContext context, List<Map<String, dynamic>> models) {
-    final filteredModels = _filterModels(models);
-    
-    if (filteredModels.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            SizedBox(height: 16),
-            Text(
-              'لا توجد نماذج تطابق البحث',
-              style: TextStyle(
-                fontSize: ResponsiveHelper.getResponsiveFontSize(
-                  context,
-                  mobile: 16,
-                  tablet: 18,
-                  desktop: 20,
-                ),
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
+          filled: true,
+          fillColor: theme.cardColor,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          isDense: true,
         ),
-      );
-    }
-
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Groq Models
-          _buildServiceSection(context, 'Groq', 'groq', Colors.blue, filteredModels),
-          SizedBox(height: 24),
-          // GPTGod Models
-          _buildServiceSection(context, 'GPTGod', 'gptgod', Colors.green, filteredModels),
-          SizedBox(height: 24),
-          // OpenRouter Models
-          _buildServiceSection(context, 'OpenRouter', 'openrouter', Colors.purple, filteredModels),
-          SizedBox(height: 24),
-          // HuggingFace Models
-          _buildServiceSection(context, 'HuggingFace', 'huggingface', Colors.orange, filteredModels),
-        ],
       ),
     );
   }
 
-  List<Map<String, dynamic>> _getAllModels() {
-    final allModels = <Map<String, dynamic>>[];
-    final services = ['groq', 'gptgod', 'openrouter', 'huggingface'];
-    
-    for (final service in services) {
-      final models = ApiKeyManager.getFreeModels(service);
-      for (final model in models) {
-        allModels.add({...model, 'service': service});
-      }
-    }
-    
-    return allModels;
-  }
+  Widget _buildTabSelector(BuildContext context, ThemeData theme, bool isArabic) {
+    final tabs = [
+      {'icon': Icons.route_rounded, 'label': 'OpenRouter', 'count': 13},
+      {'icon': Icons.flash_on_rounded, 'label': 'Groq', 'count': 5},
+      {'icon': Icons.more_horiz_rounded, 'label': isArabic ? 'أخرى' : 'Others', 'count': 11},
+    ];
 
-  List<Map<String, dynamic>> _getFreeModels() {
-    return _getAllModels().where((model) => 
-      model['requiresKey'] != true || model['service'] == 'groq' || model['service'] == 'gptgod'
-    ).toList();
-  }
-
-  List<Map<String, dynamic>> _getPremiumModels() {
-    return _getAllModels().where((model) => 
-      model['requiresKey'] == true && model['service'] != 'groq' && model['service'] != 'gptgod'
-    ).toList();
-  }
-
-  List<Map<String, dynamic>> _filterModels(List<Map<String, dynamic>> models) {
-    return models.where((model) {
-      // Search filter
-      if (_searchQuery.isNotEmpty) {
-        final query = _searchQuery.toLowerCase();
-        final name = (model['name'] ?? '').toString().toLowerCase();
-        final description = (model['description'] ?? '').toString().toLowerCase();
-        final features = (model['features'] ?? []).join(' ').toLowerCase();
-        
-        if (!name.contains(query) && 
-            !description.contains(query) && 
-            !features.contains(query)) {
-          return false;
-        }
-      }
-      
-      // Category filter
-      switch (_selectedFilter) {
-        case 'fast':
-          return (model['speed'] ?? '').toString().contains('سريع');
-        case 'quality':
-          return (model['quality'] ?? '').toString().contains('ممتاز');
-        case 'free':
-          return model['requiresKey'] != true || 
-                 model['service'] == 'groq' || 
-                 model['service'] == 'gptgod';
-        default:
-          return true;
-      }
-    }).toList();
-  }
-
-  Widget _buildServiceSection(BuildContext context, String serviceName, String serviceKey, Color color, List<Map<String, dynamic>> allModels) {
-    final serviceModels = allModels.where((model) => model['service'] == serviceKey).toList();
-    
-    if (serviceModels.isEmpty) return const SizedBox.shrink();
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Service Header
-        Container(
-          padding: ResponsiveHelper.getResponsivePadding(
-            context,
-            mobile: const EdgeInsets.all(12),
-            tablet: const EdgeInsets.all(16),
-            desktop: const EdgeInsets.all(20),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withOpacity(0.3)),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.smart_toy,
-                color: color,
-                size: ResponsiveHelper.getResponsiveIconSize(
-                  context,
-                  mobile: 20,
-                  tablet: 24,
-                  desktop: 28,
+        ],
+      ),
+      child: Row(
+        children: tabs.asMap().entries.map((entry) {
+          final index = entry.key;
+          final tab = entry.value;
+          final isSelected = _selectedTab == index;
+
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedTab = index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                decoration: BoxDecoration(
+                  color: isSelected ? theme.primaryColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ),
-              SizedBox(
-                width: ResponsiveHelper.getResponsiveWidth(
-                  context,
-                  mobile: 8,
-                  tablet: 12,
-                  desktop: 16,
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(
+                      tab['icon'] as IconData,
+                      color: isSelected ? Colors.white : theme.textTheme.bodyMedium?.color,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      serviceName,
+                      tab['label'] as String,
                       style: TextStyle(
-                        fontSize: ResponsiveHelper.getResponsiveFontSize(
-                          context,
-                          mobile: 16,
-                          tablet: 18,
-                          desktop: 20,
-                        ),
-                        fontWeight: FontWeight.bold,
-                        color: color,
+                        color: isSelected ? Colors.white : theme.textTheme.bodyMedium?.color,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 11,
                       ),
                     ),
-                    Text(
-                      '${serviceModels.length} نموذج متاح',
-                      style: TextStyle(
-                        fontSize: ResponsiveHelper.getResponsiveFontSize(
-                          context,
-                          mobile: 12,
-                          tablet: 14,
-                          desktop: 16,
+                    const SizedBox(width: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: isSelected 
+                            ? Colors.white.withOpacity(0.2)
+                            : theme.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${tab['count']}',
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : theme.primaryColor,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
                         ),
-                        color: color.withOpacity(0.7),
                       ),
                     ),
                   ],
                 ),
               ),
-              if (serviceKey == 'groq' || serviceKey == 'gptgod')
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.green.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    'مجاني',
-                    style: TextStyle(
-                      fontSize: ResponsiveHelper.getResponsiveFontSize(
-                        context,
-                        mobile: 10,
-                        tablet: 12,
-                        desktop: 14,
-                      ),
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        
-        SizedBox(
-          height: ResponsiveHelper.getResponsiveHeight(
-            context,
-            mobile: 12,
-            tablet: 16,
-            desktop: 20,
-          ),
-        ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
 
-        // Models Grid
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: ResponsiveHelper.getGridColumns(
-              context,
-              mobile: 1,
-              tablet: 2,
-              desktop: 3,
-            ),
-            crossAxisSpacing: ResponsiveHelper.getResponsiveWidth(
-              context,
-              mobile: 8,
-              tablet: 12,
-              desktop: 16,
-            ),
-            mainAxisSpacing: ResponsiveHelper.getResponsiveHeight(
-              context,
-              mobile: 8,
-              tablet: 12,
-              desktop: 16,
-            ),
-            childAspectRatio: ResponsiveHelper.getResponsiveAspectRatio(
-              context,
-              mobile: 2.5,
-              tablet: 2.8,
-              desktop: 3.2,
+  Widget _buildContent(BuildContext context, ThemeData theme, bool isArabic) {
+    final models = _getModelsForTab(_selectedTab);
+    final filteredModels = _filterModels(models);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        children: [
+          _buildStatsRow(context, theme, isArabic, filteredModels),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView.builder(
+              itemCount: filteredModels.length,
+              itemBuilder: (context, index) {
+                return _buildModelCard(context, theme, isArabic, filteredModels[index]);
+              },
             ),
           ),
-          itemCount: serviceModels.length,
-          itemBuilder: (context, index) {
-            return _buildModelCard(context, serviceModels[index], color);
-          },
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(BuildContext context, ThemeData theme, bool isArabic, List<Map<String, dynamic>> models) {
+    final freeCount = models.where((m) => m['isFree'] == true).length;
+    final premiumCount = models.length - freeCount;
+
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            context,
+            theme,
+            Icons.apps_rounded,
+            models.length.toString(),
+            isArabic ? 'إجمالي' : 'Total',
+            Colors.blue,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            theme,
+            Icons.free_breakfast_rounded,
+            freeCount.toString(),
+            isArabic ? 'مجاني' : 'Free',
+            Colors.green,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            theme,
+            Icons.star_rounded,
+            premiumCount.toString(),
+            isArabic ? 'مميز' : 'Premium',
+            Colors.amber,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildModelCard(BuildContext context, Map<String, dynamic> model, Color color) {
-    final isPremium = model['requiresKey'] == true && 
-                     model['service'] != 'groq' && 
-                     model['service'] != 'gptgod';
-    final isSelected = _selectedModelsForComparison.contains(model['id']);
-    
-    return Card(
-      elevation: 2,
-      child: Tooltip(
-        message: _buildModelTooltip(model),
-        preferBelow: false,
-        child: InkWell(
-          onTap: () => _copyModelId(context, model),
-          onLongPress: () => _toggleModelSelection(model['id']),
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: ResponsiveHelper.getResponsivePadding(
-              context,
-              mobile: const EdgeInsets.all(8),
-              tablet: const EdgeInsets.all(12),
-              desktop: const EdgeInsets.all(16),
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isSelected 
-                    ? Colors.blue.withOpacity(0.5)
-                    : (isPremium ? Colors.amber.withOpacity(0.3) : color.withOpacity(0.2)),
-                width: isSelected ? 2 : 1,
-              ),
-              gradient: isSelected 
-                  ? LinearGradient(
-                      colors: [Colors.blue.withOpacity(0.1), Colors.blue.withOpacity(0.05)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : (isPremium ? LinearGradient(
-                      colors: [Colors.amber.withOpacity(0.1), Colors.orange.withOpacity(0.05)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ) : null),
-            ),
-            child: IntrinsicHeight(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Model Name and Premium Badge
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          model['name'] ?? model['id'],
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: ResponsiveHelper.getResponsiveFontSize(
-                              context,
-                              mobile: 12,
-                              tablet: 14,
-                              desktop: 16,
-                            ),
-                            color: isSelected 
-                                ? Colors.blue[700]
-                                : (isPremium ? Colors.amber[700] : color),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (isSelected)
-                        Icon(
-                          Icons.check_circle,
-                          size: 16,
-                          color: Colors.blue,
-                        )
-                      else if (isPremium)
-                        Icon(
-                          Icons.star,
-                          size: 16,
-                          color: Colors.amber[600],
-                        ),
-                    ],
-                  ),
-                  
-                  SizedBox(
-                    height: ResponsiveHelper.getResponsiveHeight(
-                      context,
-                      mobile: 4,
-                      tablet: 6,
-                      desktop: 8,
-                    ),
-                  ),
-
-                  // Description
-                  Flexible(
-                    child: Text(
-                      model['description'] ?? '',
-                      style: TextStyle(
-                        fontSize: ResponsiveHelper.getResponsiveFontSize(
-                          context,
-                          mobile: 10,
-                          tablet: 12,
-                          desktop: 14,
-                        ),
-                        color: Colors.grey[600],
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-
-                  SizedBox(
-                    height: ResponsiveHelper.getResponsiveHeight(
-                      context,
-                      mobile: 6,
-                      tablet: 8,
-                      desktop: 10,
-                    ),
-                  ),
-
-                  // Info Chips
-                  Row(
-                    children: [
-                      _buildInfoChip(context, 'سرعة', model['speed'] ?? '', color),
-                      SizedBox(
-                        width: ResponsiveHelper.getResponsiveWidth(
-                          context,
-                          mobile: 4,
-                          tablet: 6,
-                          desktop: 8,
-                        ),
-                      ),
-                      _buildInfoChip(context, 'جودة', model['quality'] ?? '', color),
-                    ],
-                  ),
-
-                  // Context Info
-                  if (model['context'] != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        'السياق: ${model['context']}',
-                        style: TextStyle(
-                          fontSize: ResponsiveHelper.getResponsiveFontSize(
-                            context,
-                            mobile: 8,
-                            tablet: 10,
-                            desktop: 12,
-                          ),
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                    ),
-
-                  // Copy hint
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.copy,
-                          size: 12,
-                          color: Colors.grey[400],
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          isSelected 
-                              ? 'انقر طويلاً لإلغاء التحديد'
-                              : 'انقر لنسخ المعرف، انقر طويلاً للمقارنة',
-                          style: TextStyle(
-                            fontSize: ResponsiveHelper.getResponsiveFontSize(
-                              context,
-                              mobile: 8,
-                              tablet: 10,
-                              desktop: 12,
-                            ),
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+  Widget _buildStatCard(BuildContext context, ThemeData theme, IconData icon, String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: 10,
+              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModelCard(BuildContext context, ThemeData theme, bool isArabic, Map<String, dynamic> model) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.dividerColor.withOpacity(0.3),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ExpansionTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: (model['isFree'] == true ? Colors.green : Colors.amber).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            model['isFree'] == true ? Icons.free_breakfast_rounded : Icons.star_rounded,
+            color: model['isFree'] == true ? Colors.green : Colors.amber,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          model['name'] ?? model['id'] ?? '',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                _buildChip(
+                  theme,
+                  model['service'] ?? '',
+                  theme.primaryColor,
+                ),
+                const SizedBox(width: 8),
+                _buildChip(
+                  theme,
+                  model['isFree'] == true 
+                      ? (isArabic ? 'مجاني' : 'Free')
+                      : (isArabic ? 'مميز' : 'Premium'),
+                  model['isFree'] == true ? Colors.green : Colors.amber,
+                ),
+              ],
+            ),
+            if (model['description'] != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                model['description'].toString(),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ],
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (model['parameters'] != null)
+                  _buildDetailRow(theme, isArabic ? 'المعاملات' : 'Parameters', model['parameters'].toString()),
+                if (model['contextLength'] != null)
+                  _buildDetailRow(theme, isArabic ? 'طول السياق' : 'Context Length', model['contextLength'].toString()),
+                if (model['modalities'] != null)
+                  _buildDetailRow(theme, isArabic ? 'الوسائط' : 'Modalities', model['modalities'].toString()),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _copyModelId(context, model, isArabic),
+                        icon: const Icon(Icons.copy_rounded, size: 18),
+                        label: Text(isArabic ? 'نسخ المعرف' : 'Copy ID'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.primaryColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (model['url'] != null) ...[
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _openUrl(model['url']),
+                          icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                          label: Text(isArabic ? 'فتح الرابط' : 'Open Link'),
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip(ThemeData theme, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  void _copyModelId(BuildContext context, Map<String, dynamic> model) {
+  Widget _buildDetailRow(ThemeData theme, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.primaryColor,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter(BuildContext context, ThemeData theme, bool isArabic) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: theme.cardColor.withOpacity(0.3),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            color: theme.primaryColor,
+            size: 16,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              isArabic
+                  ? 'النماذج المجانية لا تحتاج مفتاح API • محدث ${DateTime.now().year}'
+                  : 'Free models don\'t need API key • Updated ${DateTime.now().year}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Data Methods
+  List<Map<String, dynamic>> _getModelsForTab(int tabIndex) {
+    switch (tabIndex) {
+      case 0:
+        return _getOpenRouterModels();
+      case 1:
+        return _getGroqModels();
+      case 2:
+        return _getOtherModels();
+      default:
+        return [];
+    }
+  }
+
+  List<Map<String, dynamic>> _filterModels(List<Map<String, dynamic>> models) {
+    if (_searchQuery.isEmpty) return models;
+    
+    return models.where((model) {
+      final query = _searchQuery.toLowerCase();
+      final name = (model['name'] ?? '').toString().toLowerCase();
+      final description = (model['description'] ?? '').toString().toLowerCase();
+      final service = (model['service'] ?? '').toString().toLowerCase();
+      
+      return name.contains(query) || description.contains(query) || service.contains(query);
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _getOpenRouterModels() {
+    return [
+      {
+        'id': 'meta-llama/llama-4-maverick:free',
+        'name': 'Llama 4 Maverick',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': '400B total, 17B active',
+        'contextLength': '256K tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'Meta\'s advanced MoE architecture with sparse activation',
+        'url': 'https://openrouter.ai/meta-llama/llama-4-maverick:free',
+      },
+      {
+        'id': 'meta-llama/llama-4-scout:free',
+        'name': 'Llama 4 Scout',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': '109B total, 17B active',
+        'contextLength': '512K tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'Deployment-optimized variant with fewer experts',
+        'url': 'https://openrouter.ai/meta-llama/llama-4-scout:free',
+      },
+      {
+        'id': 'moonshotai/kimi-vl-a3b-thinking:free',
+        'name': 'Kimi VL A3B Thinking',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': '16B total, 2.8B active',
+        'contextLength': '131K tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'Lightweight MoE with specialized visual reasoning',
+        'url': 'https://openrouter.ai/moonshotai/kimi-vl-a3b-thinking:free',
+      },
+      {
+        'id': 'nvidia/llama-3.1-nemotron-nano-8b-v1:free',
+        'name': 'Llama 3.1 Nemotron Nano',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': '8B',
+        'contextLength': '8K tokens',
+        'modalities': 'Text → Text',
+        'description': 'NVIDIA\'s optimized Llama variant with tensor parallelism',
+        'url': 'https://openrouter.ai/nvidia/llama-3.1-nemotron-nano-8b-v1:free',
+      },
+      {
+        'id': 'google/gemini-2.5-pro-exp-03-25:free',
+        'name': 'Gemini 2.5 Pro Experimental',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': 'Undisclosed (~300-500B)',
+        'contextLength': '1M tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'Google\'s latest experimental model with enhanced reasoning',
+        'url': 'https://openrouter.ai/google/gemini-2.5-pro-exp-03-25:free',
+      },
+      {
+        'id': 'mistralai/mistral-small-3.1-24b-instruct:free',
+        'name': 'Mistral Small 3.1',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': '24B',
+        'contextLength': '96K tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'Advanced transformer with sliding window attention',
+        'url': 'https://openrouter.ai/mistralai/mistral-small-3.1-24b-instruct:free',
+      },
+      {
+        'id': 'deepseek/deepseek-v3-base:free',
+        'name': 'DeepSeek V3 Base',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': 'Undisclosed',
+        'contextLength': 'Variable',
+        'modalities': 'Text → Text',
+        'description': 'Technical domain optimized foundation model',
+        'url': 'https://openrouter.ai/deepseek/deepseek-v3-base:free',
+      },
+      {
+        'id': 'qwen/qwen2.5-vl-3b-instruct:free',
+        'name': 'Qwen 2.5 VL 3B',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': '3B',
+        'contextLength': 'Variable',
+        'modalities': 'Text + Image → Text',
+        'description': 'Efficient multimodal model for visual understanding',
+        'url': 'https://openrouter.ai/qwen/qwen2.5-vl-3b-instruct:free',
+      },
+      {
+        'id': 'deepseek/deepseek-chat-v3-0324:free',
+        'name': 'DeepSeek Chat V3',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': 'Undisclosed',
+        'contextLength': 'Variable',
+        'modalities': 'Text → Text',
+        'description': 'Dialogue-optimized transformer for conversations',
+        'url': 'https://openrouter.ai/deepseek/deepseek-chat-v3-0324:free',
+      },
+      {
+        'id': 'deepseek/deepseek-r1-zero:free',
+        'name': 'DeepSeek R1 Zero',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': 'Undisclosed',
+        'contextLength': 'Variable',
+        'modalities': 'Text → Text',
+        'description': 'Research-oriented model for scientific reasoning',
+        'url': 'https://openrouter.ai/deepseek/deepseek-r1-zero:free',
+      },
+      {
+        'id': 'nousresearch/deephermes-3-llama-3-8b-preview:free',
+        'name': 'DeepHermes 3 Llama 3 8B',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': '8B',
+        'contextLength': 'Variable',
+        'modalities': 'Text → Text',
+        'description': 'Nous Research\'s optimized Llama 3 variant',
+        'url': 'https://openrouter.ai/nousresearch/deephermes-3-llama-3-8b-preview:free',
+      },
+      {
+        'id': 'openrouter/optimus-alpha',
+        'name': 'Optimus Alpha',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': 'Undisclosed',
+        'contextLength': 'Variable',
+        'modalities': 'Text → Text',
+        'description': 'OpenRouter\'s in-house general-purpose assistant',
+        'url': 'https://openrouter.ai/openrouter/optimus-alpha',
+      },
+      {
+        'id': 'openrouter/quasar-alpha',
+        'name': 'Quasar Alpha',
+        'service': 'OpenRouter',
+        'isFree': true,
+        'parameters': 'Undisclosed',
+        'contextLength': 'Variable',
+        'modalities': 'Text → Text',
+        'description': 'Knowledge-enhanced reasoning model',
+        'url': 'https://openrouter.ai/openrouter/quasar-alpha',
+      },
+    ];
+  }
+
+  List<Map<String, dynamic>> _getGroqModels() {
+    return [
+      {
+        'id': 'llama-3.1-70b-versatile',
+        'name': 'Llama 3.1 70B Versatile',
+        'service': 'Groq',
+        'isFree': true,
+        'parameters': '70B',
+        'contextLength': '128K tokens',
+        'modalities': 'Text → Text',
+        'description': 'High-performance general-purpose model with versatile capabilities',
+      },
+      {
+        'id': 'llama-3.1-8b-instant',
+        'name': 'Llama 3.1 8B Instant',
+        'service': 'Groq',
+        'isFree': true,
+        'parameters': '8B',
+        'contextLength': '128K tokens',
+        'modalities': 'Text → Text',
+        'description': 'Fast and efficient model for quick responses',
+      },
+      {
+        'id': 'mixtral-8x7b-32768',
+        'name': 'Mixtral 8x7B',
+        'service': 'Groq',
+        'isFree': true,
+        'parameters': '8x7B MoE',
+        'contextLength': '32K tokens',
+        'modalities': 'Text → Text',
+        'description': 'Mixture of experts model for diverse tasks',
+      },
+      {
+        'id': 'gemma2-9b-it',
+        'name': 'Gemma 2 9B IT',
+        'service': 'Groq',
+        'isFree': true,
+        'parameters': '9B',
+        'contextLength': '8K tokens',
+        'modalities': 'Text → Text',
+        'description': 'Google\'s efficient instruction-tuned model',
+      },
+      {
+        'id': 'llama-guard-3-8b',
+        'name': 'Llama Guard 3 8B',
+        'service': 'Groq',
+        'isFree': true,
+        'parameters': '8B',
+        'contextLength': '8K tokens',
+        'modalities': 'Text → Text',
+        'description': 'Safety-focused content moderation model',
+      },
+    ];
+  }
+
+  List<Map<String, dynamic>> _getOtherModels() {
+    return [
+      // GPT-GOD Models (Updated)
+      {
+        'id': 'gpt-3.5-turbo',
+        'name': 'GPT-3.5 Turbo',
+        'service': 'GPTGod',
+        'isFree': true,
+        'parameters': '1.8B',
+        'contextLength': '16K tokens',
+        'modalities': 'Text → Text',
+        'description': 'نموذج OpenAI السريع والموثوق للاستخدام العام',
+      },
+      {
+        'id': 'gpt-4o-mini',
+        'name': 'GPT-4o Mini',
+        'service': 'GPTGod',
+        'isFree': true,
+        'parameters': '3B',
+        'contextLength': '128K tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'نموذج OpenAI مصغر ومجاني مع قدرات متقدمة',
+      },
+      {
+        'id': 'gpt-4o',
+        'name': 'GPT-4o',
+        'service': 'GPTGod',
+        'isFree': true,
+        'parameters': '6B',
+        'contextLength': '128K tokens',
+        'modalities': 'Text + Vision + Audio',
+        'description': 'النموذج الأكثر تطوراً في GPT-4 مع دعم متعدد الوسائط',
+      },
+      {
+        'id': 'gpt-4o-vision',
+        'name': 'GPT-4o Vision',
+        'service': 'GPTGod',
+        'isFree': false,
+        'parameters': '6B',
+        'contextLength': '128K tokens',
+        'modalities': 'Text + Vision',
+        'description': 'نموذج متخصص في معالجة الصور والرسوم المتحركة - محدود',
+      },
+      {
+        'id': 'chatgpt-free',
+        'name': 'ChatGPT (نسخة مجانية)',
+        'service': 'GPTGod',
+        'isFree': true,
+        'parameters': '3B (based on GPT-4o Mini)',
+        'contextLength': '128K tokens',
+        'modalities': 'Text → Text',
+        'description': 'واجهة ChatGPT المجانية المستندة إلى GPT-4o Mini',
+      },
+      {
+        'id': 'claude-3-haiku',
+        'name': 'Claude 3 Haiku',
+        'service': 'Anthropic',
+        'isFree': false,
+        'parameters': 'Undisclosed',
+        'contextLength': '200K tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'Fast and efficient model from Anthropic',
+      },
+      {
+        'id': 'gpt-4-turbo',
+        'name': 'GPT-4 Turbo',
+        'service': 'OpenAI',
+        'isFree': false,
+        'parameters': 'Undisclosed',
+        'contextLength': '128K tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'Advanced multimodal model with enhanced capabilities',
+      },
+      {
+        'id': 'claude-3.5-sonnet',
+        'name': 'Claude 3.5 Sonnet',
+        'service': 'Anthropic',
+        'isFree': false,
+        'parameters': 'Undisclosed',
+        'contextLength': '200K tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'Anthropic\'s most capable model for complex tasks',
+      },
+      {
+        'id': 'gemini-pro',
+        'name': 'Gemini Pro',
+        'service': 'Google',
+        'isFree': false,
+        'parameters': 'Undisclosed',
+        'contextLength': '32K tokens',
+        'modalities': 'Text + Image → Text',
+        'description': 'Google\'s advanced multimodal model',
+      },
+      {
+        'id': 'command-r-plus',
+        'name': 'Command R+',
+        'service': 'Cohere',
+        'isFree': false,
+        'parameters': '104B',
+        'contextLength': '128K tokens',
+        'modalities': 'Text → Text',
+        'description': 'Cohere\'s flagship model for enterprise applications',
+      },
+      {
+        'id': 'qwen-max',
+        'name': 'Qwen Max',
+        'service': 'Alibaba',
+        'isFree': false,
+        'parameters': 'Undisclosed',
+        'contextLength': '32K tokens',
+        'modalities': 'Text → Text',
+        'description': 'Alibaba\'s most advanced language model',
+      },
+    ];
+  }
+
+  void _copyModelId(BuildContext context, Map<String, dynamic> model, bool isArabic) {
     final modelId = model['id'] ?? '';
     Clipboard.setData(ClipboardData(text: modelId));
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'تم نسخ معرف النموذج: $modelId',
-                style: TextStyle(fontSize: 14),
-              ),
-            ),
-          ],
+        content: Text(
+          isArabic ? 'تم نسخ معرف النموذج' : 'Model ID copied',
         ),
         backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
 
-  void _toggleModelSelection(String model) {
-    setState(() {
-      if (_selectedModelsForComparison.contains(model)) {
-        _selectedModelsForComparison.remove(model);
-      } else {
-        _selectedModelsForComparison.add(model);
-      }
-    });
-  }
-
-  Widget _buildInfoChip(BuildContext context, String label, String value, Color color) {
-    return Container(
-      padding: ResponsiveHelper.getResponsivePadding(
-        context,
-        mobile: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        tablet: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        desktop: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      ),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Text(
-        '$label: $value',
-        style: TextStyle(
-          fontSize: ResponsiveHelper.getResponsiveFontSize(
-            context,
-            mobile: 8,
-            tablet: 10,
-            desktop: 12,
-          ),
-          color: color,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  String _buildModelTooltip(Map<String, dynamic> model) {
-    final buffer = StringBuffer();
-    
-    buffer.writeln('${model['name'] ?? model['id']}');
-    buffer.writeln('');
-    
-    if (model['description'] != null) {
-      buffer.writeln('الوصف: ${model['description']}');
-      buffer.writeln('');
-    }
-    
-    if (model['features'] != null) {
-      buffer.writeln('المميزات: ${model['features']}');
-      buffer.writeln('');
-    }
-    
-    buffer.writeln('السرعة: ${model['speed'] ?? 'غير محدد'}');
-    buffer.writeln('الجودة: ${model['quality'] ?? 'غير محدد'}');
-    buffer.writeln('السياق: ${model['context'] ?? 'غير محدد'}');
-    
-    if (model['requiresKey'] == true) {
-      buffer.writeln('يتطلب مفتاح API');
-    } else {
-      buffer.writeln('مجاني للاستخدام');
-    }
-    
-    return buffer.toString();
+  void _openUrl(String url) {
+    // Implement URL opening logic
   }
 }

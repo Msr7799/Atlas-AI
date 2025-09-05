@@ -4,11 +4,13 @@ import '../../data/models/message_model.dart';
 class AttachmentPreview extends StatelessWidget {
   final List<AttachmentModel> attachments;
   final Function(String) onRemove;
+  final bool isSent;
 
   const AttachmentPreview({
     super.key,
     required this.attachments,
     required this.onRemove,
+    this.isSent = false,
   });
 
   @override
@@ -34,9 +36,12 @@ class AttachmentPreview extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                Localizations.localeOf(context).languageCode == 'ar' ? 'ملفات مرفقة (${attachments.length})' : 'Attached files (${attachments.length})',
+                isSent 
+                  ? (Localizations.localeOf(context).languageCode == 'ar' ? 'ملفات مُرسلة (${attachments.length})' : 'Sent files (${attachments.length})')
+                  : (Localizations.localeOf(context).languageCode == 'ar' ? 'ملفات مرفقة (${attachments.length})' : 'Attached files (${attachments.length})'),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w500,
+                  color: isSent ? Theme.of(context).colorScheme.primary : null,
                 ),
               ),
             ],
@@ -84,15 +89,22 @@ class AttachmentPreview extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(
-              Icons.close,
+          if (!isSent)
+            IconButton(
+              icon: Icon(
+                Icons.close,
+                size: 18,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              onPressed: () => onRemove(attachment.id),
+              tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إزالة الملف' : 'Remove file',
+            )
+          else
+            Icon(
+              Icons.check_circle,
               size: 18,
-              color: Theme.of(context).colorScheme.error,
+              color: Theme.of(context).colorScheme.primary,
             ),
-            onPressed: () => onRemove(attachment.id),
-            tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إزالة الملف' : 'Remove file',
-          ),
         ],
       ),
     );

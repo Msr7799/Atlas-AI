@@ -37,7 +37,7 @@ class ErrorHandler {
   static void _logError(dynamic error, StackTrace? stackTrace, String? context) {
     final timestamp = DateTime.now().toIso8601String();
     final contextStr = context != null ? '[$context] ' : '';
-    final errorMessage = '$timestamp: ${contextStr}$error';
+    final errorMessage = '$timestamp: $contextStr$error';
 
     _errorLog.add(errorMessage);
 

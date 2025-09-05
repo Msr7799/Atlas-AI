@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/responsive_helper.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 class SearchStatusWidget extends StatelessWidget {
   final String status;

@@ -6,7 +6,6 @@ import '../providers/settings_provider.dart';
 import '../../data/models/message_model.dart';
 import '../providers/chat_selection_provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 
 class MessageBubble extends StatelessWidget {
@@ -238,20 +237,12 @@ class MessageBubble extends StatelessWidget {
       // لا يوجد كود - استخدام Markdown عادي
       return Directionality(
         textDirection: _detectTextDirection(processedContent),
-        child: MarkdownBody(
+        child: _buildResponsiveMarkdown(
           data: processedContent,
-          selectable: true,
-          shrinkWrap: true,
-          fitContent: true,
-          styleSheet: _buildMarkdownStyleSheet(theme, isUser, isTablet, processedContent),
-          onTapLink: (text, href, title) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم النقر على الرابط: $href' : 'Link clicked: $href'),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          },
+          theme: theme,
+          isUser: isUser,
+          isTablet: isTablet,
+          context: context,
         ),
       );
     }
@@ -268,12 +259,12 @@ class MessageBubble extends StatelessWidget {
           widgets.add(
             Directionality(
               textDirection: _detectTextDirection(textBefore),
-              child: MarkdownBody(
+              child: _buildResponsiveMarkdown(
                 data: textBefore,
-                selectable: true,
-                shrinkWrap: true,
-                fitContent: true,
-                styleSheet: _buildMarkdownStyleSheet(theme, isUser, isTablet, textBefore),
+                theme: theme,
+                isUser: isUser,
+                isTablet: isTablet,
+                context: context,
               ),
             ),
           );
@@ -298,12 +289,12 @@ class MessageBubble extends StatelessWidget {
         widgets.add(
           Directionality(
             textDirection: _detectTextDirection(textAfter),
-            child: MarkdownBody(
+            child: _buildResponsiveMarkdown(
               data: textAfter,
-              selectable: true,
-              shrinkWrap: true,
-              fitContent: true,
-              styleSheet: _buildMarkdownStyleSheet(theme, isUser, isTablet, textAfter),
+              theme: theme,
+              isUser: isUser,
+              isTablet: isTablet,
+              context: context,
             ),
           ),
         );
@@ -313,6 +304,307 @@ class MessageBubble extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widgets,
+    );
+  }
+
+  // بناء Markdown متجاوب مع الجداول المحسنة للهواتف
+  Widget _buildResponsiveMarkdown({
+    required String data,
+    required ThemeData theme,
+    required bool isUser,
+    required bool isTablet,
+    required BuildContext context,
+  }) {
+    // التحقق من وجود جداول في المحتوى
+    final hasTable = data.contains('|') && data.contains('---');
+    
+    if (!hasTable || isTablet) {
+      // لا توجد جداول أو في جهاز لوحي - استخدام العرض العادي
+      return MarkdownBody(
+        data: data,
+        selectable: true,
+        shrinkWrap: true,
+        fitContent: true,
+        styleSheet: _buildMarkdownStyleSheet(theme, isUser, isTablet, data),
+        onTapLink: (text, href, title) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم النقر على الرابط: $href' : 'Link clicked: $href'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        },
+      );
+    }
+
+    // يوجد جدول في هاتف - استخدام العرض المتجاوب
+    return _buildMobileResponsiveMarkdown(data, theme, isUser, context);
+  }
+
+  // بناء Markdown متجاوب للهواتف مع جداول قابلة للتمرير
+  Widget _buildMobileResponsiveMarkdown(String data, ThemeData theme, bool isUser, BuildContext context) {
+    final parts = _splitMarkdownWithTables(data);
+    final widgets = <Widget>[];
+
+    for (final part in parts) {
+      if (part['isTable']) {
+        // جدول - إنشاء عرض متجاوب
+        widgets.add(_buildResponsiveTable(part['content'], theme, isUser, context));
+        widgets.add(SizedBox(height: 12));
+      } else {
+        // محتوى عادي - عرض markdown عادي
+        if (part['content'].trim().isNotEmpty) {
+          widgets.add(
+            MarkdownBody(
+              data: part['content'],
+              selectable: true,
+              shrinkWrap: true,
+              fitContent: true,
+              styleSheet: _buildMarkdownStyleSheet(theme, isUser, false, part['content']),
+              onTapLink: (text, href, title) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'تم النقر على الرابط: $href' : 'Link clicked: $href'),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+          );
+          widgets.add(SizedBox(height: 8));
+        }
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
+  // تقسيم المحتوى إلى أجزاء عادية وجداول
+  List<Map<String, dynamic>> _splitMarkdownWithTables(String data) {
+    final parts = <Map<String, dynamic>>[];
+    final lines = data.split('\n');
+    final currentPart = StringBuffer();
+    bool inTable = false;
+
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      final isTableLine = line.contains('|');
+      final isTableSeparator = line.contains('---') && line.contains('|');
+      
+      if (!inTable && isTableLine) {
+        // بداية جدول جديد
+        if (currentPart.isNotEmpty) {
+          parts.add({'content': currentPart.toString().trim(), 'isTable': false});
+          currentPart.clear();
+        }
+        inTable = true;
+        currentPart.writeln(line);
+      } else if (inTable && isTableLine) {
+        // استمرار الجدول
+        currentPart.writeln(line);
+      } else if (inTable && !isTableLine && !isTableSeparator) {
+        // نهاية الجدول
+        parts.add({'content': currentPart.toString().trim(), 'isTable': true});
+        currentPart.clear();
+        inTable = false;
+        if (line.trim().isNotEmpty) currentPart.writeln(line);
+      } else {
+        // محتوى عادي
+        if (line.trim().isNotEmpty || currentPart.isNotEmpty) {
+          currentPart.writeln(line);
+        }
+      }
+    }
+
+    // إضافة الجزء الأخير
+    if (currentPart.isNotEmpty) {
+      parts.add({'content': currentPart.toString().trim(), 'isTable': inTable});
+    }
+
+    return parts;
+  }
+
+  // إنشاء جدول متجاوب للهواتف
+  Widget _buildResponsiveTable(String tableData, ThemeData theme, bool isUser, BuildContext context) {
+    final lines = tableData.split('\n').where((line) => line.trim().isNotEmpty).toList();
+    if (lines.length < 2) return Container();
+
+    // استخراج البيانات
+    final headers = _parseTableRow(lines[0]);
+    final rows = <List<String>>[];
+    
+    for (int i = 2; i < lines.length; i++) { // تخطي سطر الفاصل
+      final row = _parseTableRow(lines[i]);
+      if (row.isNotEmpty) rows.add(row);
+    }
+
+    if (headers.isEmpty || rows.isEmpty) return Container();
+
+    // حساب عرض المحتوى
+    final screenWidth = MediaQuery.of(context).size.width;
+    final availableWidth = screenWidth - 60; // هامش للحاوي
+    
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // عرض على شكل بطاقات في الشاشات الصغيرة
+          if (availableWidth < 600) ...[
+            _buildCardStyleTable(headers, rows, theme, isUser, context),
+          ] else ...[
+            // عرض جدول تقليدي قابل للتمرير في الشاشات الكبيرة
+            _buildScrollableTable(headers, rows, theme, isUser, context),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // تحليل صف الجدول
+  List<String> _parseTableRow(String row) {
+    return row.split('|')
+        .map((cell) => cell.trim())
+        .where((cell) => cell.isNotEmpty)
+        .toList();
+  }
+
+  // عرض الجدول على شكل بطاقات للهواتف
+  Widget _buildCardStyleTable(List<String> headers, List<List<String>> rows, ThemeData theme, bool isUser, BuildContext context) {
+    return Column(
+      children: [
+        // عنوان الجدول
+        Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.table_chart, size: 16, color: theme.colorScheme.primary),
+              SizedBox(width: 8),
+              Text(
+                Localizations.localeOf(context).languageCode == 'ar' ? 'جدول بيانات' : 'Data Table',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // البطاقات
+        ...rows.asMap().entries.map((entry) {
+          final rowIndex = entry.key;
+          final row = entry.value;
+          return Container(
+            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: rowIndex % 2 == 0 
+                ? theme.colorScheme.surface
+                : theme.colorScheme.surface.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.2),
+                width: 0.5,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: headers.asMap().entries.map((headerEntry) {
+                final headerIndex = headerEntry.key;
+                final header = headerEntry.value;
+                final cellValue = headerIndex < row.length ? row[headerIndex] : '';
+                
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          header,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          cellValue,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  // عرض جدول قابل للتمرير للشاشات الكبيرة
+  Widget _buildScrollableTable(List<String> headers, List<List<String>> rows, ThemeData theme, bool isUser, BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        headingRowHeight: 40,
+        dataRowHeight: 35,
+        columnSpacing: 16,
+        horizontalMargin: 12,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        columns: headers.map((header) => DataColumn(
+          label: Text(
+            header,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        )).toList(),
+        rows: rows.map((row) => DataRow(
+          cells: headers.asMap().entries.map((entry) {
+            final index = entry.key;
+            final cellValue = index < row.length ? row[index] : '';
+            return DataCell(
+              Text(
+                cellValue,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            );
+          }).toList(),
+        )).toList(),
+      ),
     );
   }
 

@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/services/groq_service.dart';
-import '../../core/services/gptgod_service.dart';
 import '../../core/services/api_key_manager.dart';
-import '../../core/services/openrouter_service.dart';
-import '../../core/services/huggingface_service.dart';
-import '../../generated/l10n/app_localizations.dart';
+import '../../core/services/unified_ai_service.dart';
 
 /// لوحة تشخيص API لعرض معلومات الخدمات
 class ApiDebugPanel extends StatefulWidget {
@@ -50,64 +46,56 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
 
   Future<Map<String, bool>> _performHealthChecks() async {
     final results = <String, bool>{};
+    final unifiedService = UnifiedAIService();
     
     try {
-      // فحص Groq
-      final groqService = GroqService();
-      if (groqService.isInitialized) {
-        results['groq'] = await groqService.performHealthCheck();
-      } else {
-        results['groq'] = false;
+      await unifiedService.initialize();
+      
+      // فحص جميع الخدمات من خلال الخدمة الموحدة
+      final services = ['groq', 'gptgod', 'huggingface', 'openrouter', 'localai'];
+      
+      for (final serviceName in services) {
+        try {
+          // فحص وجود مفتاح API للخدمة
+          final hasApiKey = await _checkServiceApiKey(serviceName);
+          results[serviceName] = hasApiKey;
+        } catch (e) {
+          results[serviceName] = false;
+        }
       }
     } catch (e) {
-      results['groq'] = false;
-    }
-
-    try {
-      // فحص GPTGod
-      final gptgodService = GPTGodService();
-      if (gptgodService.isInitialized) {
-        results['gptgod'] = await gptgodService.performHealthCheck();
-      } else {
-        results['gptgod'] = false;
+      // في حالة فشل تهيئة الخدمة الموحدة، اجعل جميع الخدمات غير نشطة
+      for (final serviceName in ['groq', 'gptgod', 'huggingface', 'openrouter', 'localai']) {
+        results[serviceName] = false;
       }
-    } catch (e) {
-      results['gptgod'] = false;
-    }
-
-    try {
-      // فحص HuggingFace
-      final huggingfaceService = HuggingFaceService();
-      if (huggingfaceService.isInitialized) {
-        results['huggingface'] = await huggingfaceService.performHealthCheck();
-      } else {
-        results['huggingface'] = false;
-      }
-    } catch (e) {
-      results['huggingface'] = false;
-    }
-
-    try {
-      // فحص OpenRouter
-      final openrouterService = OpenRouterService();
-      if (openrouterService.isInitialized) {
-        results['openrouter'] = await openrouterService.performHealthCheck();
-      } else {
-        results['openrouter'] = false;
-      }
-    } catch (e) {
-      results['openrouter'] = false;
-    }
-
-    try {
-      // فحص LocalAI
-      // LocalAI لا يحتاج health check لأنه محلي
-      results['localai'] = true;
-    } catch (e) {
-      results['localai'] = false;
     }
 
     return results;
+  }
+
+  Future<bool> _checkServiceApiKey(String serviceName) async {
+    try {
+      switch (serviceName) {
+        case 'groq':
+          final key = await ApiKeyManager.getApiKey('groq_api_key');
+          return key.isNotEmpty;
+        case 'gptgod':
+          final key = await ApiKeyManager.getApiKey('gptgod_api_key');
+          return key.isNotEmpty;
+        case 'huggingface':
+          final key = await ApiKeyManager.getApiKey('huggingface_api_key');
+          return key.isNotEmpty;
+        case 'openrouter':
+          final key = await ApiKeyManager.getApiKey('openrouter_api_key');
+          return key.isNotEmpty;
+        case 'localai':
+          return true; // LocalAI لا يحتاج مفتاح API
+        default:
+          return false;
+      }
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -285,30 +273,10 @@ class _ApiDebugPanelState extends State<ApiDebugPanel> {
 
   Future<void> _reinitializeService(String serviceName) async {
     try {
-      switch (serviceName) {
-        case 'groq':
-          final service = GroqService();
-          await service.reinitialize();
-          await service.initialize();
-          break;
-        case 'gptgod':
-          final service = GPTGodService();
-          await service.reinitialize();
-          await service.initialize();
-          break;
-        case 'huggingface':
-          final service = HuggingFaceService();
-          await service.reinitialize();
-          await service.initialize();
-          break;
-        case 'openrouter':
-          final service = OpenRouterService();
-          await service.reinitialize();
-          break;
-        case 'localai':
-          // LocalAI لا يحتاج إعادة تهيئة
-          break;
-      }
+      final unifiedService = UnifiedAIService();
+      
+      // إعادة تهيئة الخدمة الموحدة
+      await unifiedService.initialize();
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

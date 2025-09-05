@@ -836,5 +836,100 @@
   "trainingSettingsTitle": "Training Settings",
   "advancedTrainingSettingsInDevelopment": "Advanced training settings are under development",
   "exportTrainingDataFeatureInDevelopment": "Training data export feature is under development",
-  "active": "Active"
+  "active": "Active",
+  "apiKeysStatus": "API Keys Status",
+  "appReadyToWork": "App ready to work ✅",
+  "groqKeyRequired": "Groq key required ⚠️",
+  "usingFreeDefaultKeys": "Using free default keys",
+  "keysDetails": "Keys Details:",
+  "statistics": "Statistics:",
+  "availableKeys": "Available keys: {count}/5",
+  "@availableKeys": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "requiredKeys": "Required keys: {status}",
+  "@requiredKeys": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "usingDefaultKeys": "Using default keys: {status}",
+  "@usingDefaultKeys": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "available": "Available",
+  "missing": "Missing",
+  "required": "Required",
+  "defaultKey": "Default Key",
+  "clearApiKeys": "Clear API Keys",
+  "warning": "Warning",
+  "clearKeysConfirmation": "Do you want to clear all saved API keys?\n\nThis action cannot be undone.",
+  "clearKeysWarning": "• All saved keys will be cleared\n• Free default keys will be used\n• You can add your keys again anytime",
+  "keysSavedSuccess": "Keys saved successfully! ✅",
+  "errorSavingKeys": "Error saving keys: {error}",
+  "@errorSavingKeys": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "activeModel": "Active Model",
+  "processingImages": "Processing {count} images...",
+  "@processingImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorProcessingImages": "Error processing images: {error}",
+  "@errorProcessingImages": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorAddingImage": "Error adding image: {error}",
+  "@errorAddingImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trainingHistory": "History",
+  "noPreviousTrainingSessions": "No previous training sessions",
+  "previousSessionsWillAppearHere": "Previous training sessions will appear here",
+  "trainingSessionStarted": "Training started",
+  "trainingSessionStartFailed": "Failed to start training",
+  "sessionDeleted": "Session deleted",
+  "sessionDeleteFailed": "Failed to delete session",
+  "supportedTrainingTypes": "Supported Training Types:",
+  "fineTuning": "• Fine-tuning: Improve existing model",
+  "instructionTuning": "• Instruction Tuning: Train on instructions",
+  "conversationTuning": "• Conversation Tuning: Train on conversations",
+  "domainSpecific": "• Domain Specific: Specialize in specific domain",
+  "supportedFileTypes": "Supported File Types:",
+  "txtFiles": "• .txt - Text files (max 50MB)",
+  "jsonFiles": "• .json - JSON files (max 100MB)",
+  "jsonlFiles": "• .jsonl - JSONL files (max 100MB)",
+  "csvFiles": "• .csv - CSV files (max 25MB)",
+  "mdFiles": "• .md - Markdown files (max 10MB)",
+  "tips": "Tips:",
+  "useHighQualityData": "• Use high-quality data for best results",
+  "startWithLowLearningRate": "• Start with low learning rate (0.001)",
+  "useEarlyStopping": "• Use early stopping to avoid overfitting",
+  "monitorLogs": "• Monitor logs to understand training progress"
 }

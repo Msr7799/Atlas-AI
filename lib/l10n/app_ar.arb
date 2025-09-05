@@ -210,5 +210,100 @@
   "trainingSettingsTitle": "إعدادات التدريب",
   "advancedTrainingSettingsInDevelopment": "إعدادات التدريب المتقدمة قيد التطوير",
   "exportTrainingDataFeatureInDevelopment": "ميزة تصدير بيانات التدريب قيد التطوير",
-  "active": "نشط"
+  "active": "نشط",
+  "apiKeysStatus": "حالة مفاتيح API",
+  "appReadyToWork": "التطبيق جاهز للعمل ✅",
+  "groqKeyRequired": "مفتاح Groq مطلوب ⚠️",
+  "usingFreeDefaultKeys": "يتم استخدام المفاتيح الافتراضية المجانية",
+  "keysDetails": "تفاصيل المفاتيح:",
+  "statistics": "إحصائيات:",
+  "availableKeys": "المفاتيح المتوفرة: {count}/5",
+  "@availableKeys": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "requiredKeys": "المفاتيح المطلوبة: {status}",
+  "@requiredKeys": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "usingDefaultKeys": "استخدام المفاتيح الافتراضية: {status}",
+  "@usingDefaultKeys": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "available": "متوفرة",
+  "missing": "مفقودة",
+  "required": "مطلوب",
+  "defaultKey": "مفتاح افتراضي",
+  "clearApiKeys": "مسح مفاتيح API",
+  "warning": "تحذير",
+  "clearKeysConfirmation": "هل تريد مسح جميع مفاتيح API المحفوظة؟\n\nهذا الإجراء لا يمكن التراجع عنه.",
+  "clearKeysWarning": "• سيتم مسح جميع المفاتيح المحفوظة\n• سيتم استخدام المفاتيح الافتراضية المجانية\n• يمكنك إضافة مفاتيحك مرة أخرى في أي وقت",
+  "keysSavedSuccess": "تم حفظ المفاتيح بنجاح! ✅",
+  "errorSavingKeys": "خطأ في حفظ المفاتيح: {error}",
+  "@errorSavingKeys": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "activeModel": "النموذج النشط",
+  "processingImages": "جاري معالجة {count} صورة...",
+  "@processingImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorProcessingImages": "خطأ في معالجة الصور: {error}",
+  "@errorProcessingImages": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorAddingImage": "خطأ في إضافة الصورة: {error}",
+  "@errorAddingImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trainingHistory": "السجل",
+  "noPreviousTrainingSessions": "لا توجد جلسات تدريب سابقة",
+  "previousSessionsWillAppearHere": "ستظهر هنا جلسات التدريب السابقة",
+  "trainingSessionStarted": "تم بدء التدريب",
+  "trainingSessionStartFailed": "فشل في بدء التدريب",
+  "sessionDeleted": "تم حذف الجلسة",
+  "sessionDeleteFailed": "فشل في حذف الجلسة",
+  "supportedTrainingTypes": "أنواع التدريب المدعومة:",
+  "fineTuning": "• Fine-tuning: تحسين نموذج موجود",
+  "instructionTuning": "• Instruction Tuning: تدريب على التعليمات",
+  "conversationTuning": "• Conversation Tuning: تدريب على المحادثات",
+  "domainSpecific": "• Domain Specific: تخصص مجال معين",
+  "supportedFileTypes": "أنواع الملفات المدعومة:",
+  "txtFiles": "• .txt - ملفات نصية (حد أقصى 50MB)",
+  "jsonFiles": "• .json - ملفات JSON (حد أقصى 100MB)",
+  "jsonlFiles": "• .jsonl - ملفات JSONL (حد أقصى 100MB)",
+  "csvFiles": "• .csv - ملفات CSV (حد أقصى 25MB)",
+  "mdFiles": "• .md - ملفات Markdown (حد أقصى 10MB)",
+  "tips": "نصائح:",
+  "useHighQualityData": "• استخدم بيانات عالية الجودة للحصول على أفضل النتائج",
+  "startWithLowLearningRate": "• ابدأ بمعدل تعلم منخفض (0.001)",
+  "useEarlyStopping": "• استخدم الإيقاف المبكر لتجنب فرط التعلم",
+  "monitorLogs": "• راقب السجلات لفهم تقدم التدريب"
 }

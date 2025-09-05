@@ -6,6 +6,8 @@ import '../../core/services/api_key_manager.dart';
 import '../../core/utils/responsive_helper.dart';
 import '../widgets/models_info_dialog.dart';
 import '../../generated/l10n/app_localizations.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ApiSettingsPage extends StatefulWidget {
   const ApiSettingsPage({super.key});
@@ -19,16 +21,57 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
   final _gptgodController = TextEditingController();
   final _tavilyController = TextEditingController();
   final _huggingfaceController = TextEditingController();
+  final _hfTokenController = TextEditingController();
   final _openrouterController = TextEditingController();
 
   bool _isLoading = false;
   bool _obscureKeys = true;
 
-  // حالة المفاتيح
+  // حالة المفاتيح / Keys status
   bool hasRequiredKeys = false;
   bool hasAnyKeys = false;
   bool isUsingDefaultKeys = false;
   Map<String, Map<String, dynamic>> serviceInfo = {};
+
+  // حالة صلاحية المفاتيح / API key validation status
+  final Map<String, bool?> _keyValidationStatus = {
+    'groq': null,
+    'gptgod': null,
+    'openrouter': null,
+    'tavily': null,
+    'huggingface': null,
+    'hf_token': null,
+  };
+
+  // حالة التحقق من المفاتيح / Validation in progress status
+  final Map<String, bool> _isValidating = {
+    'groq': false,
+    'gptgod': false,
+    'openrouter': false,
+    'tavily': false,
+    'huggingface': false,
+    'hf_token': false,
+  };
+
+  // حالة عرض الديباق / Debug display status
+  final Map<String, bool> _showDebug = {
+    'groq': false,
+    'gptgod': false,
+    'openrouter': false,
+    'tavily': false,
+    'huggingface': false,
+    'hf_token': false,
+  };
+
+  // تفاصيل الديباق للاستدعاءات / Debug info for API calls
+  final Map<String, Map<String, dynamic>> _debugInfo = {
+    'groq': {},
+    'gptgod': {},
+    'openrouter': {},
+    'tavily': {},
+    'huggingface': {},
+    'hf_token': {},
+  };
 
   @override
   void initState() {
@@ -45,7 +88,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
 
     if (mounted) {
       setState(() {
-        // تحديث حالة المفاتيح
+        // تحديث حالة المفاتيح / Update keys status
         this.hasRequiredKeys = hasRequiredKeys;
         this.hasAnyKeys = hasAnyKeys;
         this.isUsingDefaultKeys = isUsingDefaultKeys;
@@ -61,6 +104,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
       _tavilyController.text = prefs.getString('tavily_api_key') ?? '';
       _huggingfaceController.text =
           prefs.getString('huggingface_api_key') ?? '';
+      _hfTokenController.text = prefs.getString('hf_token_api_key') ?? '';
       _openrouterController.text = prefs.getString('openrouter_api_key') ?? '';
     });
 
@@ -72,7 +116,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
     setState(() => _isLoading = true);
 
     try {
-      // حفظ المفاتيح باستخدام ApiKeyManager
+      // حفظ المفاتيح باستخدام ApiKeyManager / Save keys using ApiKeyManager
       if (_groqController.text.trim().isNotEmpty) {
         await ApiKeyManager.saveApiKey('groq', _groqController.text.trim());
       }
@@ -88,6 +132,12 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
           _huggingfaceController.text.trim(),
         );
       }
+      if (_hfTokenController.text.trim().isNotEmpty) {
+        await ApiKeyManager.saveApiKey(
+          'hf_token',
+          _hfTokenController.text.trim(),
+        );
+      }
       if (_openrouterController.text.trim().isNotEmpty) {
         await ApiKeyManager.saveApiKey(
           'openrouter',
@@ -95,23 +145,19 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
         );
       }
 
-      // إعادة تهيئة الخدمات بالمفاتيح الجديدة
+      // إعادة تهيئة الخدمات بالمفاتيح الجديدة / Reinitialize services with new keys
       await _reinitializeServices();
 
       // تحديث حالة المفاتيح
       await _updateKeysStatus();
 
       _showSnackBar(
-        Localizations.localeOf(context).languageCode == 'ar' 
-            ? 'تم حفظ المفاتيح بنجاح! ✅'
-            : 'Keys saved successfully! ✅', 
+        AppLocalizations.of(context).keysSavedSuccess,
         Colors.green
       );
     } catch (e) {
       _showSnackBar(
-        Localizations.localeOf(context).languageCode == 'ar' 
-            ? 'خطأ في حفظ المفاتيح: $e'
-            : 'Error saving keys: $e', 
+        AppLocalizations.of(context).errorSavingKeys(e.toString()),
         Colors.red
       );
     } finally {
@@ -121,22 +167,545 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
 
   Future<void> _reinitializeServices() async {
     try {
-      // الحصول على المفاتيح الحالية (مستخدمة أو افتراضية)
-      final groqKey = await ApiKeyManager.getApiKey('groq');
-      final gptgodKey = await ApiKeyManager.getApiKey('gptgod');
       final tavilyKey = await ApiKeyManager.getApiKey('tavily');
-      final huggingfaceKey = await ApiKeyManager.getApiKey('huggingface');
-      final openrouterKey = await ApiKeyManager.getApiKey('openrouter');
-
-      // إعادة تهيئة خدمات API بالمفاتيح الجديدة
-      final aiService = UnifiedAIService();
-      await aiService.initialize();
-
-      if (tavilyKey.isNotEmpty) {
-        TavilyService().updateApiKey(tavilyKey);
+      try {
+        final aiService = UnifiedAIService();
+        await aiService.initialize();
+        if (tavilyKey.isNotEmpty) {
+          TavilyService().updateApiKey(tavilyKey);
+        }
+      } catch (serviceError) {
+        print('[AI SERVICE INIT ERROR] $serviceError');
       }
     } catch (e) {
       print('[SERVICE REINITIALIZATION ERROR] $e');
+    }
+  }
+
+  // دوال التحقق من صلاحية المفاتيح
+  Future<void> _validateApiKey(String service) async {
+    setState(() {
+      _isValidating[service] = true;
+      _keyValidationStatus[service] = null;
+    });
+
+    try {
+      bool isValid = false;
+      String message = '';
+
+      switch (service) {
+        case 'groq':
+          final result = await _testGroqKey();
+          isValid = result['success'];
+          message = result['message'];
+          break;
+        case 'gptgod':
+          final result = await _testGptGodKey();
+          isValid = result['success'];
+          message = result['message'];
+          break;
+        case 'openrouter':
+          final result = await _testOpenRouterKey();
+          isValid = result['success'];
+          message = result['message'];
+          break;
+        case 'tavily':
+          final result = await _testTavilyKey();
+          isValid = result['success'];
+          message = result['message'];
+          break;
+        case 'huggingface':
+          final result = await _testHuggingFaceKey();
+          isValid = result['success'];
+          message = result['message'];
+          break;
+      }
+
+      setState(() {
+        _keyValidationStatus[service] = isValid;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: isValid ? Colors.green : Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _keyValidationStatus[service] = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'خطأ في التحقق من $service: $e'
+                  : 'Error validating $service: $e'
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isValidating[service] = false;
+      });
+    }
+  }
+
+  // اختبار مفتاح Groq مع llama-3.1-8b-instant
+  Future<Map<String, dynamic>> _testGroqKey() async {
+    try {
+      final apiKey = await ApiKeyManager.getApiKey('groq');
+      if (apiKey.isEmpty) {
+        _debugInfo['groq'] = {
+          'request': Localizations.localeOf(context).languageCode == 'ar' 
+              ? 'لا يوجد مفتاح API' 
+              : 'No API key found',
+          'response': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'فشل - مفتاح غير موجود'
+              : 'Failed - Key not found',
+          'timestamp': DateTime.now().toString(),
+        };
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح Groq غير موجود'
+              : 'Groq API key not found'
+        };
+      }
+
+      final requestBody = {
+        'model': 'llama-3.1-8b-instant',
+        'messages': [
+          {'role': 'user', 'content': 'Hello'}
+        ],
+        'max_tokens': 5,
+      };
+
+      final response = await http.post(
+        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(requestBody),
+      );
+
+      // حفظ تفاصيل الديباق
+      _debugInfo['groq'] = {
+        'request': {
+          'url': 'https://api.groq.com/openai/v1/chat/completions',
+          'method': 'POST',
+          'headers': {
+            'Authorization': 'Bearer ${apiKey.substring(0, 10)}...',
+            'Content-Type': 'application/json',
+          },
+          'body': requestBody,
+        },
+        'response': {
+          'status_code': response.statusCode,
+          'body': response.body,
+        },
+        'timestamp': DateTime.now().toString(),
+      };
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح Groq صالح ويعمل بشكل صحيح'
+              : 'Groq API key is valid and working'
+        };
+      } else {
+        _debugInfo['groq'] = {
+          'request': 'POST https://api.groq.com/openai/v1/chat/completions\nHeaders: Authorization: Bearer ${apiKey.substring(0, 8)}...\nBody: ${jsonEncode(requestBody)}',
+          'response': 'Status: ${response.statusCode}\nBody: ${response.body}',
+          'timestamp': DateTime.now().toString(),
+        };
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح Groq غير صالح - كود الخطأ: ${response.statusCode}'
+              : 'Invalid Groq API key - Error code: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      _debugInfo['groq'] = {
+        'request': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في الاتصال'
+            : 'Connection error',
+        'response': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'استثناء: $e'
+            : 'Exception: $e',
+        'timestamp': DateTime.now().toString(),
+      };
+      return {
+        'success': false, 
+        'message': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في اختبار Groq: $e'
+            : 'Error testing Groq: $e'
+      };
+    }
+  }
+
+  // اختبار مفتاح GPTGod مع GPT-3.5-turbo
+  Future<Map<String, dynamic>> _testGptGodKey() async {
+    try {
+      final apiKey = await ApiKeyManager.getApiKey('gptgod');
+      if (apiKey.isEmpty) {
+        _debugInfo['gptgod'] = {
+          'request': Localizations.localeOf(context).languageCode == 'ar' 
+              ? 'لا يوجد مفتاح API' 
+              : 'No API key found',
+          'response': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'فشل - مفتاح غير موجود'
+              : 'Failed - Key not found',
+          'timestamp': DateTime.now().toString(),
+        };
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح GPTGod غير موجود'
+              : 'GPTGod API key not found'
+        };
+      }
+
+      final requestBody = {
+        'model': 'gpt-3.5-turbo',
+        'messages': [
+          {'role': 'user', 'content': 'Hello'}
+        ],
+        'max_tokens': 5,
+      };
+
+      final response = await http.post(
+        Uri.parse('https://api.gptgod.online/v1/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(requestBody),
+      );
+
+      // حفظ تفاصيل الديباق
+      _debugInfo['gptgod'] = {
+        'request': {
+          'url': 'https://api.gptgod.online/v1/chat/completions',
+          'method': 'POST',
+          'headers': {
+            'Authorization': 'Bearer ${apiKey.substring(0, 10)}...',
+            'Content-Type': 'application/json',
+          },
+          'body': requestBody,
+        },
+        'response': {
+          'status_code': response.statusCode,
+          'body': response.body,
+        },
+        'timestamp': DateTime.now().toString(),
+      };
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح GPTGod يعمل بشكل صحيح ✅'
+              : 'GPTGod API key is working correctly ✅'
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح GPTGod غير صالح - كود الخطأ: ${response.statusCode}'
+              : 'Invalid GPTGod API key - Error code: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      _debugInfo['gptgod'] = {
+        'request': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في الاتصال'
+            : 'Connection error',
+        'response': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'استثناء: $e'
+            : 'Exception: $e',
+        'timestamp': DateTime.now().toString(),
+      };
+      return {
+        'success': false, 
+        'message': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في اختبار GPTGod: $e'
+            : 'Error testing GPTGod: $e'
+      };
+    }
+  }
+
+  // اختبار مفتاح OpenRouter مع نموذج مجاني صحيح
+  Future<Map<String, dynamic>> _testOpenRouterKey() async {
+    try {
+      final apiKey = await ApiKeyManager.getApiKey('openrouter');
+      if (apiKey.isEmpty) {
+        _debugInfo['openrouter'] = {
+          'request': Localizations.localeOf(context).languageCode == 'ar' 
+              ? 'لا يوجد مفتاح API' 
+              : 'No API key found',
+          'response': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'فشل - مفتاح غير موجود'
+              : 'Failed - Key not found',
+          'timestamp': DateTime.now().toString(),
+        };
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح OpenRouter غير موجود'
+              : 'OpenRouter API key not found'
+        };
+      }
+
+      final requestBody = {
+        'model': 'meta-llama/llama-3.1-8b-instruct:free',
+        'messages': [
+          {'role': 'user', 'content': 'Hello'}
+        ],
+        'max_tokens': 5,
+      };
+
+      final response = await http.post(
+        Uri.parse('https://openrouter.ai/api/v1/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://atlas-ai.app',
+          'X-Title': 'Atlas AI',
+        },
+        body: json.encode(requestBody),
+      );
+
+      // حفظ تفاصيل الديباق
+      _debugInfo['openrouter'] = {
+        'request': {
+          'url': 'https://openrouter.ai/api/v1/chat/completions',
+          'method': 'POST',
+          'headers': {
+            'Authorization': 'Bearer ${apiKey.substring(0, 10)}...',
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://atlas-ai.app',
+            'X-Title': 'Atlas AI',
+          },
+          'body': requestBody,
+        },
+        'response': {
+          'status_code': response.statusCode,
+          'body': response.body,
+        },
+        'timestamp': DateTime.now().toString(),
+      };
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح OpenRouter يعمل بشكل صحيح ✅'
+              : 'OpenRouter API key is working correctly ✅'
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح OpenRouter غير صالح - كود الخطأ: ${response.statusCode}'
+              : 'Invalid OpenRouter API key - Error code: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      _debugInfo['openrouter'] = {
+        'request': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في الاتصال'
+            : 'Connection error',
+        'response': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'استثناء: $e'
+            : 'Exception: $e',
+        'timestamp': DateTime.now().toString(),
+      };
+      return {
+        'success': false, 
+        'message': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في اختبار OpenRouter: $e'
+            : 'Error testing OpenRouter: $e'
+      };
+    }
+  }
+
+  // اختبار مفتاح Tavily مع بحث بسيط
+  Future<Map<String, dynamic>> _testTavilyKey() async {
+    try {
+      final apiKey = await ApiKeyManager.getApiKey('tavily');
+      if (apiKey.isEmpty) {
+        _debugInfo['tavily'] = {
+          'request': Localizations.localeOf(context).languageCode == 'ar' 
+              ? 'لا يوجد مفتاح API' 
+              : 'No API key found',
+          'response': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'فشل - مفتاح غير موجود'
+              : 'Failed - Key not found',
+          'timestamp': DateTime.now().toString(),
+        };
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح Tavily غير موجود'
+              : 'Tavily API key not found'
+        };
+      }
+
+      final requestBody = {
+        'api_key': apiKey,
+        'query': 'test',
+        'max_results': 1,
+      };
+
+      final response = await http.post(
+        Uri.parse('https://api.tavily.com/search'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(requestBody),
+      );
+
+      // حفظ تفاصيل الديباق
+      _debugInfo['tavily'] = {
+        'request': {
+          'url': 'https://api.tavily.com/search',
+          'method': 'POST',
+          'headers': {
+            'Content-Type': 'application/json',
+          },
+          'body': {
+            'api_key': '${apiKey.substring(0, 10)}...',
+            'query': 'test',
+            'max_results': 1,
+          },
+        },
+        'response': {
+          'status_code': response.statusCode,
+          'body': response.body,
+        },
+        'timestamp': DateTime.now().toString(),
+      };
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح Tavily يعمل بشكل صحيح ✅'
+              : 'Tavily API key is working correctly ✅'
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح Tavily غير صالح - كود الخطأ: ${response.statusCode}'
+              : 'Invalid Tavily API key - Error code: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      _debugInfo['tavily'] = {
+        'request': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في الاتصال'
+            : 'Connection error',
+        'response': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'استثناء: $e'
+            : 'Exception: $e',
+        'timestamp': DateTime.now().toString(),
+      };
+      return {
+        'success': false, 
+        'message': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في اختبار Tavily: $e'
+            : 'Error testing Tavily: $e'
+      };
+    }
+  }
+
+  // اختبار مفتاح HuggingFace
+  Future<Map<String, dynamic>> _testHuggingFaceKey() async {
+    try {
+      final apiKey = await ApiKeyManager.getApiKey('huggingface');
+      if (apiKey.isEmpty) {
+        _debugInfo['huggingface'] = {
+          'request': Localizations.localeOf(context).languageCode == 'ar' 
+              ? 'لا يوجد مفتاح API' 
+              : 'No API key found',
+          'response': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'فشل - مفتاح غير موجود'
+              : 'Failed - Key not found',
+          'timestamp': DateTime.now().toString(),
+        };
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح HuggingFace غير موجود'
+              : 'HuggingFace API key not found'
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse('https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium'),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+        },
+      );
+
+      // حفظ تفاصيل الديباق
+      _debugInfo['huggingface'] = {
+        'request': {
+          'url': 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
+          'method': 'GET',
+          'headers': {
+            'Authorization': 'Bearer ${apiKey.substring(0, 10)}...',
+          },
+        },
+        'response': {
+          'status_code': response.statusCode,
+          'body': response.body,
+        },
+        'timestamp': DateTime.now().toString(),
+      };
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح HuggingFace يعمل بشكل صحيح ✅'
+              : 'HuggingFace API key is working correctly ✅'
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': Localizations.localeOf(context).languageCode == 'ar'
+              ? 'مفتاح HuggingFace غير صالح - كود الخطأ: ${response.statusCode}'
+              : 'Invalid HuggingFace API key - Error code: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      _debugInfo['huggingface'] = {
+        'request': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في الاتصال'
+            : 'Connection error',
+        'response': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'استثناء: $e'
+            : 'Exception: $e',
+        'timestamp': DateTime.now().toString(),
+      };
+      return {
+        'success': false, 
+        'message': Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في اختبار HuggingFace: $e'
+            : 'Error testing HuggingFace: $e'
+      };
     }
   }
 
@@ -148,6 +717,131 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  // دالة تحديد لون المؤشر البصري
+  Color _getStatusColor(String serviceName) {
+    final validationStatus = _keyValidationStatus[serviceName];
+    if (validationStatus == null) {
+      // لم يتم التحقق بعد - رمادي
+      return Colors.grey;
+    } else if (validationStatus) {
+      // صالح - أخضر
+      return Colors.green;
+    } else {
+      // غير صالح - أحمر
+      return Colors.red;
+    }
+  }
+
+  // دالة تحديد أيقونة زر التحقق
+  IconData _getValidationIcon(String serviceName) {
+    final validationStatus = _keyValidationStatus[serviceName];
+    if (validationStatus == null) {
+      return Icons.help_outline; // لم يتم التحقق
+    } else if (validationStatus) {
+      return Icons.check_circle; // صالح
+    } else {
+      return Icons.error_outline; // غير صالح
+    }
+  }
+
+  // دالة تحديد نص زر التحقق
+  String _getValidationText(String serviceName) {
+    final validationStatus = _keyValidationStatus[serviceName];
+    if (_isValidating[serviceName] == true) {
+      return Localizations.localeOf(context).languageCode == 'ar'
+          ? 'جاري التحقق...'
+          : 'Validating...';
+    } else if (validationStatus == null) {
+      return Localizations.localeOf(context).languageCode == 'ar'
+          ? 'تحقق من المفتاح'
+          : 'Verify Key';
+    } else if (validationStatus) {
+      return Localizations.localeOf(context).languageCode == 'ar'
+          ? 'المفتاح صالح ✅'
+          : 'Valid Key ✅';
+    } else {
+      return Localizations.localeOf(context).languageCode == 'ar'
+          ? 'المفتاح غير صالح ❌'
+          : 'Invalid Key ❌';
+    }
+  }
+
+  // دالة تحديد لون زر التحقق
+  Color _getValidationButtonColor(String serviceName) {
+    final validationStatus = _keyValidationStatus[serviceName];
+    if (_isValidating[serviceName] == true) {
+      return Colors.orange; // جاري التحقق
+    } else if (validationStatus == null) {
+      return Colors.blue; // لم يتم التحقق
+    } else if (validationStatus) {
+      return Colors.green; // صالح
+    } else {
+      return Colors.red; // غير صالح
+    }
+  }
+
+  // دالة بناء قسم الديباق
+  Widget _buildDebugSection(String title, dynamic data) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: Colors.grey[400]!),
+          ),
+          child: Directionality(
+            textDirection: TextDirection.ltr, // إجبار النص على الاتجاه من اليسار لليمين
+            child: SelectableText(
+              _formatDebugData(data),
+              style: const TextStyle(
+                fontFamily: 'Courier New',
+                fontSize: 12,
+                color: Colors.black87,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // دالة تنسيق بيانات الديباق
+  String _formatDebugData(dynamic data) {
+    if (data is Map) {
+      return data.entries.map((e) {
+        final key = e.key.toString();
+        final value = e.value;
+        if (value is Map) {
+          // تنسيق أفضل للخرائط المتداخلة
+          final formattedValue = value.entries
+              .map((entry) => '  ${entry.key}: ${entry.value}')
+              .join('\n');
+          return '$key:\n$formattedValue';
+        } else {
+          return '$key: $value';
+        }
+      }).join('\n\n');
+    } else if (data is String) {
+      return data;
+    } else {
+      return data.toString();
+    }
   }
 
   // عرض dialog حالة المفاتيح
@@ -262,8 +956,8 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                                         ? 'التطبيق جاهز للعمل ✅'
                                         : 'App ready to work ✅')
                                     : (Localizations.localeOf(context).languageCode == 'ar' 
-                                        ? 'مفتاح Groq مطلوب ⚠️'
-                                        : 'Groq key required ⚠️'),
+                                        ? 'يجب إضافة مفاتيح API مطلوبة ⚠️'
+                                        : 'Required API keys needed ⚠️'),
                                 style: TextStyle(
                                   color: hasRequiredKeys
                                       ? Colors.green
@@ -326,9 +1020,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    Localizations.localeOf(context).languageCode == 'ar' 
-                                        ? 'يتم استخدام المفاتيح الافتراضية المجانية'
-                                        : 'Using free default keys',
+                                    Localizations.localeOf(context).languageCode == 'ar' ? 'أريد فقط لاستخدام النماذج الافتراضية المجاني' : 'I want to use only the default free models',
                                     style: TextStyle(
                                       color: Colors.blue,
                                       fontSize:
@@ -359,9 +1051,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                   ),
                   // تفاصيل المفاتيح
                   Text(
-                    Localizations.localeOf(context).languageCode == 'ar' 
-                        ? 'تفاصيل المفاتيح:'
-                        : 'Keys Details:',
+                    AppLocalizations.of(context).apiKeysStatus,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: ResponsiveHelper.getResponsiveFontSize(
@@ -417,9 +1107,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          Localizations.localeOf(context).languageCode == 'ar' 
-                              ? 'إحصائيات:'
-                              : 'Statistics:',
+                          AppLocalizations.of(context).statistics,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: ResponsiveHelper.getResponsiveFontSize(
@@ -439,9 +1127,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                           ),
                         ),
                         Text(
-                          Localizations.localeOf(context).languageCode == 'ar' 
-                              ? '• المفاتيح المتوفرة: ${keysStatus.values.where((status) => status['hasKey'] == true).length}/5'
-                              : '• Available keys: ${keysStatus.values.where((status) => status['hasKey'] == true).length}/5',
+                          AppLocalizations.of(context).keysDetails,
                           style: TextStyle(
                             fontSize: ResponsiveHelper.getResponsiveFontSize(
                               context,
@@ -452,9 +1138,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                           ),
                         ),
                         Text(
-                          Localizations.localeOf(context).languageCode == 'ar' 
-                              ? '• المفاتيح المطلوبة: ${hasRequiredKeys ? "متوفرة" : "مفقودة"}'
-                              : '• Required keys: ${hasRequiredKeys ? "Available" : "Missing"}',
+                          AppLocalizations.of(context).requiredKeys(hasRequiredKeys ? AppLocalizations.of(context).available : AppLocalizations.of(context).missing),
                           style: TextStyle(
                             fontSize: ResponsiveHelper.getResponsiveFontSize(
                               context,
@@ -465,9 +1149,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                           ),
                         ),
                         Text(
-                          Localizations.localeOf(context).languageCode == 'ar' 
-                              ? '• استخدام المفاتيح الافتراضية: ${isUsingDefaultKeys ? "نعم" : "لا"}'
-                              : '• Using default keys: ${isUsingDefaultKeys ? "Yes" : "No"}',
+                          '${AppLocalizations.of(context).usingFreeDefaultKeys}: ${isUsingDefaultKeys ? AppLocalizations.of(context).yes : AppLocalizations.of(context).no}',
                           style: TextStyle(
                             fontSize: ResponsiveHelper.getResponsiveFontSize(
                               context,
@@ -487,7 +1169,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  Localizations.localeOf(context).languageCode == 'ar' ? 'مسح' : 'Clear',
+                  AppLocalizations.of(context).clear,
                   style: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(
                       context,
@@ -706,7 +1388,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
               ),
               Expanded(
                 child: Text(
-                  Localizations.localeOf(context).languageCode == 'ar' ? 'مسح مفاتيح API' : 'Clear API Keys',
+                  AppLocalizations.of(context).clearApiKeys,
                   style: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(
                       context,
@@ -725,9 +1407,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                Localizations.localeOf(context).languageCode == 'ar' 
-                  ? 'هل تريد مسح جميع مفاتيح API المحفوظة؟\n\nهذا الإجراء لا يمكن التراجع عنه.'
-                  : 'Do you want to clear all saved API keys?\n\nThis action cannot be undone.',
+                AppLocalizations.of(context).clearKeysConfirmation,
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(
                     context,
@@ -781,7 +1461,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                           ),
                         ),
                         Text(
-                          Localizations.localeOf(context).languageCode == 'ar' ? 'تحذير' : 'Warning',
+                          AppLocalizations.of(context).warning,
                           style: TextStyle(
                             color: Colors.orange,
                             fontWeight: FontWeight.bold,
@@ -804,15 +1484,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                       ),
                     ),
                     Text(
-                      Localizations.localeOf(context).languageCode == 'ar'
-                          ? '• سيتم مسح جميع المفاتيح المحفوظة\n'
-                            '• سيتم استخدام المفاتيح الافتراضية المجانية\n'
-                            '• يمكنك إعادة إدخال مفاتيحك الخاصة لاحقاً\n'
-                            '• لا يمكن التراجع عن هذا الإجراء'
-                          : '• All saved keys will be cleared\n'
-                            '• Default free keys will be used\n'
-                            '• You can re-enter your own keys later\n'
-                            '• This action cannot be undone',
+                      AppLocalizations.of(context).clearKeysWarning,
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -853,7 +1525,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                 foregroundColor: Colors.white,
               ),
               child: Text(
-                Localizations.localeOf(context).languageCode == 'ar' ? 'مسح الكل' : 'Clear All',
+                AppLocalizations.of(context).clear,
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(
                     context,
@@ -871,6 +1543,17 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
   }
 
   // مسح جميع المفاتيح
+  // حفظ مفتاح واحد قبل الفحص
+  Future<void> _saveCurrentKey(String serviceName, TextEditingController controller) async {
+    if (controller.text.trim().isNotEmpty) {
+      try {
+        await ApiKeyManager.saveApiKey(serviceName, controller.text.trim());
+      } catch (e) {
+        print('[SAVE KEY ERROR] $serviceName: $e');
+      }
+    }
+  }
+
   Future<void> _clearAllKeys() async {
     try {
       await ApiKeyManager.clearAllApiKeys();
@@ -1057,11 +1740,19 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                     Text(
                       keyName == 'groq'
                           ? (Localizations.localeOf(context).languageCode == 'ar'
-                              ? '• مفتاح Groq مطلوب للعمل الأساسي\n• سيتم استخدام المفتاح الافتراضي المجاني\n• يمكنك إعادة إدخال مفتاحك الخاص لاحقاً'
-                              : '• Groq key is required for basic operation\n• Default free key will be used\n• You can re-enter your own key later')
+                              ? '• مفتاح Groq مطلوب للعمل الأساسي\n'
+                                '• سيتم استخدام المفتاح الافتراضي المجاني\n'
+                                '• يمكنك إعادة إدخال مفتاحك الخاص لاحقاً'
+                              : '• Groq key is required for basic operation\n'
+                                '• Default free key will be used\n'
+                                '• You can re-enter your own key later')
                           : (Localizations.localeOf(context).languageCode == 'ar'
-                              ? '• سيتم مسح المفتاح من التخزين\n• سيتم استخدام المفتاح الافتراضي المجاني\n• يمكنك إعادة إدخاله لاحقاً'
-                              : '• Key will be cleared from storage\n• Default free key will be used\n• You can re-enter it later'),
+                              ? '• سيتم مسح المفتاح من التخزين\n'
+                                '• سيتم استخدام المفتاح الافتراضي المجاني\n'
+                                '• يمكنك إعادة إدخاله لاحقاً'
+                              : '• Key will be cleared from storage\n'
+                                '• Default free key will be used\n'
+                                '• You can re-enter it later'),
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(
                           context,
@@ -1145,7 +1836,12 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
         Colors.green,
       );
     } catch (e) {
-      _showSnackBar('خطأ في مسح المفتاح: $e', Colors.red);
+      _showSnackBar(
+        Localizations.localeOf(context).languageCode == 'ar'
+            ? 'خطأ في مسح المفاتيح: $e'
+            : 'Error clearing keys: $e',
+        Colors.red
+      );
     }
   }
 
@@ -1155,7 +1851,11 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('إعدادات API'),
+          title: Text(
+            Localizations.localeOf(context).languageCode == 'ar'
+                ? 'إعدادات API'
+                : 'API Settings'
+          ),
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Colors.white,
           actions: [
@@ -1164,17 +1864,27 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
               icon: Icon(
                 _obscureKeys ? Icons.visibility : Icons.visibility_off,
               ),
-              tooltip: _obscureKeys ? 'إظهار المفاتيح' : 'إخفاء المفاتيح',
+              tooltip: _obscureKeys 
+                  ? (Localizations.localeOf(context).languageCode == 'ar' 
+                      ? 'إظهار المفاتيح' 
+                      : 'Show Keys')
+                  : (Localizations.localeOf(context).languageCode == 'ar' 
+                      ? 'إخفاء المفاتيح' 
+                      : 'Hide Keys'),
             ),
             IconButton(
               onPressed: _showKeysStatusDialog,
               icon: const Icon(Icons.info_outline),
-              tooltip: 'حالة المفاتيح',
+              tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'حالة المفاتيح'
+                  : 'Keys Status',
             ),
             IconButton(
               onPressed: _showClearKeysDialog,
               icon: const Icon(Icons.delete_sweep),
-              tooltip: 'مسح المفاتيح',
+              tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'مسح المفاتيح'
+                  : 'Clear Keys',
             ),
           ],
         ),
@@ -1335,6 +2045,18 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
 
                         const SizedBox(height: 16),
 
+                        // HF Token for Image Generation (اختياري)
+                        _buildApiKeyField(
+                          controller: _hfTokenController,
+                          title: 'HF Token (FLUX.1-dev)',
+                          subtitle: 'اختياري - لتوليد الصور بنموذج FLUX.1-dev',
+                          icon: Icons.image,
+                          isRequired: false,
+                          helpUrl: 'https://huggingface.co/settings/tokens',
+                        ),
+
+                        const SizedBox(height: 16),
+
                         // OpenRouter API Key (اختياري)
                         _buildApiKeyField(
                           controller: _openrouterController,
@@ -1379,9 +2101,15 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                                         )
                                       : const Icon(Icons.save),
                                   label: _isLoading
-                                      ? const Text('جاري الحفظ...')
+                                      ? Text(
+                                          Localizations.localeOf(context).languageCode == 'ar'
+                                              ? 'جاري الحفظ...'
+                                              : 'Saving...'
+                                        )
                                       : Text(
-                                          'حفظ المفاتيح',
+                                          Localizations.localeOf(context).languageCode == 'ar'
+                                              ? 'حفظ المفاتيح'
+                                              : 'Save Keys',
                                           style: TextStyle(
                                             fontSize:
                                                 ResponsiveHelper.getResponsiveFontSize(
@@ -1422,7 +2150,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                                 ),
                                 icon: const Icon(Icons.psychology),
                                 label: Text(
-                                  'النماذج المتاحة',
+                                  Localizations.localeOf(context).languageCode == 'ar' ? 'النماذج المتوفرة:' : 'Available Models:',
                                   style: TextStyle(
                                     fontSize:
                                         ResponsiveHelper.getResponsiveFontSize(
@@ -1503,6 +2231,23 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                     children: [
                       Row(
                         children: [
+                          // مؤشر حالة المفتاح (ضوء أخضر/أحمر)
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _getStatusColor(serviceName),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _getStatusColor(serviceName).withOpacity(0.4),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Text(
                             title,
                             style: Theme.of(context).textTheme.titleMedium
@@ -1564,52 +2309,194 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                 desktop: 20,
               ),
             ),
-            TextField(
-              controller: controller,
-              obscureText: _obscureKeys,
-              decoration: InputDecoration(
-                hintText: controller.text.isEmpty
-                    ? 'اترك فارغاً لاستخدام المفتاح الافتراضي المجاني'
-                    : 'أدخل $title هنا...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+            Directionality(
+              textDirection: TextDirection.ltr, // إجبار الاتجاه من اليسار لليمين للمفاتيح
+              child: TextField(
+                controller: controller,
+                obscureText: _obscureKeys,
+                textDirection: TextDirection.ltr, // التأكد من كتابة المفتاح من اليسار لليمين
+                decoration: InputDecoration(
+                  hintText: controller.text.isEmpty
+                      ? 'اترك فارغاً لاستخدام المفتاح الافتراضي المجاني'
+                      : 'أدخل $title هنا...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  prefixIcon: const Icon(Icons.vpn_key),
+                  suffixIcon: controller.text.isNotEmpty
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () => controller.clear(),
+                              icon: const Icon(Icons.clear),
+                              tooltip: 'مسح الحقل',
+                            ),
+                            IconButton(
+                              onPressed: () => _showClearSpecificKeyDialog(title),
+                              icon: const Icon(Icons.delete_forever),
+                              tooltip: 'مسح المفتاح من التخزين',
+                            ),
+                          ],
+                        )
+                      : null,
+                  contentPadding: ResponsiveHelper.getResponsivePadding(
+                    context,
+                    mobile: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    tablet: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    desktop: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 20,
+                    ),
+                  ),
                 ),
-                prefixIcon: const Icon(Icons.vpn_key),
-                suffixIcon: controller.text.isNotEmpty
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            onPressed: () => controller.clear(),
-                            icon: const Icon(Icons.clear),
-                            tooltip: 'مسح الحقل',
+                onChanged: (value) => setState(() {}),
+              ),
+            ),
+            
+            // زر التحقق من صلاحية المفتاح (لا يظهر للـ LocalAI)
+            if (serviceName != 'localai' && serviceName.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isValidating[serviceName] == true 
+                          ? null 
+                          : () {
+                              // تنبيه المستخدم قبل الاختبار
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(
+                                    Localizations.localeOf(context).languageCode == 'ar'
+                                        ? 'تحقق من صلاحية المفتاح'
+                                        : 'Verify API Key'
+                                  ),
+                                  content: Text(
+                                    Localizations.localeOf(context).languageCode == 'ar'
+                                        ? 'سيتم القيام بمكالمة تجريبية إلى $title للتحقق من صلاحية المفتاح. هل تريد المتابعة؟'
+                                        : 'A test call will be made to $title to verify the API key. Do you want to continue?'
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text(
+                                        Localizations.localeOf(context).languageCode == 'ar'
+                                            ? 'إلغاء'
+                                            : 'Cancel'
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        Navigator.pop(context);
+                                        // حفظ المفتاح أولاً قبل الفحص
+                                        await _saveCurrentKey(serviceName, controller);
+                                        _validateApiKey(serviceName);
+                                      },
+                                      child: Text(
+                                        Localizations.localeOf(context).languageCode == 'ar'
+                                            ? 'تحقق'
+                                            : 'Verify'
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                      icon: _isValidating[serviceName] == true
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(_getValidationIcon(serviceName)),
+                      label: Text(_getValidationText(serviceName)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _getValidationButtonColor(serviceName),
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // زر الديباق - يظهر دائماً
+                  IconButton(
+                    onPressed: _debugInfo[serviceName]?.isNotEmpty == true
+                        ? () {
+                            setState(() {
+                              _showDebug[serviceName] = !(_showDebug[serviceName] ?? false);
+                            });
+                          }
+                        : null, // معطل إذا لم تكن هناك معلومات ديباق
+                    icon: Icon(
+                      _showDebug[serviceName] == true 
+                          ? Icons.keyboard_arrow_up 
+                          : Icons.bug_report,
+                      color: _debugInfo[serviceName]?.isNotEmpty == true 
+                          ? Colors.grey[600] 
+                          : Colors.grey[400],
+                    ),
+                    tooltip: _debugInfo[serviceName]?.isNotEmpty == true
+                        ? 'ديباق - عرض تفاصيل الاستدعاء'
+                        : 'ديباق - قم بفحص المفتاح أولاً',
+                    style: IconButton.styleFrom(
+                      backgroundColor: _debugInfo[serviceName]?.isNotEmpty == true 
+                          ? Colors.grey[100] 
+                          : Colors.grey[50],
+                      padding: const EdgeInsets.all(8),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            
+            // عرض تفاصيل الديباق
+            if (_showDebug[serviceName] == true && _debugInfo[serviceName]?.isNotEmpty == true) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.bug_report, color: Colors.grey[600], size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          'تفاصيل الديباق',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                            fontSize: 14,
                           ),
-                          IconButton(
-                            onPressed: () => _showClearSpecificKeyDialog(title),
-                            icon: const Icon(Icons.delete_forever),
-                            tooltip: 'مسح المفتاح من التخزين',
-                          ),
-                        ],
-                      )
-                    : null,
-                contentPadding: ResponsiveHelper.getResponsivePadding(
-                  context,
-                  mobile: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  tablet: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  desktop: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 20,
-                  ),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    _buildDebugSection('📤 الطلب (Request)', _debugInfo[serviceName]!['request']),
+                    const SizedBox(height: 8),
+                    _buildDebugSection('📥 الاستجابة (Response)', _debugInfo[serviceName]!['response']),
+                    const SizedBox(height: 8),
+                    Text(
+                      '⏰ الوقت: ${_debugInfo[serviceName]!['timestamp']}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ],
                 ),
               ),
-              onChanged: (value) => setState(() {}),
-            ),
+            ],
+            
             // عرض النماذج المجانية إذا كانت متوفرة
             if (freeModels.isNotEmpty) ...[
               SizedBox(
@@ -1656,7 +2543,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                           ),
                         ),
                         Text(
-                          'النماذج المجانية المتوفرة:',
+                          Localizations.localeOf(context).languageCode == 'ar' ? 'النماذج المجانية المتوفرة:' : 'Available Free Models:',
                           style: TextStyle(
                             color: Colors.green,
                             fontWeight: FontWeight.bold,
@@ -1943,6 +2830,7 @@ $description
     _gptgodController.dispose();
     _tavilyController.dispose();
     _huggingfaceController.dispose();
+    _hfTokenController.dispose();
     _openrouterController.dispose();
     super.dispose();
   }

@@ -10,11 +10,10 @@ import '../../../core/theme/app_theme.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/theme_provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../core/services/speech_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../providers/prompt_enhancer_provider.dart';
-import '../../../generated/l10n/app_localizations.dart';
-
 
 /// منطقة الإدخال المحسنة
 class ChatInputArea extends StatefulWidget {
@@ -46,34 +45,42 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       builder: (context, themeProvider, child) {
         final screenHeight = MediaQuery.of(context).size.height;
         final screenWidth = MediaQuery.of(context).size.width;
-        
-        return Container(
-          height: screenHeight > UIConstants.mobileBreakpoint
-              ? 140.0  // زيادة الارتفاع قليلاً من 120 إلى 140
-              : 120.0, // زيادة الارتفاع قليلاً من 100 إلى 120
-          width: double.infinity,
-          padding: EdgeInsets.all(
-            screenWidth > UIConstants.mobileBreakpoint
-                ? 16.0  // تقليل من 20 إلى 16
-                : 12.0, // تقليل من 16 إلى 12
-          ),
-          decoration: const BoxDecoration(
-            color: Color(UIConstants.darkBackground),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: UIConstants.elevation8,
-                offset: Offset(0, -2),
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // البرفيو في الأعلى
+            if (attachedImages.isNotEmpty) _buildCompactAttachmentsPreview(),
+            // منطقة الإدخال
+            Container(
+              height: screenHeight > UIConstants.mobileBreakpoint
+                  ? 140.0
+                  : 120.0,
+              width: double.infinity,
+              padding: EdgeInsets.all(
+                screenWidth > UIConstants.mobileBreakpoint
+                    ? 16.0
+                    : 12.0,
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.chatState.isListening) _buildVoiceWaveAnimation(),
-              _buildTextInputArea(),
-            ],
-          ),
+              decoration: const BoxDecoration(
+                color: Color(UIConstants.darkBackground),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: UIConstants.elevation8,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.chatState.isListening) _buildVoiceWaveAnimation(),
+                  _buildTextInputArea(),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
@@ -91,11 +98,11 @@ class _ChatInputAreaState extends State<ChatInputArea> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(15, (index) {
               final baseHeight = 20.0;
-              final animationValue = index % 2 == 0 
-                  ? widget.animations.waveAnimation.value 
+              final animationValue = index % 2 == 0
+                  ? widget.animations.waveAnimation.value
                   : 1 - widget.animations.waveAnimation.value;
               final height = baseHeight + (30 * (0.5 + 0.5 * animationValue));
-              
+
               return Container(
                 width: 4,
                 height: height,
@@ -103,8 +110,12 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppTheme.gradientStart.withOpacity(UIConstants.opacityHigh),
-                      AppTheme.gradientAccent.withOpacity(UIConstants.opacityMedium),
+                      AppTheme.gradientStart.withOpacity(
+                        UIConstants.opacityHigh,
+                      ),
+                      AppTheme.gradientAccent.withOpacity(
+                        UIConstants.opacityMedium,
+                      ),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -119,84 +130,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     ).animate().fadeIn();
   }
 
-  /// بناء شريط الأدوات
-  Widget _buildToolbar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround, // تقليل المسافات بين الأزرار
-      children: [
-    
-        _buildToolButton(
-          icon: Icons.attach_file ,
-          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إرفاق ملف' : 'Attach File',
-          onPressed: pickImage,
-        ),
-        _buildToolButton(
-          icon: Icons.search,
-          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في الويب' : 'Web Search',
-          onPressed: _showSearchDialog,
-        ),
-        _buildToolButton(
-          icon: Icons.language,
-          tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'تغيير لغة التعرف على الصوت' : 'Change Speech Recognition Language',
-          onPressed: _showLanguageSelector,
-        ),
-        _buildVoiceToggleButton(),
-        _buildMicrophoneButton(),
-      ],
-    );
-  }
 
-  /// بناء زر الأدوات
-  Widget _buildToolButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityLight),
-            Theme.of(context).colorScheme.primary.withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(UIConstants.borderRadius12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityMediumLight),
-          width: UIConstants.strokeWidth1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityLight),
-            blurRadius: UIConstants.elevation4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(UIConstants.borderRadius12),
-          splashColor: Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityMediumLight),
-          highlightColor: Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityLight),
-          child: SizedBox(
-            width: 32.0, // تصغير أكثر من 36 إلى 32
-            height: 32.0, // تصغير أكثر من 36 إلى 32
-            child: Center(
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 14.0, // تصغير أكثر من 16 إلى 14
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   /// دالة ذكية لحساب التباين حسب الوضع الليلي/النهاري
   List<Color> _getSmartGradientColors(Color baseColor, bool isDarkMode) {
@@ -207,6 +141,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       // في الوضع الليلي: نجعل الألوان الفاتحة أغمق والألوان الغامقة أفتح
       if (luminance > 0.5) {
         // لون فاتح - نجعله أغمق
+        
         return [
           Color.fromRGBO(
             (baseColor.red * 0.7).round(),
@@ -256,7 +191,10 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         final isDarkMode = themeProvider.isDarkMode;
-        final gradientColors = _getSmartGradientColors(themeProvider.accentColor, isDarkMode);
+        final gradientColors = _getSmartGradientColors(
+          themeProvider.accentColor,
+          isDarkMode,
+        );
 
         return Tooltip(
           message: tooltip,
@@ -325,14 +263,23 @@ class _ChatInputAreaState extends State<ChatInputArea> {
         final isListening = widget.chatState.isListening;
         final speechEnabled = widget.chatState.speechEnabled;
         final isDarkMode = themeProvider.isDarkMode;
-        final gradientColors = _getSmartGradientColors(themeProvider.accentColor, isDarkMode);
+        final gradientColors = _getSmartGradientColors(
+          themeProvider.accentColor,
+          isDarkMode,
+        );
 
         return Tooltip(
           message: speechEnabled
-              ? (isListening 
-                  ? (Localizations.localeOf(context).languageCode == 'ar' ? 'إيقاف التسجيل' : 'Stop Recording')
-                  : (Localizations.localeOf(context).languageCode == 'ar' ? 'بدء التسجيل الصوتي' : 'Start Voice Recording'))
-              : (Localizations.localeOf(context).languageCode == 'ar' ? 'الصوت غير متاح' : 'Voice Not Available'),
+              ? (isListening
+                    ? (Localizations.localeOf(context).languageCode == 'ar'
+                          ? 'إيقاف التسجيل'
+                          : 'Stop Recording')
+                    : (Localizations.localeOf(context).languageCode == 'ar'
+                          ? 'بدء التسجيل الصوتي'
+                          : 'Start Voice Recording'))
+              : (Localizations.localeOf(context).languageCode == 'ar'
+                    ? 'الصوت غير متاح'
+                    : 'Voice Not Available'),
           child: Container(
             width: 28.0,
             height: 28.0,
@@ -342,27 +289,34 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                 colors: isListening
                     ? [Colors.red.withOpacity(0.8), Colors.red.withOpacity(0.6)]
                     : speechEnabled
-                        ? gradientColors
-                        : [Colors.grey.withOpacity(0.5), Colors.grey.withOpacity(0.3)],
+                    ? gradientColors
+                    : [
+                        Colors.grey.withOpacity(0.5),
+                        Colors.grey.withOpacity(0.3),
+                      ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(
                 color: speechEnabled
-                    ? (isDarkMode ? Colors.white.withOpacity(0.2) : Colors.black.withOpacity(0.1))
+                    ? (isDarkMode
+                          ? Colors.white.withOpacity(0.2)
+                          : Colors.black.withOpacity(0.1))
                     : Colors.grey.withOpacity(0.2),
                 width: 1.0,
               ),
-              boxShadow: speechEnabled ? [
-                BoxShadow(
-                  color: isListening
-                      ? Colors.red.withOpacity(0.3)
-                      : gradientColors[0].withOpacity(0.3),
-                  blurRadius: 4.0,
-                  offset: const Offset(0, 2),
-                ),
-              ] : null,
+              boxShadow: speechEnabled
+                  ? [
+                      BoxShadow(
+                        color: isListening
+                            ? Colors.red.withOpacity(0.3)
+                            : gradientColors[0].withOpacity(0.3),
+                        blurRadius: 4.0,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
             child: Material(
               color: Colors.transparent,
@@ -371,12 +325,16 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                 borderRadius: BorderRadius.circular(8.0),
                 child: Center(
                   child: AnimatedSwitcher(
-                    duration: Duration(milliseconds: UIConstants.animationDuration),
+                    duration: Duration(
+                      milliseconds: UIConstants.animationDuration,
+                    ),
                     child: Icon(
                       isListening ? Icons.mic : Icons.mic_off,
                       key: ValueKey(isListening),
                       color: speechEnabled
-                          ? (isListening ? Colors.white : _getContrastColor(themeProvider.accentColor))
+                          ? (isListening
+                                ? Colors.white
+                                : _getContrastColor(themeProvider.accentColor))
                           : Colors.grey,
                       size: 14.0,
                     ),
@@ -397,14 +355,23 @@ class _ChatInputAreaState extends State<ChatInputArea> {
         final isListening = widget.chatState.isListening;
         final speechEnabled = widget.chatState.speechEnabled;
         final isDarkMode = themeProvider.isDarkMode;
-        final gradientColors = _getSmartGradientColors(themeProvider.accentColor, isDarkMode);
+        final gradientColors = _getSmartGradientColors(
+          themeProvider.accentColor,
+          isDarkMode,
+        );
 
         return Tooltip(
           message: speechEnabled
-              ? (isListening 
-                  ? (Localizations.localeOf(context).languageCode == 'ar' ? 'إيقاف التسجيل' : 'Stop Recording')
-                  : (Localizations.localeOf(context).languageCode == 'ar' ? 'بدء التسجيل الصوتي' : 'Start Voice Recording'))
-              : (Localizations.localeOf(context).languageCode == 'ar' ? 'الصوت غير متاح' : 'Voice Not Available'),
+              ? (isListening
+                    ? (Localizations.localeOf(context).languageCode == 'ar'
+                          ? 'إيقاف التسجيل'
+                          : 'Stop Recording')
+                    : (Localizations.localeOf(context).languageCode == 'ar'
+                          ? 'بدء التسجيل الصوتي'
+                          : 'Start Voice Recording'))
+              : (Localizations.localeOf(context).languageCode == 'ar'
+                    ? 'الصوت غير متاح'
+                    : 'Voice Not Available'),
           child: GestureDetector(
             onTap: speechEnabled ? _toggleVoiceInput : null,
             child: Container(
@@ -414,37 +381,43 @@ class _ChatInputAreaState extends State<ChatInputArea> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: isListening
-                      ? [Colors.red.withOpacity(0.9), Colors.red.withOpacity(0.7)]
+                      ? [
+                          Colors.red.withOpacity(0.9),
+                          Colors.red.withOpacity(0.7),
+                        ]
                       : speechEnabled
-                          ? gradientColors
-                          : [Colors.grey.withOpacity(0.5), Colors.grey.withOpacity(0.3)],
+                      ? gradientColors
+                      : [
+                          Colors.grey.withOpacity(0.5),
+                          Colors.grey.withOpacity(0.3),
+                        ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(
                   color: speechEnabled
-                      ? (isDarkMode ? Colors.white.withOpacity(0.2) : Colors.black.withOpacity(0.1))
+                      ? (isDarkMode
+                            ? Colors.white.withOpacity(0.2)
+                            : Colors.black.withOpacity(0.1))
                       : Colors.grey.withOpacity(0.2),
                   width: 1.0,
                 ),
-                boxShadow: speechEnabled ? [
-                  BoxShadow(
-                    color: isListening
-                        ? Colors.red.withOpacity(0.3)
-                        : gradientColors[0].withOpacity(0.3),
-                    blurRadius: 4.0,
-                    offset: const Offset(0, 2),
-                  ),
-                ] : null,
+                boxShadow: speechEnabled
+                    ? [
+                        BoxShadow(
+                          color: isListening
+                              ? Colors.red.withOpacity(0.3)
+                              : gradientColors[0].withOpacity(0.3),
+                          blurRadius: 4.0,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
               child: Center(
                 child: isListening
-                    ? Icon(
-                        Icons.stop,
-                        color: Colors.white,
-                        size: 14.0,
-                      )
+                    ? Icon(Icons.stop, color: Colors.white, size: 14.0)
                     : Icon(
                         Icons.mic,
                         color: speechEnabled
@@ -460,156 +433,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     );
   }
 
-  /// بناء زر التبديل الصوتي
-  Widget _buildVoiceToggleButton() {
-    final isListening = widget.chatState.isListening;
-    final speechEnabled = widget.chatState.speechEnabled;
-    
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isListening
-              ? [
-                  Colors.red.withOpacity(UIConstants.opacityMediumLight),
-                  Colors.red.withOpacity(UIConstants.opacityLight),
-                ]
-              : [
-                  Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityLight),
-                  Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(UIConstants.borderRadius12),
-        border: Border.all(
-          color: isListening
-              ? Colors.red.withOpacity(UIConstants.opacityDisabled)
-              : Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityMediumLight),
-          width: isListening ? UIConstants.strokeWidth2 : UIConstants.strokeWidth1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isListening ? Colors.red : Theme.of(context).colorScheme.primary)
-                .withOpacity(UIConstants.opacityMediumLight),
-            blurRadius: isListening ? 6 : UIConstants.elevation4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: speechEnabled ? _toggleVoiceInput : null,
-          borderRadius: BorderRadius.circular(UIConstants.borderRadius12),
-          splashColor: (isListening ? Colors.red : Theme.of(context).colorScheme.primary)
-              .withOpacity(UIConstants.opacityMediumLight),
-          highlightColor: (isListening ? Colors.red : Theme.of(context).colorScheme.primary)
-              .withOpacity(UIConstants.opacityLight),
-          child: SizedBox(
-            width: 32.0, // تصغير أكثر من 36 إلى 32
-            height: 32.0, // تصغير أكثر من 36 إلى 32
-            child: Center(
-              child: AnimatedSwitcher(
-                duration: Duration(milliseconds: UIConstants.animationDuration),
-                child: Icon(
-                  isListening ? Icons.mic : Icons.mic_off,
-                  key: ValueKey(isListening),
-                  color: speechEnabled
-                      ? (isListening ? Colors.red : Colors.white)
-                      : Colors.grey,
-                  size: 14.0, // تصغير أكثر من 16 إلى 14
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
-  /// بناء زر المايكروفون
-  Widget _buildMicrophoneButton() {
-    return Consumer<ChatProvider>(
-      builder: (context, chatProvider, child) {
-        final isListening = widget.chatState.isListening;
-        
-        return GestureDetector(
-          onLongPressStart: (details) {
-            if (widget.chatState.speechEnabled) {
-              HapticFeedback.mediumImpact();
-              _startVoiceRecording();
-            }
-          },
-          onLongPressEnd: (details) {
-            if (isListening) {
-              _stopVoiceRecording();
-            }
-          },
-          onLongPressMoveUpdate: (details) {
-            if (isListening) {
-              final RenderBox renderBox = context.findRenderObject() as RenderBox;
-              final localPosition = renderBox.globalToLocal(details.globalPosition);
-
-              if (localPosition.dx < -50) {
-                _cancelVoiceRecording();
-              }
-            }
-          },
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            width: isListening ? 36 : 32, // تصغير أكثر من 42/36 إلى 36/32
-            height: isListening ? 36 : 32, // تصغير أكثر من 42/36 إلى 36/32
-            decoration: BoxDecoration(
-              gradient: isListening
-                  ? LinearGradient(
-                      colors: [Colors.red, Colors.red.withOpacity(UIConstants.opacityHigh)],
-                    )
-                  : LinearGradient(
-                      colors: [
-                        Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityHigh),
-                        Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityMedium),
-                      ],
-                    ),
-              borderRadius: BorderRadius.circular(isListening ? 18 : UIConstants.borderRadius12), // تصغير أكثر من 21 إلى 18
-              boxShadow: isListening
-                  ? [
-                      BoxShadow(
-                        color: Colors.red.withOpacity(UIConstants.opacityDisabled),
-                        blurRadius: UIConstants.borderRadius12,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityMediumHigh),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-            ),
-            child: Center(
-              child: chatProvider.isTyping
-                  ? SizedBox(
-                      width: 14,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white.withOpacity(UIConstants.opacityHigh),
-                        ),
-                      ),
-                    )
-                  : Icon(
-                      Icons.mic,
-                      color: Colors.white,
-                      size: isListening ? 18 : 14, // تصغير أكثر من 20/16 إلى 18/14
-                    ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   /// بناء منطقة إدخال النص
   Widget _buildTextInputArea() {
@@ -619,9 +443,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
           minHeight: UIConstants.inputMinHeight,
           maxHeight: MediaQuery.of(context).size.height * 0.30,
         ),
-        child: SingleChildScrollView(
-          child: _buildTextFieldContainer(),
-        ),
+        child: SingleChildScrollView(child: _buildTextFieldContainer()),
       ),
     );
   }
@@ -630,18 +452,16 @@ class _ChatInputAreaState extends State<ChatInputArea> {
   Widget _buildTextFieldContainer() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.gradientStart.withOpacity(UIConstants.opacityHigh),
-            AppTheme.gradientEnd.withOpacity(UIConstants.opacityMedium),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(UIConstants.borderRadius12),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: (widget.chatState.isListening ? Colors.red : AppTheme.gradientStart)
-                .withOpacity(UIConstants.opacityDisabled),
-            blurRadius: widget.chatState.isListening ? UIConstants.elevation8 : UIConstants.elevation4,
+            color: widget.chatState.isListening
+                ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
+                : Colors.black.withOpacity(0.1),
+            blurRadius: widget.chatState.isListening
+                ? UIConstants.elevation8
+                : UIConstants.elevation4,
             offset: const Offset(0, 4),
           ),
         ],
@@ -656,51 +476,13 @@ class _ChatInputAreaState extends State<ChatInputArea> {
           builder: (context, enhancerProvider, child) {
             return Column(
               children: [
-                // عرض الصور المرفقة تحت حقل الكتابة
-                if (attachedImages.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Wrap(
-                      spacing: 8,
-                      children: attachedImages.map((img) => Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              File(img.path),
-                              width: 64,
-                              height: 50,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  attachedImages.remove(img);
-                                });
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.close, color: Colors.white, size: 18),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )).toList(),
-                    ),
-                  ),
                 // Stack محدث لحقل الكتابة والأزرار
                 Stack(
                   children: [
                     Padding(
-                      padding: EdgeInsets.only(top: UIConstants.iconSize32 + UIConstants.spacing16),
+                      padding: EdgeInsets.only(
+                        top: UIConstants.iconSize32 + UIConstants.spacing16,
+                      ),
                       child: _buildKeyboardListener(enhancerProvider),
                     ),
                     // الأزرار في الجانب الأيمن
@@ -735,14 +517,18 @@ class _ChatInputAreaState extends State<ChatInputArea> {
           borderRadius: BorderRadius.circular(10),
           border: widget.controllers.textFieldFocusNode.hasFocus
               ? Border.all(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityMedium),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withOpacity(UIConstants.opacityMedium),
                   width: UIConstants.strokeWidth2,
                 )
               : null,
           boxShadow: widget.controllers.textFieldFocusNode.hasFocus
               ? [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityMediumHigh),
+                    color: Theme.of(context).colorScheme.primary.withOpacity(
+                      UIConstants.opacityMediumHigh,
+                    ),
                     blurRadius: UIConstants.elevation8,
                     spreadRadius: 1,
                   ),
@@ -771,7 +557,10 @@ class _ChatInputAreaState extends State<ChatInputArea> {
             }
           }
         },
-        child: _buildTextFieldWidget(enhancerProvider, maxLines: UIConstants.maxMessageLines),
+        child: _buildTextFieldWidget(
+          enhancerProvider,
+          maxLines: UIConstants.maxMessageLines,
+        ),
       );
     } else {
       return _buildTextFieldWidget(enhancerProvider, maxLines: null);
@@ -779,7 +568,10 @@ class _ChatInputAreaState extends State<ChatInputArea> {
   }
 
   /// بناء widget حقل النص
-  Widget _buildTextFieldWidget(PromptEnhancerProvider enhancerProvider, {int? maxLines}) {
+  Widget _buildTextFieldWidget(
+    PromptEnhancerProvider enhancerProvider, {
+    int? maxLines,
+  }) {
     return TextField(
       controller: widget.controllers.messageController,
       focusNode: widget.controllers.textFieldFocusNode,
@@ -838,19 +630,27 @@ class _ChatInputAreaState extends State<ChatInputArea> {
             const SizedBox(width: 10),
             _buildCompactToolButton(
               icon: Icons.attach_file,
-              tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إرفاق ملف' : 'Attach File',
-              onPressed: pickImage,
+              tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'إرفاق ملف'
+                  : 'Attach File',
+
+              /// pick image or file
+              onPressed: () => _showAttachmentOptions(context),
             ),
             const SizedBox(width: 10),
             _buildCompactToolButton(
               icon: Icons.search,
-              tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في الويب' : 'Web Search',
+              tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'البحث في الويب'
+                  : 'Web Search',
               onPressed: _showSearchDialog,
             ),
             const SizedBox(width: 10),
             _buildCompactToolButton(
               icon: Icons.language,
-              tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'تغيير لغة التعرف على الصوت' : 'Change Speech Recognition Language',
+              tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'تغيير لغة التعرف على الصوت'
+                  : 'Change Speech Recognition Language',
               onPressed: _showLanguageSelector,
             ),
             const SizedBox(width: 10),
@@ -874,9 +674,14 @@ class _ChatInputAreaState extends State<ChatInputArea> {
   Widget _buildEnhanceButtonCompact(PromptEnhancerProvider enhancerProvider) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
-        final bool isEnabled = widget.controllers.messageController.text.trim().isNotEmpty && !enhancerProvider.isEnhancing;
+        final bool isEnabled =
+            widget.controllers.messageController.text.trim().isNotEmpty &&
+            !enhancerProvider.isEnhancing;
         final isDarkMode = themeProvider.isDarkMode;
-        final gradientColors = _getSmartGradientColors(themeProvider.accentColor, isDarkMode);
+        final gradientColors = _getSmartGradientColors(
+          themeProvider.accentColor,
+          isDarkMode,
+        );
 
         return Container(
           width: 28.0,
@@ -891,31 +696,35 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                     ],
                   )
                 : isEnabled
-                    ? LinearGradient(
-                        colors: gradientColors,
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : LinearGradient(
-                        colors: [
-                          Colors.grey.withOpacity(0.5),
-                          Colors.grey.withOpacity(0.3),
-                        ],
-                      ),
+                ? LinearGradient(
+                    colors: gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : LinearGradient(
+                    colors: [
+                      Colors.grey.withOpacity(0.5),
+                      Colors.grey.withOpacity(0.3),
+                    ],
+                  ),
             borderRadius: BorderRadius.circular(8.0),
             border: Border.all(
               color: isEnabled
-                  ? (isDarkMode ? Colors.white.withOpacity(0.3) : Colors.black.withOpacity(0.1))
+                  ? (isDarkMode
+                        ? Colors.white.withOpacity(0.3)
+                        : Colors.black.withOpacity(0.1))
                   : Colors.grey.withOpacity(0.2),
               width: 1.0,
             ),
-            boxShadow: isEnabled ? [
-              BoxShadow(
-                color: gradientColors[0].withOpacity(0.3),
-                blurRadius: 4.0,
-                offset: const Offset(0, 2),
-              ),
-            ] : null,
+            boxShadow: isEnabled
+                ? [
+                    BoxShadow(
+                      color: gradientColors[0].withOpacity(0.3),
+                      blurRadius: 4.0,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Material(
             color: Colors.transparent,
@@ -949,8 +758,6 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     );
   }
 
-
-
   /// بناء زر الإرسال
   Widget _buildSendButton() {
     return Positioned(
@@ -958,7 +765,9 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       bottom: UIConstants.spacing8, // نقل الزر للأسفل
       child: Consumer<ChatProvider>(
         builder: (context, chatProvider, child) {
-          final hasText = widget.controllers.messageController.text.trim().isNotEmpty;
+          final hasText = widget.controllers.messageController.text
+              .trim()
+              .isNotEmpty;
 
           return GestureDetector(
             onTap: hasText && !chatProvider.isTyping
@@ -973,20 +782,25 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                     ? LinearGradient(
                         colors: [
                           Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityHigh),
+                          Theme.of(context).colorScheme.primary.withOpacity(
+                            UIConstants.opacityHigh,
+                          ),
                         ],
                       )
                     : LinearGradient(
                         colors: [
                           Colors.grey.withOpacity(UIConstants.opacityDisabled),
-                          Colors.grey.withOpacity(UIConstants.opacityMediumHigh),
+                          Colors.grey.withOpacity(
+                            UIConstants.opacityMediumHigh,
+                          ),
                         ],
                       ),
                 borderRadius: BorderRadius.circular(UIConstants.borderRadius8),
                 boxShadow: hasText && !chatProvider.isTyping
                     ? [
                         BoxShadow(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(UIConstants.opacityMediumHigh),
+                          color: Theme.of(context).colorScheme.primary
+                              .withOpacity(UIConstants.opacityMediumHigh),
                           blurRadius: UIConstants.elevation4,
                           offset: const Offset(0, 1),
                         ),
@@ -1007,7 +821,9 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                       )
                     : Icon(
                         Icons.send,
-                        color: hasText ? Colors.white : Colors.white.withOpacity(0.5),
+                        color: hasText
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.5),
                         size: 12.0, // تصغير أكثر من 14 إلى 12
                       ),
               ),
@@ -1045,60 +861,70 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     }
   }
 
-  /// بدء التسجيل الصوتي
-  Future<void> _startVoiceRecording() async {
-    if (!widget.chatState.speechEnabled) return;
 
-    setState(() => widget.chatState.setListening(true));
-    widget.animations.waveController.repeat(reverse: true);
 
-    await widget.speechService.startListening(
-      onResult: (result) {
-        setState(() {
-          widget.controllers.messageController.text = result;
-        });
-      },
-    );
-  }
-
-  /// إيقاف التسجيل الصوتي
-  Future<void> _stopVoiceRecording() async {
-    if (!widget.chatState.isListening) return;
-
-    await widget.speechService.stopListening();
-    widget.animations.waveController.stop();
-    setState(() => widget.chatState.setListening(false));
-
-    if (widget.controllers.messageController.text.trim().isNotEmpty) {
-      _sendMessageWithAttachments();
-    }
-  }
-
-  /// إلغاء التسجيل الصوتي
-  Future<void> _cancelVoiceRecording() async {
-    if (!widget.chatState.isListening) return;
-
-    HapticFeedback.heavyImpact();
-    await widget.speechService.stopListening();
-    widget.animations.waveController.stop();
-    setState(() {
-      widget.chatState.setListening(false);
-      widget.controllers.messageController.clear();
-    });
-  }
 
   // =============== Message Sending Methods ===============
 
   /// إرسال الرسالة مع المرفقات
   void _sendMessageWithAttachments() {
     final text = widget.controllers.messageController.text.trim();
-    if (text.isNotEmpty) {
-      widget.onSendMessage(text, attachedImages: attachedImages);
+    if (text.isNotEmpty || attachedImages.isNotEmpty) {
+      String finalMessage = text;
+
+      // إضافة معلومات الملفات المرفقة تلقائياً للبرومبت
+      if (attachedImages.isNotEmpty) {
+        final attachmentInfo = _generateAttachmentInfo();
+        if (finalMessage.isNotEmpty) {
+          finalMessage = '$finalMessage\n\n$attachmentInfo';
+        } else {
+          finalMessage = attachmentInfo;
+        }
+      }
+
+      widget.onSendMessage(finalMessage, attachedImages: attachedImages);
       // مسح الصور المرفقة بعد الإرسال
       setState(() {
         attachedImages.clear();
       });
     }
+  }
+
+  /// توليد معلومات الملفات المرفقة
+  String _generateAttachmentInfo() {
+    if (attachedImages.isEmpty) return '';
+
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final List<String> fileInfos = [];
+
+    for (int i = 0; i < attachedImages.length; i++) {
+      final file = attachedImages[i];
+      final fileName = file.name;
+      final fileExtension = fileName.split('.').last.toLowerCase();
+
+      String fileType;
+      if (['png', 'jpg', 'jpeg', 'gif', 'webp'].contains(fileExtension)) {
+        fileType = isArabic ? 'صورة' : 'image';
+      } else if (['txt', 'md'].contains(fileExtension)) {
+        fileType = isArabic ? 'ملف نصي' : 'text file';
+      } else if (['json', 'yaml', 'yml'].contains(fileExtension)) {
+        fileType = isArabic ? 'ملف بيانات' : 'data file';
+      } else if (fileExtension == 'pdf') {
+        fileType = isArabic ? 'ملف PDF' : 'PDF file';
+      } else {
+        fileType = isArabic ? 'ملف' : 'file';
+      }
+
+      fileInfos.add(
+        isArabic
+            ? '${i + 1}. $fileType: $fileName'
+            : '${i + 1}. $fileType: $fileName',
+      );
+    }
+
+    final header = isArabic ? '📎 الملفات المرفقة:' : '📎 Attached files:';
+
+    return '$header\n${fileInfos.join('\n')}';
   }
 
   // =============== Image Picking Methods ===============
@@ -1108,7 +934,13 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     if (attachedImages.length >= 3) {
       // أظهر رسالة للمستخدم أن الحد الأقصى 3 صور
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'يمكنك إرفاق 3 صور كحد أقصى' : 'You can attach a maximum of 3 images')),
+        SnackBar(
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'ar'
+                ? 'يمكنك إرفاق 3 صور كحد أقصى'
+                : 'You can attach a maximum of 3 images',
+          ),
+        ),
       );
       return;
     }
@@ -1126,7 +958,13 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       final ext = image.name.split('.').last.toLowerCase();
       if (!['png', 'jpg', 'jpeg'].contains(ext)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'الملف يجب أن يكون صورة PNG أو JPG أو JPEG' : 'File must be a PNG, JPG or JPEG image')),
+          SnackBar(
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'الملف يجب أن يكون صورة PNG أو JPG أو JPEG'
+                  : 'File must be a PNG, JPG or JPEG image',
+            ),
+          ),
         );
         return;
       }
@@ -1137,18 +975,28 @@ class _ChatInputAreaState extends State<ChatInputArea> {
         if (bytes > maxSize) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'حجم الصورة كبير جداً. الحد الأقصى هو 5MB' : 'Image size is too large. Maximum is 5MB'),
+              content: Text(
+                Localizations.localeOf(context).languageCode == 'ar'
+                    ? 'حجم الصورة كبير جداً. الحد الأقصى هو 5MB'
+                    : 'Image size is too large. Maximum is 5MB',
+              ),
               backgroundColor: Colors.orange,
             ),
           );
           return;
         }
 
-        print('📏 [IMAGE_PICKER] حجم الصورة: ${(bytes / 1024 / 1024).toStringAsFixed(2)} MB');
+        print(
+          '📏 [IMAGE_PICKER] حجم الصورة: ${(bytes / 1024 / 1024).toStringAsFixed(2)} MB',
+        );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ في قراءة حجم الصورة: $e' : 'Error reading image size: $e'),
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'خطأ في قراءة حجم الصورة: $e'
+                  : 'Error reading image size: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -1186,12 +1034,16 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'البحث في الويب' : 'Web Search'),
+        title: Text(
+          Localizations.localeOf(context).languageCode == 'ar'
+              ? 'البحث في الويب'
+              : 'Web Search',
+        ),
         content: TextField(
           decoration: InputDecoration(
-            hintText: Localizations.localeOf(context).languageCode == 'ar' 
-                ? 'أدخل استعلام البحث...' 
-                : 'Enter search query...'
+            hintText: Localizations.localeOf(context).languageCode == 'ar'
+                ? 'أدخل استعلام البحث...'
+                : 'Enter search query...',
           ),
           onSubmitted: (query) {
             Navigator.pop(context);
@@ -1201,7 +1053,11 @@ class _ChatInputAreaState extends State<ChatInputArea> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'إلغاء' : 'Cancel'),
+            child: Text(
+              Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'إلغاء'
+                  : 'Cancel',
+            ),
           ),
         ],
       ),
@@ -1229,7 +1085,13 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     if (currentText.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'يرجى إدخال نص أولاً لتحسينه' : 'Please enter text first to enhance it')),
+          SnackBar(
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'يرجى إدخال نص أولاً لتحسينه'
+                  : 'Please enter text first to enhance it',
+            ),
+          ),
         );
       }
       return;
@@ -1280,9 +1142,15 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       } else if (enhancerProvider.error != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ في تحسين النص: يرجى المحاولة مرة أخرى' : 'Error enhancing text: Please try again'),
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'خطأ في تحسين النص: يرجى المحاولة مرة أخرى'
+                  : 'Error enhancing text: Please try again',
+            ),
             action: SnackBarAction(
-              label: Localizations.localeOf(context).languageCode == 'ar' ? 'إعادة المحاولة' : 'Retry',
+              label: Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'إعادة المحاولة'
+                  : 'Retry',
               onPressed: _enhancePrompt,
             ),
           ),
@@ -1291,21 +1159,31 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(Localizations.localeOf(context).languageCode == 'ar' ? 'خطأ غير متوقع: $e' : 'Unexpected error: $e')),
+          SnackBar(
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'خطأ غير متوقع: $e'
+                  : 'Unexpected error: $e',
+            ),
+          ),
         );
       }
     }
   }
 
   /// بناء تصميم حقل النص
-  InputDecoration _buildTextFieldDecoration(PromptEnhancerProvider enhancerProvider) {
+  InputDecoration _buildTextFieldDecoration(
+    PromptEnhancerProvider enhancerProvider,
+  ) {
     return InputDecoration(
       hintText: _getHintText(enhancerProvider),
       hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
         color: enhancerProvider.isEnhancing
             ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
             : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-        fontStyle: enhancerProvider.isEnhancing ? FontStyle.italic : FontStyle.normal,
+        fontStyle: enhancerProvider.isEnhancing
+            ? FontStyle.italic
+            : FontStyle.normal,
         fontFamily: 'Amiri',
       ),
       filled: true,
@@ -1323,24 +1201,307 @@ class _ChatInputAreaState extends State<ChatInputArea> {
   /// الحصول على نص التلميح
   String _getHintText(PromptEnhancerProvider enhancerProvider) {
     if (enhancerProvider.isEnhancing) {
-      return Localizations.localeOf(context).languageCode == 'ar' 
-          ? 'جاري تحسين البرومبت باستخدام الذكاء الاصطناعي...' 
+      return Localizations.localeOf(context).languageCode == 'ar'
+          ? 'جاري تحسين البرومبت باستخدام الذكاء الاصطناعي...'
           : 'Enhancing prompt using AI...';
     }
     if (widget.chatState.isListening) {
-      return Localizations.localeOf(context).languageCode == 'ar' 
-          ? 'أستمع...' 
+      return Localizations.localeOf(context).languageCode == 'ar'
+          ? 'أستمع...'
           : 'Listening...';
     }
     if (_isDesktop()) {
-      return Localizations.localeOf(context).languageCode == 'ar' 
-          ? 'أكتب أي شي يدور في خاطرك...' 
+      return Localizations.localeOf(context).languageCode == 'ar'
+          ? 'أكتب أي شي يدور في خاطرك...'
           : 'Type anything on your mind...';
     }
-    return Localizations.localeOf(context).languageCode == 'ar' 
-        ? 'أتحفني بأي شي يدور في خاطرك...' 
+    return Localizations.localeOf(context).languageCode == 'ar'
+        ? 'أتحفني بأي شي يدور في خاطرك...'
         : 'Share anything on your mind...';
   }
+
+  /// عرض خيارات الإرفاق
+  void _showAttachmentOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                Localizations.localeOf(context).languageCode == 'ar'
+                    ? 'اختر نوع الملف'
+                    : 'Choose file type',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildAttachmentOption(
+                    context,
+                    icon: Icons.image,
+                    label: Localizations.localeOf(context).languageCode == 'ar'
+                        ? 'صورة'
+                        : 'Image',
+                    onTap: () {
+                      Navigator.pop(context);
+                      pickImage();
+                    },
+                  ),
+                  _buildAttachmentOption(
+                    context,
+                    icon: Icons.attach_file,
+                    label: Localizations.localeOf(context).languageCode == 'ar'
+                        ? 'ملف'
+                        : 'File',
+                    onTap: () {
+                      Navigator.pop(context);
+                      pickFile();
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// بناء خيار الإرفاق
+  Widget _buildAttachmentOption(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 8),
+            Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// بناء معاينة مدمجة للملفات المرفقة
+  Widget _buildCompactAttachmentsPreview() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.attach_file,
+            size: 14,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${attachedImages.length}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.primary,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: SizedBox(
+              height: 28,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: attachedImages.length,
+                itemBuilder: (context, index) {
+                  return _buildCompactAttachmentItem(attachedImages[index], index);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// بناء عنصر مرفق مدمج
+  Widget _buildCompactAttachmentItem(XFile file, int index) {
+    final fileName = file.name;
+    final fileExtension = fileName.split('.').last.toLowerCase();
+    final isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp'].contains(fileExtension);
+    
+    return Container(
+      margin: const EdgeInsets.only(right: 4),
+      child: Stack(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                width: 0.5,
+              ),
+            ),
+            child: isImage 
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: Image.file(
+                    File(file.path),
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : Icon(
+                  _getFileIcon(fileExtension),
+                  size: 12,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+          Positioned(
+            right: -2,
+            top: -2,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  attachedImages.removeAt(index);
+                });
+              },
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 8,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// الحصول على أيقونة الملف
+  IconData _getFileIcon(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'txt':
+      case 'md':
+        return Icons.description;
+      case 'json':
+      case 'yaml':
+      case 'yml':
+        return Icons.data_object;
+      case 'xml':
+        return Icons.code;
+      case 'csv':
+        return Icons.table_chart;
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  /// اختيار ملف
+  Future<void> pickFile() async {
+    if (attachedImages.length >= 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'ar'
+                ? 'يمكنك إرفاق 5 ملفات كحد أقصى'
+                : 'You can attach a maximum of 5 files',
+          ),
+        ),
+      );
+      return;
+    }
+
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: [
+          'txt',
+          'md',
+          'json',
+          'yaml',
+          'yml',
+          'xml',
+          'csv',
+          'pdf',
+        ],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final file = result.files.single;
+        final filePath = file.path!;
+
+        // تحقق من الحجم (أقل من 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                Localizations.localeOf(context).languageCode == 'ar'
+                    ? 'حجم الملف كبير جداً. الحد الأقصى هو 10MB'
+                    : 'File size is too large. Maximum is 10MB',
+              ),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          return;
+        }
+
+        // إضافة الملف كـ XFile للتوافق مع النظام الحالي
+        final xFile = XFile(filePath, name: file.name);
+        setState(() {
+          attachedImages.add(xFile);
+        });
+
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'ar'
+                ? 'خطأ في اختيار الملف: $e'
+                : 'Error picking file: $e',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 }
-
-

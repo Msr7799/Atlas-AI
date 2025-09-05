@@ -797,4 +797,162 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get active => 'Active';
+
+  @override
+  String get apiKeysStatus => 'API Keys Status';
+
+  @override
+  String get appReadyToWork => 'App ready to work ✅';
+
+  @override
+  String get groqKeyRequired => 'Groq key required ⚠️';
+
+  @override
+  String get usingFreeDefaultKeys => 'Using free default keys';
+
+  @override
+  String get keysDetails => 'Keys Details:';
+
+  @override
+  String get statistics => 'Statistics:';
+
+  @override
+  String availableKeys(int count) {
+    return 'Available keys: $count/5';
+  }
+
+  @override
+  String requiredKeys(String status) {
+    return 'Required keys: $status';
+  }
+
+  @override
+  String usingDefaultKeys(String status) {
+    return 'Using default keys: $status';
+  }
+
+  @override
+  String get available => 'Available';
+
+  @override
+  String get missing => 'Missing';
+
+  @override
+  String get required => 'Required';
+
+  @override
+  String get defaultKey => 'Default Key';
+
+  @override
+  String get clearApiKeys => 'Clear API Keys';
+
+  @override
+  String get warning => 'Warning';
+
+  @override
+  String get clearKeysConfirmation =>
+      'Do you want to clear all saved API keys?\n\nThis action cannot be undone.';
+
+  @override
+  String get clearKeysWarning =>
+      '• All saved keys will be cleared\n• Free default keys will be used\n• You can add your keys again anytime';
+
+  @override
+  String get keysSavedSuccess => 'Keys saved successfully! ✅';
+
+  @override
+  String errorSavingKeys(String error) {
+    return 'Error saving keys: $error';
+  }
+
+  @override
+  String get activeModel => 'Active Model';
+
+  @override
+  String processingImages(int count) {
+    return 'Processing $count images...';
+  }
+
+  @override
+  String errorProcessingImages(String error) {
+    return 'Error processing images: $error';
+  }
+
+  @override
+  String errorAddingImage(String error) {
+    return 'Error adding image: $error';
+  }
+
+  @override
+  String get trainingHistory => 'History';
+
+  @override
+  String get noPreviousTrainingSessions => 'No previous training sessions';
+
+  @override
+  String get previousSessionsWillAppearHere =>
+      'Previous training sessions will appear here';
+
+  @override
+  String get trainingSessionStarted => 'Training started';
+
+  @override
+  String get trainingSessionStartFailed => 'Failed to start training';
+
+  @override
+  String get sessionDeleted => 'Session deleted';
+
+  @override
+  String get sessionDeleteFailed => 'Failed to delete session';
+
+  @override
+  String get supportedTrainingTypes => 'Supported Training Types:';
+
+  @override
+  String get fineTuning => '• Fine-tuning: Improve existing model';
+
+  @override
+  String get instructionTuning => '• Instruction Tuning: Train on instructions';
+
+  @override
+  String get conversationTuning =>
+      '• Conversation Tuning: Train on conversations';
+
+  @override
+  String get domainSpecific =>
+      '• Domain Specific: Specialize in specific domain';
+
+  @override
+  String get supportedFileTypes => 'Supported File Types:';
+
+  @override
+  String get txtFiles => '• .txt - Text files (max 50MB)';
+
+  @override
+  String get jsonFiles => '• .json - JSON files (max 100MB)';
+
+  @override
+  String get jsonlFiles => '• .jsonl - JSONL files (max 100MB)';
+
+  @override
+  String get csvFiles => '• .csv - CSV files (max 25MB)';
+
+  @override
+  String get mdFiles => '• .md - Markdown files (max 10MB)';
+
+  @override
+  String get tips => 'Tips:';
+
+  @override
+  String get useHighQualityData => '• Use high-quality data for best results';
+
+  @override
+  String get startWithLowLearningRate =>
+      '• Start with low learning rate (0.001)';
+
+  @override
+  String get useEarlyStopping => '• Use early stopping to avoid overfitting';
+
+  @override
+  String get monitorLogs => '• Monitor logs to understand training progress';
 }

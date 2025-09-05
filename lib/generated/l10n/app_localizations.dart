@@ -1549,6 +1549,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Active'**
   String get active;
+
+  /// No description provided for @apiKeysStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'API Keys Status'**
+  String get apiKeysStatus;
+
+  /// No description provided for @appReadyToWork.
+  ///
+  /// In en, this message translates to:
+  /// **'App ready to work ✅'**
+  String get appReadyToWork;
+
+  /// No description provided for @groqKeyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Groq key required ⚠️'**
+  String get groqKeyRequired;
+
+  /// No description provided for @usingFreeDefaultKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Using free default keys'**
+  String get usingFreeDefaultKeys;
+
+  /// No description provided for @keysDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys Details:'**
+  String get keysDetails;
+
+  /// No description provided for @statistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics:'**
+  String get statistics;
+
+  /// No description provided for @availableKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Available keys: {count}/5'**
+  String availableKeys(int count);
+
+  /// No description provided for @requiredKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Required keys: {status}'**
+  String requiredKeys(String status);
+
+  /// No description provided for @usingDefaultKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Using default keys: {status}'**
+  String usingDefaultKeys(String status);
+
+  /// No description provided for @available.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get available;
+
+  /// No description provided for @missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing'**
+  String get missing;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @defaultKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Key'**
+  String get defaultKey;
+
+  /// No description provided for @clearApiKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear API Keys'**
+  String get clearApiKeys;
+
+  /// No description provided for @warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get warning;
+
+  /// No description provided for @clearKeysConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to clear all saved API keys?\n\nThis action cannot be undone.'**
+  String get clearKeysConfirmation;
+
+  /// No description provided for @clearKeysWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'• All saved keys will be cleared\n• Free default keys will be used\n• You can add your keys again anytime'**
+  String get clearKeysWarning;
+
+  /// No description provided for @keysSavedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys saved successfully! ✅'**
+  String get keysSavedSuccess;
+
+  /// No description provided for @errorSavingKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving keys: {error}'**
+  String errorSavingKeys(String error);
+
+  /// No description provided for @activeModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Model'**
+  String get activeModel;
+
+  /// No description provided for @processingImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing {count} images...'**
+  String processingImages(int count);
+
+  /// No description provided for @errorProcessingImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Error processing images: {error}'**
+  String errorProcessingImages(String error);
+
+  /// No description provided for @errorAddingImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error adding image: {error}'**
+  String errorAddingImage(String error);
+
+  /// No description provided for @trainingHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get trainingHistory;
+
+  /// No description provided for @noPreviousTrainingSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous training sessions'**
+  String get noPreviousTrainingSessions;
+
+  /// No description provided for @previousSessionsWillAppearHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous training sessions will appear here'**
+  String get previousSessionsWillAppearHere;
+
+  /// No description provided for @trainingSessionStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Training started'**
+  String get trainingSessionStarted;
+
+  /// No description provided for @trainingSessionStartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start training'**
+  String get trainingSessionStartFailed;
+
+  /// No description provided for @sessionDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Session deleted'**
+  String get sessionDeleted;
+
+  /// No description provided for @sessionDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete session'**
+  String get sessionDeleteFailed;
+
+  /// No description provided for @supportedTrainingTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported Training Types:'**
+  String get supportedTrainingTypes;
+
+  /// No description provided for @fineTuning.
+  ///
+  /// In en, this message translates to:
+  /// **'• Fine-tuning: Improve existing model'**
+  String get fineTuning;
+
+  /// No description provided for @instructionTuning.
+  ///
+  /// In en, this message translates to:
+  /// **'• Instruction Tuning: Train on instructions'**
+  String get instructionTuning;
+
+  /// No description provided for @conversationTuning.
+  ///
+  /// In en, this message translates to:
+  /// **'• Conversation Tuning: Train on conversations'**
+  String get conversationTuning;
+
+  /// No description provided for @domainSpecific.
+  ///
+  /// In en, this message translates to:
+  /// **'• Domain Specific: Specialize in specific domain'**
+  String get domainSpecific;
+
+  /// No description provided for @supportedFileTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported File Types:'**
+  String get supportedFileTypes;
+
+  /// No description provided for @txtFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'• .txt - Text files (max 50MB)'**
+  String get txtFiles;
+
+  /// No description provided for @jsonFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'• .json - JSON files (max 100MB)'**
+  String get jsonFiles;
+
+  /// No description provided for @jsonlFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'• .jsonl - JSONL files (max 100MB)'**
+  String get jsonlFiles;
+
+  /// No description provided for @csvFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'• .csv - CSV files (max 25MB)'**
+  String get csvFiles;
+
+  /// No description provided for @mdFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'• .md - Markdown files (max 10MB)'**
+  String get mdFiles;
+
+  /// No description provided for @tips.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips:'**
+  String get tips;
+
+  /// No description provided for @useHighQualityData.
+  ///
+  /// In en, this message translates to:
+  /// **'• Use high-quality data for best results'**
+  String get useHighQualityData;
+
+  /// No description provided for @startWithLowLearningRate.
+  ///
+  /// In en, this message translates to:
+  /// **'• Start with low learning rate (0.001)'**
+  String get startWithLowLearningRate;
+
+  /// No description provided for @useEarlyStopping.
+  ///
+  /// In en, this message translates to:
+  /// **'• Use early stopping to avoid overfitting'**
+  String get useEarlyStopping;
+
+  /// No description provided for @monitorLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'• Monitor logs to understand training progress'**
+  String get monitorLogs;
 }
 
 class _AppLocalizationsDelegate

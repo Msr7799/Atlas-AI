@@ -6,7 +6,6 @@ import '../widgets/compact_message_bubble.dart';
 import '../widgets/thinking_process_widget.dart';
 import '../providers/chat_selection_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 
 /// عرض قائمة الرسائل في المحادثة

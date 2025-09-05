@@ -794,4 +794,160 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get active => 'نشط';
+
+  @override
+  String get apiKeysStatus => 'حالة مفاتيح API';
+
+  @override
+  String get appReadyToWork => 'التطبيق جاهز للعمل ✅';
+
+  @override
+  String get groqKeyRequired => 'مفتاح Groq مطلوب ⚠️';
+
+  @override
+  String get usingFreeDefaultKeys => 'يتم استخدام المفاتيح الافتراضية المجانية';
+
+  @override
+  String get keysDetails => 'تفاصيل المفاتيح:';
+
+  @override
+  String get statistics => 'إحصائيات:';
+
+  @override
+  String availableKeys(int count) {
+    return 'المفاتيح المتوفرة: $count/5';
+  }
+
+  @override
+  String requiredKeys(String status) {
+    return 'المفاتيح المطلوبة: $status';
+  }
+
+  @override
+  String usingDefaultKeys(String status) {
+    return 'استخدام المفاتيح الافتراضية: $status';
+  }
+
+  @override
+  String get available => 'متوفرة';
+
+  @override
+  String get missing => 'مفقودة';
+
+  @override
+  String get required => 'مطلوب';
+
+  @override
+  String get defaultKey => 'مفتاح افتراضي';
+
+  @override
+  String get clearApiKeys => 'مسح مفاتيح API';
+
+  @override
+  String get warning => 'تحذير';
+
+  @override
+  String get clearKeysConfirmation =>
+      'هل تريد مسح جميع مفاتيح API المحفوظة؟\n\nهذا الإجراء لا يمكن التراجع عنه.';
+
+  @override
+  String get clearKeysWarning =>
+      '• سيتم مسح جميع المفاتيح المحفوظة\n• سيتم استخدام المفاتيح الافتراضية المجانية\n• يمكنك إضافة مفاتيحك مرة أخرى في أي وقت';
+
+  @override
+  String get keysSavedSuccess => 'تم حفظ المفاتيح بنجاح! ✅';
+
+  @override
+  String errorSavingKeys(String error) {
+    return 'خطأ في حفظ المفاتيح: $error';
+  }
+
+  @override
+  String get activeModel => 'النموذج النشط';
+
+  @override
+  String processingImages(int count) {
+    return 'جاري معالجة $count صورة...';
+  }
+
+  @override
+  String errorProcessingImages(String error) {
+    return 'خطأ في معالجة الصور: $error';
+  }
+
+  @override
+  String errorAddingImage(String error) {
+    return 'خطأ في إضافة الصورة: $error';
+  }
+
+  @override
+  String get trainingHistory => 'السجل';
+
+  @override
+  String get noPreviousTrainingSessions => 'لا توجد جلسات تدريب سابقة';
+
+  @override
+  String get previousSessionsWillAppearHere =>
+      'ستظهر هنا جلسات التدريب السابقة';
+
+  @override
+  String get trainingSessionStarted => 'تم بدء التدريب';
+
+  @override
+  String get trainingSessionStartFailed => 'فشل في بدء التدريب';
+
+  @override
+  String get sessionDeleted => 'تم حذف الجلسة';
+
+  @override
+  String get sessionDeleteFailed => 'فشل في حذف الجلسة';
+
+  @override
+  String get supportedTrainingTypes => 'أنواع التدريب المدعومة:';
+
+  @override
+  String get fineTuning => '• Fine-tuning: تحسين نموذج موجود';
+
+  @override
+  String get instructionTuning => '• Instruction Tuning: تدريب على التعليمات';
+
+  @override
+  String get conversationTuning => '• Conversation Tuning: تدريب على المحادثات';
+
+  @override
+  String get domainSpecific => '• Domain Specific: تخصص مجال معين';
+
+  @override
+  String get supportedFileTypes => 'أنواع الملفات المدعومة:';
+
+  @override
+  String get txtFiles => '• .txt - ملفات نصية (حد أقصى 50MB)';
+
+  @override
+  String get jsonFiles => '• .json - ملفات JSON (حد أقصى 100MB)';
+
+  @override
+  String get jsonlFiles => '• .jsonl - ملفات JSONL (حد أقصى 100MB)';
+
+  @override
+  String get csvFiles => '• .csv - ملفات CSV (حد أقصى 25MB)';
+
+  @override
+  String get mdFiles => '• .md - ملفات Markdown (حد أقصى 10MB)';
+
+  @override
+  String get tips => 'نصائح:';
+
+  @override
+  String get useHighQualityData =>
+      '• استخدم بيانات عالية الجودة للحصول على أفضل النتائج';
+
+  @override
+  String get startWithLowLearningRate => '• ابدأ بمعدل تعلم منخفض (0.001)';
+
+  @override
+  String get useEarlyStopping => '• استخدم الإيقاف المبكر لتجنب فرط التعلم';
+
+  @override
+  String get monitorLogs => '• راقب السجلات لفهم تقدم التدريب';
 }

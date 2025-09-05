@@ -85,6 +85,8 @@ class AttachmentModel {
   final int size;
   final String path;
   final DateTime uploadedAt;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final List<int>? data; // إضافة دعم البيانات الثنائية للصور المولدة
 
   AttachmentModel({
     required this.id,
@@ -93,6 +95,7 @@ class AttachmentModel {
     required this.size,
     required this.path,
     required this.uploadedAt,
+    this.data, // إضافة البارامتر الاختياري
   });
 
   factory AttachmentModel.fromJson(Map<String, dynamic> json) =>

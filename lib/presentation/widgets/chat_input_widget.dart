@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/prompt_enhancer_provider.dart';
-import '../../generated/l10n/app_localizations.dart';
+import 'voice_input_button.dart';
 
 /// ويدجت الإدخال المحسن للمحادثة
 class ChatInputWidget extends StatefulWidget {
@@ -11,7 +11,6 @@ class ChatInputWidget extends StatefulWidget {
   final FocusNode textFieldFocusNode;
   final Function(String) onSendMessage;
   final Function() onAttachmentTap;
-  final Function() onVoiceInputTap;
   final bool isDesktop;
   final int historyIndex;
   final Function(int) onHistoryIndexChanged;
@@ -22,7 +21,6 @@ class ChatInputWidget extends StatefulWidget {
     required this.textFieldFocusNode,
     required this.onSendMessage,
     required this.onAttachmentTap,
-    required this.onVoiceInputTap,
     required this.isDesktop,
     required this.historyIndex,
     required this.onHistoryIndexChanged,
@@ -33,6 +31,9 @@ class ChatInputWidget extends StatefulWidget {
 }
 
 class _ChatInputWidgetState extends State<ChatInputWidget> {
+  bool _isVoiceListening = false;
+  String _voiceText = '';
+
   @override
   Widget build(BuildContext context) {
     return Consumer<PromptEnhancerProvider>(
@@ -76,24 +77,61 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
                     : _buildMobileTextField(enhancerProvider),
               ),
 
-              // زر الصوت على اليسار
+              // زر الصوت المحسن على اليسار
               Positioned(
                 left: 8,
                 top: 8,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.mic,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    onPressed: widget.onVoiceInputTap,
-                    tooltip: Localizations.localeOf(context).languageCode == 'ar' ? 'إدخال صوتي' : 'Voice Input',
-                  ),
+                child: VoiceInputButton(
+                  onSpeechResult: _onVoiceSpeechResult,
+                  onStartListening: () {
+                    setState(() {
+                      _isVoiceListening = true;
+                    });
+                    // عرض رسالة أن التسجيل بدأ
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          Localizations.localeOf(context).languageCode == 'ar' 
+                            ? '🎤 بدء التسجيل الصوتي...' 
+                            : '🎤 Voice recording started...',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  onStopListening: () {
+                    setState(() {
+                      _isVoiceListening = false;
+                    });
+                    // عرض رسالة أن التسجيل انتهى
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          Localizations.localeOf(context).languageCode == 'ar' 
+                            ? '⏹️ توقف التسجيل الصوتي' 
+                            : '⏹️ Voice recording stopped',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.orange,
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  onDeleteRecording: () {
+                    setState(() {
+                      _isVoiceListening = false;
+                      _voiceText = '';
+                    });
+                    _showDeleteMessage();
+                  },
+                  putTextInInput: true, // وضع النص في الـ input
+                  enabled: !enhancerProvider.isEnhancing,
+                  primaryColor: Theme.of(context).colorScheme.primary,
+                  accentColor: Theme.of(context).colorScheme.secondary,
                 ),
               ),
 
@@ -259,9 +297,137 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
     );
   }
 
+  /// معالج النتائج الصوتية
+  void _onVoiceSpeechResult(String result) {
+    if (result.isNotEmpty) {
+      setState(() {
+        _voiceText = result;
+        // إضافة النص للـ controller بدلاً من الإرسال المباشر
+        final currentText = widget.messageController.text;
+        if (currentText.isNotEmpty && !currentText.endsWith(' ')) {
+          widget.messageController.text = '$currentText $result';
+        } else {
+          widget.messageController.text = currentText + result;
+        }
+        // وضع المؤشر في النهاية
+        widget.messageController.selection = TextSelection.fromPosition(
+          TextPosition(offset: widget.messageController.text.length),
+        );
+      });
+      
+      // إظهار رسالة تأكيد
+      _showVoiceAddedMessage();
+    }
+  }
+
+  /// إظهار رسالة تم إضافة النص الصوتي
+  void _showVoiceAddedMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          Localizations.localeOf(context).languageCode == 'ar' 
+            ? '✅ تم إضافة النص الصوتي' 
+            : '✅ Voice text added',
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// إظهار رسالة تم حذف التسجيل
+  void _showDeleteMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          Localizations.localeOf(context).languageCode == 'ar' 
+            ? '🗑️ تم إلغاء التسجيل الصوتي' 
+            : '🗑️ Voice recording cancelled',
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   /// إظهار حوار تحسين البرومبت
   void _showEnhanceDialog(PromptEnhancerProvider enhancerProvider) {
-    // تنفيذ حوار تحسين البرومبت
-    // يمكن استدعاء نافذة منفصلة هنا
+    final currentText = widget.messageController.text.trim();
+    if (currentText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'ar' 
+              ? '⚠️ يرجى كتابة نص لتحسينه' 
+              : '⚠️ Please enter text to enhance',
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // بدء عملية التحسين
+    enhancerProvider.enhancePrompt(
+      originalPrompt: currentText,
+      conversationHistory: [],
+    ).then((result) {
+      if (result != null && result.enhancedPrompt.isNotEmpty && result.enhancedPrompt != currentText) {
+        widget.messageController.text = result.enhancedPrompt;
+        widget.messageController.selection = TextSelection.fromPosition(
+          TextPosition(offset: result.enhancedPrompt.length),
+        );
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'ar' 
+                ? '✅ تم تحسين النص بنجاح' 
+                : '✅ Text enhanced successfully',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'ar' 
+              ? '❌ فشل في تحسين النص' 
+              : '❌ Failed to enhance text',
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    });
   }
 }

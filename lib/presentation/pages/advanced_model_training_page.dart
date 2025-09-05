@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/advanced_model_training_service.dart';
+import '../../core/models/training_task_type.dart';
+import '../providers/training_provider.dart';
 import '../widgets/training/unified_training_widget.dart';
-
+import '../widgets/training/task_selection_widget.dart';
 
 class AdvancedModelTrainingPage extends StatefulWidget {
   const AdvancedModelTrainingPage({super.key});
@@ -16,13 +18,15 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
   
   late TabController _tabController;
   late AdvancedModelTrainingService _trainingService;
+  late TrainingProvider _trainingProvider;
   bool _isInitialized = false;
     
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _trainingService = AdvancedModelTrainingService();
+    _trainingProvider = TrainingProvider();
     _initializeService();
   }
     
@@ -30,6 +34,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
   Future<void> _initializeService() async {
     try {
       await _trainingService.initialize();
+      await _trainingProvider.initialize();
       if (mounted) {
         setState(() {
           _isInitialized = true;
@@ -51,13 +56,17 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
   void dispose() {
     _tabController.dispose();
     _trainingService.dispose();
+    _trainingProvider.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _trainingService,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: _trainingService),
+        ChangeNotifierProvider.value(value: _trainingProvider),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: Row(
@@ -167,28 +176,41 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
           ],
           bottom: TabBar(
             controller: _tabController,
-            tabs: const [
+            tabs: [
+              Tab(
+                icon: Icon(Icons.task_alt),
+                text: Localizations.localeOf(context).languageCode == 'ar' ? 'نوع المهمة' : 'Task Type',
+              ),
               Tab(
                 icon: Icon(Icons.settings_outlined),
-                text: 'الإعداد',
+                text: Localizations.localeOf(context).languageCode == 'ar' ? 'الإعداد' : 'Settings',
               ),
               Tab(
                 icon: Icon(Icons.timeline),
-                text: 'التقدم',
+                text: Localizations.localeOf(context).languageCode == 'ar' ? 'التقدم' : 'Progress',
               ),
               Tab(
                 icon: Icon(Icons.terminal),
-                text: 'السجلات',
+                text: Localizations.localeOf(context).languageCode == 'ar' ? 'السجلات' : 'Logs',
               ),
               Tab(
                 icon: Icon(Icons.history),
-                text: 'السجل',
+                text: Localizations.localeOf(context).languageCode == 'ar' ? 'السجل' : 'History',
               ),
             ],
           ),
         ),
         body: _isInitialized
-            ? const UnifiedTrainingWidget()
+            ? TabBarView(
+                controller: _tabController,
+                children: [
+                  const TaskSelectionWidget(),
+                  const UnifiedTrainingWidget(),
+                  _buildProgressTab(),
+                  _buildLogsTab(),
+                  _buildTrainingHistoryTab(),
+                ],
+              )
             : Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -200,6 +222,332 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
                 ),
               ),
       ),
+    );
+  }
+
+  Widget _buildProgressTab() {
+    return Consumer<TrainingProvider>(
+      builder: (context, provider, child) {
+        if (!provider.isTraining && provider.trainingProgress == 0.0) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.timeline,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ar'
+                      ? 'لا يوجد تدريب نشط'
+                      : 'No active training',
+                  style: const TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ar'
+                      ? 'ابدأ تدريب جديد لمشاهدة التقدم'
+                      : 'Start a new training to see progress',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // معلومات المهمة الحالية
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.task_alt,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            Localizations.localeOf(context).languageCode == 'ar'
+                                ? 'المهمة الحالية'
+                                : 'Current Task',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        provider.selectedTask.arabicName,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        provider.taskDescription,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // شريط التقدم
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            Localizations.localeOf(context).languageCode == 'ar'
+                                ? 'تقدم التدريب'
+                                : 'Training Progress',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${(provider.trainingProgress * 100).toStringAsFixed(1)}%',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(
+                        value: provider.trainingProgress,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        provider.currentStep,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // المقاييس
+              Row(
+                children: [
+                  Expanded(
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.trending_down,
+                              color: Colors.red,
+                              size: 32,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Loss',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            Text(
+                              provider.currentLoss.toStringAsFixed(4),
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.trending_up,
+                              color: Colors.green,
+                              size: 32,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Accuracy',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            Text(
+                              '${(provider.currentAccuracy * 100).toStringAsFixed(2)}%',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLogsTab() {
+    return Consumer<TrainingProvider>(
+      builder: (context, provider, child) {
+        final logs = provider.trainingLogs;
+        
+        if (logs.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.terminal,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ar'
+                      ? 'لا توجد سجلات'
+                      : 'No logs available',
+                  style: const TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ar'
+                      ? 'ستظهر سجلات التدريب هنا'
+                      : 'Training logs will appear here',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          children: [
+            // شريط الأدوات
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.terminal,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'ar'
+                        ? 'سجلات التدريب (${logs.length})'
+                        : 'Training Logs (${logs.length})',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: provider.clearLogs,
+                    icon: const Icon(Icons.clear_all),
+                    tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                        ? 'مسح السجلات'
+                        : 'Clear logs',
+                  ),
+                  IconButton(
+                    onPressed: provider.refreshLogs,
+                    icon: const Icon(Icons.refresh),
+                    tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                        ? 'تحديث'
+                        : 'Refresh',
+                  ),
+                ],
+              ),
+            ),
+            
+            // قائمة السجلات
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(8),
+                itemCount: logs.length,
+                itemBuilder: (context, index) {
+                  final log = logs[index];
+                  final isError = log.contains('❌') || log.contains('خطأ') || log.contains('error');
+                  final isSuccess = log.contains('✅') || log.contains('تم') || log.contains('success');
+                  final isWarning = log.contains('⚠️') || log.contains('تحذير') || log.contains('warning');
+                  
+                  Color? backgroundColor;
+                  if (isError) {
+                    backgroundColor = Colors.red.withOpacity(0.1);
+                  } else if (isSuccess) {
+                    backgroundColor = Colors.green.withOpacity(0.1);
+                  } else if (isWarning) {
+                    backgroundColor = Colors.orange.withOpacity(0.1);
+                  }
+                  
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      log,
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        color: isError
+                            ? Colors.red[800]
+                            : isSuccess
+                                ? Colors.green[800]
+                                : isWarning
+                                    ? Colors.orange[800]
+                                    : Theme.of(context).textTheme.bodySmall?.color,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -463,7 +811,7 @@ class _AdvancedModelTrainingPageState extends State<AdvancedModelTrainingPage>
         ),
       );
       if (success) {
-        _tabController.animateTo(1); // التبديل إلى تبويب التقدم
+        _tabController.animateTo(2); // التبديل إلى تبويب التقدم
       }
     }
   }

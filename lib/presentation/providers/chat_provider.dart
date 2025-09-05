@@ -3,15 +3,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 import 'settings_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../core/config/app_config.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/services/mcp_service.dart';
 import '../../data/models/message_model.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../core/services/tavily_service.dart';
 import '../../core/services/unified_ai_service.dart';
+import '../../core/services/mcp_ai_middleware.dart';
 import '../../data/repositories/chat_repository.dart';
 
 class ChatProvider extends ChangeNotifier {
@@ -47,9 +46,9 @@ class ChatProvider extends ChangeNotifier {
   Timer? _cleanupTimer;
   Timer? _autoSaveTimer;
 
-  // Services - Unified AI service
+  // Services - Enhanced with MCP middleware
   late final UnifiedAIService _aiService;
-  late final TavilyService _tavilyService;
+  late final McpAiMiddleware _mcpAiMiddleware;
   late final McpService _mcpService;
   late final ChatRepository _chatRepository;
   late final Uuid _uuid;
@@ -57,13 +56,17 @@ class ChatProvider extends ChangeNotifier {
   // Constructor with improved error handling
   ChatProvider() {
     try {
-      print('🚀 [CHAT_PROVIDER] بدء تهيئة ChatProvider... | Starting ChatProvider initialization...');
+      print(
+        '🚀 [CHAT_PROVIDER] بدء تهيئة ChatProvider... | Starting ChatProvider initialization...',
+      );
       _initializeCore();
       _initializeServices();
       _setupTimers();
       _initializeProvider();
     } catch (e, stackTrace) {
-      print('❌ [CHAT_PROVIDER] خطأ في تهيئة ChatProvider: $e | Error initializing ChatProvider: $e');
+      print(
+        '❌ [CHAT_PROVIDER] خطأ في تهيئة ChatProvider: $e | Error initializing ChatProvider: $e',
+      );
       print('📍 Stack trace: $stackTrace');
       _handleInitializationError(e);
     }
@@ -79,22 +82,28 @@ class ChatProvider extends ChangeNotifier {
     };
   }
 
-  // Lazy service initialization
+  // Lazy service initialization with MCP middleware
   void _initializeServices() {
     try {
       _aiService = UnifiedAIService();
-      _tavilyService = TavilyService();
+      _mcpAiMiddleware = McpAiMiddleware();
       _mcpService = McpService();
 
       // Initialize services asynchronously
       _aiService.initialize();
-      _tavilyService.initialize();
+      _mcpAiMiddleware.initialize();
       _mcpService.initialize();
 
-      print('✅ [SERVICES] تم تهيئة جميع الخدمات المحسنة بنجاح | All enhanced services initialized successfully');
+      print(
+        '✅ [SERVICES] تم تهيئة جميع الخدمات المحسنة مع MCP بنجاح | All enhanced services with MCP initialized successfully',
+      );
     } catch (e) {
-      print('⚠️ [SERVICES] خطأ في تهيئة الخدمات: $e | Error initializing services: $e');
-      throw ServiceInitializationException('فشل في تهيئة الخدمات: $e | Failed to initialize services: $e');
+      print(
+        '⚠️ [SERVICES] خطأ في تهيئة الخدمات: $e | Error initializing services: $e',
+      );
+      throw ServiceInitializationException(
+        'فشل في تهيئة الخدمات: $e | Failed to initialize services: $e',
+      );
     }
   }
 
@@ -171,14 +180,18 @@ class ChatProvider extends ChangeNotifier {
     _validateState();
     _messages.removeWhere((message) => message.id == messageId);
     _safeNotifyListeners();
-    print('✅ [REMOVE_MESSAGE] تم حذف الرسالة: $messageId | Message deleted: $messageId');
+    print(
+      '✅ [REMOVE_MESSAGE] تم حذف الرسالة: $messageId | Message deleted: $messageId',
+    );
   }
 
   void removeMessages(List<String> messageIds) {
     _validateState();
     _messages.removeWhere((message) => messageIds.contains(message.id));
     _safeNotifyListeners();
-    print('✅ [REMOVE_MESSAGES] تم حذف ${messageIds.length} رسالة | Deleted ${messageIds.length} messages');
+    print(
+      '✅ [REMOVE_MESSAGES] تم حذف ${messageIds.length} رسالة | Deleted ${messageIds.length} messages',
+    );
   }
 
   // Validate provider state
@@ -199,14 +212,17 @@ class ChatProvider extends ChangeNotifier {
 - كن مهذباً ومحترماً
 - اشرح المفاهيم المعقدة بطريقة بسيطة
 ''';
-      
+
       // احصل على اللغة المفضلة من الإعدادات
       String languageInstruction = '';
       if (settingsProvider != null) {
         final preferredLang = settingsProvider.preferredLanguage;
         if (preferredLang != 'auto') {
-          final langName = SettingsProvider.supportedLanguages[preferredLang] ?? preferredLang;
-          languageInstruction = '''
+          final langName =
+              SettingsProvider.supportedLanguages[preferredLang] ??
+              preferredLang;
+          languageInstruction =
+              '''
 
 ## 🎯 USER LANGUAGE PREFERENCE:
 - User has set preferred language to: $langName ($preferredLang)
@@ -216,7 +232,7 @@ class ChatProvider extends ChangeNotifier {
 ''';
         }
       }
-      
+
       // إضافة تأكيد إضافي على التعدد اللغوي والردود المفصلة مع تحسين الترحيب
       final multilingualEnhancement = '''
 
@@ -293,10 +309,12 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 - لا تضع عناوين داخل كتل الكود
 
 ''';
-      
+
       return basePrompt + languageInstruction + multilingualEnhancement;
     } catch (e) {
-      print('⚠️ [SYSTEM_PROMPT] خطأ في إنشاء System Prompt: $e | Error creating System Prompt: $e');
+      print(
+        '⚠️ [SYSTEM_PROMPT] خطأ في إنشاء System Prompt: $e | Error creating System Prompt: $e',
+      );
       return 'You are a helpful AI assistant.'; // Fallback prompt
     }
   }
@@ -306,22 +324,32 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
     try {
       print('📥 [INIT] بدء تحميل البيانات... | Starting data loading...');
       await _loadSessions();
-      print('📄 [INIT] تم تحميل ${_sessions.length} جلسة سابقة | Loaded ${_sessions.length} previous sessions');
-      
+      print(
+        '📄 [INIT] تم تحميل ${_sessions.length} جلسة سابقة | Loaded ${_sessions.length} previous sessions',
+      );
+
       if (_sessions.isEmpty) {
-        print('📝 [INIT] لا توجد جلسات سابقة، إنشاء جلسة جديدة | No previous sessions, creating new session');
+        print(
+          '📝 [INIT] لا توجد جلسات سابقة، إنشاء جلسة جديدة | No previous sessions, creating new session',
+        );
         await createNewSession();
       } else {
-        print('📂 [INIT] تحميل آخر جلسة: ${_sessions.first.title} | Loading last session: ${_sessions.first.title}');
+        print(
+          '📂 [INIT] تحميل آخر جلسة: ${_sessions.first.title} | Loading last session: ${_sessions.first.title}',
+        );
         _currentSessionId = _sessions.first.id;
         await _loadCurrentSessionMessages();
       }
-      
+
       _isInitialized = true;
       notifyListeners();
-      print('✅ [INIT] تم إكمال تهيئة ChatProvider بنجاح | ChatProvider initialization completed successfully');
+      print(
+        '✅ [INIT] تم إكمال تهيئة ChatProvider بنجاح | ChatProvider initialization completed successfully',
+      );
     } catch (e) {
-      print('❌ [INIT] خطأ في تهيئة المزود: $e | Error initializing provider: $e');
+      print(
+        '❌ [INIT] خطأ في تهيئة المزود: $e | Error initializing provider: $e',
+      );
       _handleInitializationError(e);
     }
   }
@@ -334,8 +362,12 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       _sessions.addAll(sessions);
       _safeNotifyListeners();
     } catch (e) {
-      print('❌ [LOAD_SESSIONS] خطأ في تحميل الجلسات: $e | Error loading sessions: $e');
-      throw SessionLoadException('فشل في تحميل الجلسات: $e | Failed to load sessions: $e');
+      print(
+        '❌ [LOAD_SESSIONS] خطأ في تحميل الجلسات: $e | Error loading sessions: $e',
+      );
+      throw SessionLoadException(
+        'فشل في تحميل الجلسات: $e | Failed to load sessions: $e',
+      );
     }
   }
 
@@ -355,11 +387,11 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       final messages = await _chatRepository.getSessionMessages(
         _currentSessionId!,
       );
-      
+
       _messages.clear();
       _messages.addAll(messages);
       _hasMoreMessages = messages.length >= _messagePageSize;
-      
+
       _safeNotifyListeners();
       print('✅ [LOAD_MESSAGES] تم تحميل ${messages.length} رسالة');
     } catch (e) {
@@ -405,20 +437,20 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   bool _checkRateLimit() {
     final now = DateTime.now();
     final sessionId = _currentSessionId ?? 'unknown';
-    
+
     _messageTimestamps[sessionId] ??= [];
     final timestamps = _messageTimestamps[sessionId]!;
-    
+
     // Remove old timestamps
-    timestamps.removeWhere((time) => 
-      now.difference(time).inMinutes >= 1
-    );
-    
+    timestamps.removeWhere((time) => now.difference(time).inMinutes >= 1);
+
     if (timestamps.length >= _maxMessagesPerMinute) {
-      print('⚠️ [RATE_LIMIT] تم تجاوز حد الرسائل المسموحة | Rate limit exceeded');
+      print(
+        '⚠️ [RATE_LIMIT] تم تجاوز حد الرسائل المسموحة | Rate limit exceeded',
+      );
       return false;
     }
-    
+
     timestamps.add(now);
     return true;
   }
@@ -426,18 +458,22 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   // Input validation
   bool _validateInput(String content) {
     if (content.trim().isEmpty) {
-      throw InvalidInputException('محتوى الرسالة فارغ | Message content is empty');
+      throw InvalidInputException(
+        'محتوى الرسالة فارغ | Message content is empty',
+      );
     }
-    
+
     if (content.length > 5000) {
       throw MessageTooLongException('الرسالة طويلة جداً | Message is too long');
     }
-    
+
     // Basic security check
     if (_containsSuspiciousContent(content)) {
-      throw SecurityException('المحتوى يحتوي على عناصر مشبوهة | Content contains suspicious elements');
+      throw SecurityException(
+        'المحتوى يحتوي على عناصر مشبوهة | Content contains suspicious elements',
+      );
     }
-    
+
     return true;
   }
 
@@ -449,11 +485,9 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       'data:text/html',
       'eval(',
     ];
-    
+
     final lowerContent = content.toLowerCase();
-    return suspiciousPatterns.any((pattern) => 
-      lowerContent.contains(pattern)
-    );
+    return suspiciousPatterns.any((pattern) => lowerContent.contains(pattern));
   }
 
   // Sanitize input content
@@ -466,19 +500,33 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   }
 
   // Enhanced sendMessage with comprehensive error handling
-  Future<void> sendMessage(String content, {SettingsProvider? settingsProvider}) async {
+  Future<void> sendMessage(
+    String content, {
+    SettingsProvider? settingsProvider,
+  }) async {
     _validateState();
 
     try {
-      print('📤 [SEND_MESSAGE] بدء إرسال الرسالة... | Starting message send...');
+      print(
+        '📤 [SEND_MESSAGE] بدء إرسال الرسالة... | Starting message send...',
+      );
       // Input validation and rate limiting
       _validateInput(content);
       if (!_checkRateLimit()) {
-        throw RateLimitExceededException('تم تجاوز حد الرسائل المسموحة | Rate limit exceeded');
+        throw RateLimitExceededException(
+          'تم تجاوز حد الرسائل المسموحة | Rate limit exceeded',
+        );
       }
 
       final sanitizedContent = _sanitizeInput(content);
-      
+
+      // تحقق من طلبات توليد الصور تلقائياً
+      if (_isImageGenerationRequest(sanitizedContent)) {
+        print('🎨 [IMAGE_DETECTION] تم اكتشاف طلب توليد صورة تلقائياً');
+        await generateImage(prompt: sanitizedContent);
+        return;
+      }
+
       // Start thinking process
       await _startThinkingProcess();
 
@@ -493,9 +541,12 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 
       // Add user message with attachments info
       String userMessageContent = sanitizedContent;
-      final imageCount = _attachments.where((att) => _isImageFile(att.type)).length;
+      final imageCount = _attachments
+          .where((att) => _isImageFile(att.type))
+          .length;
       if (imageCount > 0) {
-        userMessageContent += '\n\n📎 تم إرفاق $imageCount صورة'; // $imageCount images attached
+        userMessageContent +=
+            '\n\n📎 تم إرفاق $imageCount صورة'; // $imageCount images attached
       }
 
       final userMessage = MessageModel(
@@ -508,49 +559,33 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 
       _messages.add(userMessage);
       _safeNotifyListeners();
-      
-      // Save message asynchronously
-      unawaited(_saveMessage(userMessage));
-      _updateThinkingProcess('تم إضافة رسالة المستخدم | User message added', 'success');
 
-      // Determine model and service
-      String selectedModel = settingsProvider?.selectedModel ?? 'llama-3.1-8b-instant';
+      // Save message with proper error handling
+      _saveMessage(userMessage).catchError((error) {
+        print('❌ [SAVE_MESSAGE] خطأ في حفظ رسالة المستخدم: $error');
+      });
+      _updateThinkingProcess(
+        'تم إضافة رسالة المستخدم | User message added',
+        'success',
+      );
 
-      if (!_isModelFreeAndAvailable(selectedModel)) {
-        print('⚠️ [AI_SERVICE] النموذج المحدد غير مجاني أو غير متاح: $selectedModel | Selected model is not free or available: $selectedModel');
-        selectedModel = _getDefaultFreeModel();
-        print('🔄 [AI_SERVICE] تم التبديل للنموذج المجاني الافتراضي: $selectedModel | Switched to default free model: $selectedModel');
-      }
+      // Determine model and service - Use exactly what user selected
+      String selectedModel =
+          settingsProvider?.selectedModel ?? 'llama-3.1-8b-instant';
+      print(
+        '🎯 [AI_SERVICE] استخدام النموذج المحدد: $selectedModel | Using selected model: $selectedModel',
+      );
 
-      // تحقق من دعم النموذج للصور
+      // تسجيل وجود الصور فقط دون تدخل
       final hasImages = _attachments.any((att) => _isImageFile(att.type));
       if (hasImages) {
-        print('📸 [VISION] تم اكتشاف صور مرفقة، النموذج المستخدم: $selectedModel | Images detected, using model: $selectedModel');
-        if (!_isVisionCapableModel(selectedModel)) {
-          print('⚠️ [VISION] النموذج الحالي لا يدعم الرؤية، سيتم وصف الصور نصياً | Current model doesn\'t support vision, will describe images textually');
-
-          // إضافة رسالة تحذيرية للمستخدم
-          final warningMessage = MessageModel(
-            id: _uuid.v4(),
-            content: '⚠️ تنبيه: النموذج الحالي ($selectedModel) لا يدعم تحليل الصور بصرياً.\n\n'
-                'للحصول على تحليل أفضل للصور، يُنصح باستخدام أحد النماذج التالية:\n'
-                '• GPT-4 Vision أو GPT-4o\n'
-                '• Claude-3 (جميع الإصدارات)\n'
-                '• Gemini 1.5 Pro\n'
-                '• Qwen-VL\n\n'
-                'سيتم الآن محاولة وصف الصورة نصياً بناءً على البيانات المتاحة.',
-            role: MessageRole.assistant,
-            timestamp: DateTime.now(),
-            metadata: {'type': 'warning', 'category': 'vision_support'},
-          );
-
-          _messages.add(warningMessage);
-          _safeNotifyListeners();
-        }
+        print(
+          '📸 [VISION] تم اكتشاف صور مرفقة، النموذج المستخدم: $selectedModel | Images detected, using model: $selectedModel',
+        );
       }
-      
+
       final aiService = _getAIService(selectedModel);
-      
+
       // Update service info
       _lastUsedModel = selectedModel;
       _lastUsedService = _getServiceName(aiService);
@@ -566,7 +601,9 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
         _updateThinkingProcess('معالجة المرفقات...', 'processing');
 
         // عد الصور المرفقة
-        final imageCount = _attachments.where((att) => _isImageFile(att.type)).length;
+        final imageCount = _attachments
+            .where((att) => _isImageFile(att.type))
+            .length;
         if (imageCount > 0) {
           print('📸 [IMAGES] تم إرفاق $imageCount صورة مع الرسالة');
         }
@@ -579,12 +616,15 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
             print('⚠️ [ATTACHMENT] خطأ في معالجة المرفق: $e');
           }
         }
-        _updateThinkingProcess('تم معالجة ${_attachments.length} مرفق (منها $imageCount صورة)', 'success');
+        _updateThinkingProcess(
+          'تم معالجة ${_attachments.length} مرفق (منها $imageCount صورة)',
+          'success',
+        );
       }
 
       // Send request to service
       _updateThinkingProcess('إرسال الطلب للخدمة...', 'processing');
-      
+
       final messagesForAPI = List<MessageModel>.from(_messages);
 
       // تحديث خوادم MCP مع الإعدادات الحالية
@@ -598,17 +638,27 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       final lastMessage = messagesForAPI.last.content.toLowerCase();
 
       // تحديد نوع المعالجة المطلوبة
-      if (lastMessage.contains('تذكر') || lastMessage.contains('احفظ') || lastMessage.contains('ذاكرة')) {
+      if (lastMessage.contains('تذكر') ||
+          lastMessage.contains('احفظ') ||
+          lastMessage.contains('ذاكرة')) {
         // استخدام خادم الذاكرة - توليد مفتاح ذكي
         final key = _generateMemoryKey(messagesForAPI.last.content);
-        response = await _mcpService.executeMemoryStore(key, messagesForAPI.last.content);
-      } else if (lastMessage.contains('استرجع') || lastMessage.contains('ابحث في الذاكرة')) {
+        response = await _mcpService.executeMemoryStore(
+          key,
+          messagesForAPI.last.content,
+        );
+      } else if (lastMessage.contains('استرجع') ||
+          lastMessage.contains('ابحث في الذاكرة')) {
         // استرجاع من الذاكرة
         final searchKey = _extractSearchKey(messagesForAPI.last.content);
         response = await _mcpService.executeMemoryRetrieve(searchKey);
-      } else if (lastMessage.contains('فكر') || lastMessage.contains('حلل') || lastMessage.contains('خطوات')) {
+      } else if (lastMessage.contains('فكر') ||
+          lastMessage.contains('حلل') ||
+          lastMessage.contains('خطوات')) {
         // استخدام التفكير التسلسلي
-        final thinkingSteps = await _mcpService.executeSequentialThinking(messagesForAPI.last.content);
+        final thinkingSteps = await _mcpService.executeSequentialThinking(
+          messagesForAPI.last.content,
+        );
         response = thinkingSteps.join('\n\n');
       } else {
         // معالجة عادية مع تحسين النظام
@@ -621,18 +671,50 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
         );
         messagesForAPI.insert(0, systemMessage);
 
+        // تحضير محتوى الملفات المرفقة
+        List<String>? attachedFilesContent;
+        if (_attachments.isNotEmpty) {
+          attachedFilesContent = [];
+          for (final attachment in _attachments) {
+            try {
+              final attachmentInfo = await _processAttachment(attachment);
+              attachedFilesContent.add(attachmentInfo);
+            } catch (e) {
+              print('⚠️ [ATTACHMENT] خطأ في معالجة المرفق: $e');
+            }
+          }
+        }
+
+        // استخدام المحتوى المعالج بدلاً من المحتوى الأصلي
+        final updatedLastMessage = messagesForAPI.last.copyWith(
+          content: processedContent,
+        );
+        messagesForAPI[messagesForAPI.length - 1] = updatedLastMessage;
+
         response = await _aiService.sendMessage(
           messages: messagesForAPI,
           model: selectedModel,
+          attachedFiles: attachedFilesContent,
         );
       }
 
       _updateThinkingProcess('تم استلام الرد من الخدمة', 'success');
 
+      // Debug: Log the raw response
+      print('🔍 [DEBUG_RESPONSE] Raw response length: ${response.length}');
+      print(
+        '🔍 [DEBUG_RESPONSE] Response preview: ${response.length > 100 ? "${response.substring(0, 100)}..." : response}',
+      );
+
       // Add AI response
+      final formattedContent = _enforceCodeFormatting(response);
+      print(
+        '🔍 [DEBUG_FORMATTED] Formatted content length: ${formattedContent.length}',
+      );
+
       final aiMessage = MessageModel(
         id: _uuid.v4(),
-        content: _enforceCodeFormatting(response),
+        content: formattedContent,
         role: MessageRole.assistant,
         timestamp: DateTime.now(),
         metadata: {
@@ -644,9 +726,11 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 
       _messages.add(aiMessage);
       _safeNotifyListeners();
-      
-      // Save AI message asynchronously
-      unawaited(_saveMessage(aiMessage));
+
+      // Save AI message with proper error handling
+      _saveMessage(aiMessage).catchError((error) {
+        print('❌ [SAVE_MESSAGE] خطأ في حفظ رسالة AI: $error');
+      });
 
       // Complete thinking process
       _completeThinkingProcess();
@@ -654,7 +738,6 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 
       print('✅ [CHAT_PROVIDER] تم إرسال الرسالة بنجاح');
       print('📝 [DEBUG] النموذج المستخدم: $_lastUsedModel');
-
     } on InvalidInputException catch (e) {
       _handleError('خطأ في الإدخال', e.message);
     } on RateLimitExceededException catch (e) {
@@ -675,7 +758,8 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       // معالجة خاصة لأخطاء الصور
       String errorMessage = 'حدث خطأ أثناء معالجة الرسالة';
       if (e.toString().contains('image') || e.toString().contains('صورة')) {
-        errorMessage = 'حدث خطأ أثناء معالجة الصورة. يرجى المحاولة مرة أخرى بصورة أخرى.';
+        errorMessage =
+            'حدث خطأ أثناء معالجة الصورة. يرجى المحاولة مرة أخرى بصورة أخرى.';
       }
 
       _handleError('خطأ غير متوقع', errorMessage);
@@ -691,7 +775,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       isComplete: true,
       completedAt: DateTime.now(),
     );
-    
+
     // Add error message to conversation
     final errorMessage = MessageModel(
       id: _uuid.v4(),
@@ -700,7 +784,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       timestamp: DateTime.now(),
       metadata: {'type': 'error'},
     );
-    
+
     _messages.add(errorMessage);
     _safeNotifyListeners();
   }
@@ -729,13 +813,18 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
         timestamp: DateTime.now(),
         content: message,
       );
-      
+
       final updatedSteps = List<ThinkingStepModel>.from(_currentThinking!.steps)
         ..add(newStep);
-      
+
       _currentThinking = _currentThinking!.copyWith(steps: updatedSteps);
       _safeNotifyListeners();
     }
+  }
+
+  // Add thinking step - helper method
+  void _addThinkingStep(String message, String type) {
+    _updateThinkingProcess(message, type);
   }
 
   // Complete thinking process
@@ -748,6 +837,41 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
     );
     _isThinking = false;
     _safeNotifyListeners();
+  }
+
+  // كشف طلبات توليد الصور تلقائياً
+  bool _isImageGenerationRequest(String content) {
+    final lowerContent = content.toLowerCase().trim();
+    
+    // الكلمات المفتاحية العربية
+    final arabicKeywords = [
+      'أنشأ', 'انشئ', 'ارسم', 'اعمل', 'كون', 'صمم',
+      'صورة', 'صور', 'رسمة', 'رسم', 'لوحة', 'مشهد', 'منظر',
+      'فتاة', 'شاب', 'رجل', 'امرأة', 'طفل', 'شخص',
+      'جميل', 'جميلة', 'رائع', 'رائعة', 'مذهل', 'مذهلة',
+      'طبيعة', 'بحر', 'جبل', 'شمس', 'قمر', 'نجوم',
+      'بيت', 'منزل', 'مدينة', 'شارع', 'حديقة'
+    ];
+    
+    // الكلمات المفتاحية الإنجليزية
+    final englishKeywords = [
+      'create', 'generate', 'make', 'draw', 'design', 'paint',
+      'image', 'picture', 'photo', 'art', 'artwork', 'illustration',
+      'portrait', 'landscape', 'scene', 'view',
+      'person', 'woman', 'man', 'girl', 'boy', 'child',
+      'beautiful', 'amazing', 'stunning', 'gorgeous', 'elegant',
+      'nature', 'ocean', 'mountain', 'sun', 'moon', 'stars',
+      'house', 'building', 'city', 'street', 'garden'
+    ];
+    
+    // البحث عن مزيج من أفعال الإنشاء + أسماء الصور
+    final hasCreationVerb = arabicKeywords.take(6).any((keyword) => lowerContent.contains(keyword)) ||
+                           englishKeywords.take(6).any((keyword) => lowerContent.contains(keyword));
+                           
+    final hasImageNoun = arabicKeywords.skip(6).any((keyword) => lowerContent.contains(keyword)) ||
+                        englishKeywords.skip(6).any((keyword) => lowerContent.contains(keyword));
+    
+    return hasCreationVerb && hasImageNoun;
   }
 
   // Get unified AI service
@@ -765,7 +889,8 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   // الحصول على النماذج المتاحة
   List<String> getAvailableModels() {
     try {
-      return _aiService.getAvailableModels();
+      final models = _aiService.getAvailableModels();
+      return models.map((model) => model['id'] as String).toList();
     } catch (e) {
       print('❌ [MODELS] خطأ في الحصول على النماذج: $e');
       return [
@@ -787,60 +912,105 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
     }
   }
 
-  // Check if model is free and available
-  bool _isModelFreeAndAvailable(String modelId) {
-    for (final serviceKey in AppConfig.freeModels.keys) {
-      final serviceModels = AppConfig.freeModels[serviceKey] ?? [];
-      for (final model in serviceModels) {
-        if (model['id'] == modelId && (model['isFree'] == true || serviceKey != 'openrouter')) {
-          return true;
-        }
+  // توليد الصور باستخدام FLUX.1-dev
+  Future<void> generateImage({
+    required String prompt,
+    String model = 'black-forest-labs/FLUX.1-dev',
+    Map<String, dynamic>? parameters,
+  }) async {
+    if (_isDisposed) return;
+
+    try {
+      _isThinking = true;
+      _safeNotifyListeners();
+
+      // Start thinking process for image generation
+      _startThinkingProcess();
+      _addThinkingStep('بدء عملية توليد الصورة...', 'info');
+      _addThinkingStep('استخدام النموذج: $model', 'info');
+      _addThinkingStep('النص المطلوب: $prompt', 'info');
+
+      // إنشاء رسالة المستخدم
+      final userMessage = MessageModel(
+        id: _uuid.v4(),
+        content: '🎨 توليد صورة: $prompt',
+        role: MessageRole.user,
+        timestamp: DateTime.now(),
+        status: MessageStatus.sent,
+      );
+
+      _messages.insert(0, userMessage);
+      await _saveMessage(userMessage);
+      _safeNotifyListeners();
+
+      // توليد الصورة
+      _addThinkingStep('إرسال الطلب إلى Hugging Face...', 'processing');
+      
+      final result = await _aiService.generateImage(
+        prompt: prompt,
+        model: model,
+        parameters: parameters,
+      );
+
+      if (result['success'] == true && result['data'] != null) {
+        final imageBytes = result['data'] as List<int>;
+        
+        // إنشاء مرفق للصورة
+        final attachment = AttachmentModel(
+          id: _uuid.v4(),
+          name: 'generated_image_${DateTime.now().millisecondsSinceEpoch}.png',
+          path: '', // سيتم التعامل مع البايتات مباشرة
+          type: 'image',
+          size: imageBytes.length,
+          uploadedAt: DateTime.now(),
+          data: imageBytes, // حفظ البايتات في النموذج
+        );
+
+        _attachments.add(attachment);
+
+        // إنشاء رسالة الرد مع الصورة
+        final responseMessage = MessageModel(
+          id: _uuid.v4(),
+          content: '✅ تم توليد الصورة بنجاح!\n\nالنموذج المستخدم: $model\nالوقت: ${DateTime.now().toString().split('.')[0]}',
+          role: MessageRole.assistant,
+          timestamp: DateTime.now(),
+          status: MessageStatus.delivered,
+          attachments: [attachment],
+        );
+
+        _messages.insert(0, responseMessage);
+        await _saveMessage(responseMessage);
+
+        _addThinkingStep('تم توليد الصورة بنجاح! ✨', 'success');
+        _addThinkingStep('حجم الصورة: ${(imageBytes.length / 1024).toStringAsFixed(1)} كيلوبايت', 'info');
+        
+        print('✅ [IMAGE_GENERATION] تم توليد الصورة بنجاح');
+        print('📊 [IMAGE_GENERATION] حجم الصورة: ${imageBytes.length} بايت');
+
+      } else {
+        throw Exception('فشل في توليد الصورة');
       }
+
+    } catch (e) {
+      print('❌ [IMAGE_GENERATION] خطأ في توليد الصورة: $e');
+      
+      _addThinkingStep('خطأ في توليد الصورة: $e', 'error');
+
+      // إنشاء رسالة خطأ
+      final errorMessage = MessageModel(
+        id: _uuid.v4(),
+        content: '❌ عذراً، حدث خطأ في توليد الصورة:\n\n$e\n\nالرجاء المحاولة مرة أخرى أو التحقق من إعدادات HF_TOKEN.',
+        role: MessageRole.assistant,
+        timestamp: DateTime.now(),
+        status: MessageStatus.delivered,
+      );
+
+      _messages.insert(0, errorMessage);
+      await _saveMessage(errorMessage);
+
+    } finally {
+      _completeThinkingProcess();
     }
-    return false;
-  }
-
-  // Get default free model
-  String _getDefaultFreeModel() {
-    const freeModelsPriority = [
-      'openai/gpt-oss-20b',
-      'z-ai/glm-4.5-air',
-      'qwen/qwen3-coder-480b-a35b-instruct',
-      'moonshotai/kimi-k2-instruct',
-      'llama-3.1-8b-instant',
-      'gpt-3.5-turbo',
-    ];
-
-    for (final modelId in freeModelsPriority) {
-      if (_isModelFreeAndAvailable(modelId)) {
-        return modelId;
-      }
-    }
-
-    return 'llama-3.1-8b-instant';
-  }
-
-  // Check if model supports vision
-  bool _isVisionCapableModel(String model) {
-    final modelLower = model.toLowerCase();
-
-    // النماذج المعروفة التي تدعم الرؤية
-    final visionModels = [
-      'gpt-4-vision', 'gpt-4o', 'claude-3', 'gemini-1.5', 'gemini-pro-vision',
-      'qwen-vl', 'qwen2-vl', 'llama-3.2-11b-vision', 'llama-3.2-90b-vision'
-    ];
-
-    return visionModels.any((visionModel) => modelLower.contains(visionModel));
-  }
-
-  // Check if model belongs to OpenRouter
-  bool _isOpenRouterModel(String model) {
-    final openRouterPrefixes = [
-      'openai/', 'z-ai/', 'qwen/', 'moonshotai/', 'cognitivecomputations/',
-      'google/', 'tencent/', 'tngtech/', 'mistralai/', 'anthropic/',
-    ];
-
-    return openRouterPrefixes.any((prefix) => model.startsWith(prefix));
   }
 
   // Enhanced message saving with error handling
@@ -870,13 +1040,17 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   Future<List<MessageModel>> getAllMessagesFromAllSessions() async {
     try {
       List<MessageModel> allMessages = [];
-      
+
       for (final session in _sessions) {
-        final sessionMessages = await _chatRepository.getSessionMessages(session.id);
+        final sessionMessages = await _chatRepository.getSessionMessages(
+          session.id,
+        );
         allMessages.addAll(sessionMessages);
       }
-      
-      print('✅ [EXPORT_ALL] تم جمع ${allMessages.length} رسالة من ${_sessions.length} جلسة');
+
+      print(
+        '✅ [EXPORT_ALL] تم جمع ${allMessages.length} رسالة من ${_sessions.length} جلسة',
+      );
       return allMessages;
     } catch (e) {
       print('❌ [EXPORT_ALL] خطأ في جمع جميع الرسائل: $e');
@@ -908,7 +1082,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 
       // التحقق من امتداد الملف
       final extension = imageFile.name.split('.').last.toLowerCase();
-      if (!_isImageFile(extension)) {
+      if (!_isImageFile(extension) && !_isTextFile(extension)) {
         throw UnsupportedFileTypeException('نوع الملف غير مدعوم: $extension');
       }
 
@@ -925,7 +1099,9 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       // التحقق من الحد الأقصى للحجم (10MB)
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (fileSize > maxSize) {
-        throw Exception('حجم الصورة كبير جداً. الحد الأقصى هو ${_formatFileSize(maxSize)}');
+        throw Exception(
+          'حجم الصورة كبير جداً. الحد الأقصى هو ${_formatFileSize(maxSize)}',
+        );
       }
 
       // إنشاء المرفق
@@ -941,7 +1117,6 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       _attachments.add(attachment);
       _safeNotifyListeners();
       print('✅ [IMAGE_ATTACHMENT] تم إضافة صورة بنجاح: ${attachment.name}');
-
     } catch (e) {
       print('❌ [IMAGE_ATTACHMENT] خطأ في إضافة الصورة: $e');
       rethrow;
@@ -995,7 +1170,8 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
     final file = File(attachment.path);
     final extension = attachment.type.toLowerCase();
 
-    final fileInfo = '📁 الملف: ${attachment.name}\n'
+    final fileInfo =
+        '📁 الملف: ${attachment.name}\n'
         '📏 الحجم: ${_formatFileSize(attachment.size)}\n'
         '🗂️ النوع: $extension\n';
 
@@ -1015,13 +1191,19 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
         return '$fileInfo\n📎 ملف تم رفعه';
       }
     } catch (e) {
-      print('❌ [ATTACHMENT_PROCESSING] خطأ في معالجة المرفق ${attachment.name}: $e');
+      print(
+        '❌ [ATTACHMENT_PROCESSING] خطأ في معالجة المرفق ${attachment.name}: $e',
+      );
       return '$fileInfo\n⚠️ خطأ في قراءة الملف: $e';
     }
   }
 
   // Process image attachment separately to avoid UI blocking
-  Future<String> _processImageAttachment(File file, AttachmentModel attachment, String fileInfo) async {
+  Future<String> _processImageAttachment(
+    File file,
+    AttachmentModel attachment,
+    String fileInfo,
+  ) async {
     try {
       print('🖼️ [IMAGE_PROCESSING] بدء معالجة الصورة: ${attachment.name}');
 
@@ -1041,22 +1223,18 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 
       // تحويل إلى base64 (قد يكون بطيئاً للصور الكبيرة)
       // للصور الكبيرة، نستخدم compute لتجنب blocking UI
-      final base64Image = bytes.length > 1024 * 1024 // 1MB
+      final base64Image =
+          bytes.length >
+              1024 *
+                  1024 // 1MB
           ? await compute(_encodeBase64, bytes)
           : base64Encode(bytes);
       final mimeType = _getMimeType(attachment.type);
 
       print('✅ [IMAGE_PROCESSING] تم تحويل الصورة إلى base64 بنجاح');
 
-      // إضافة وصف واضح للصورة مع البيانات
-      return '$fileInfo\n🖼️ صورة مرفقة - يرجى تحليلها ووصفها:\n'
-          'data:$mimeType;base64,$base64Image\n\n'
-          'تعليمات للنموذج: هذه صورة تم رفعها من قبل المستخدم. يرجى:\n'
-          '1. تحليل محتوى الصورة بالتفصيل\n'
-          '2. وصف العناصر الموجودة فيها\n'
-          '3. تحديد الألوان والأشكال والنصوص إن وجدت\n'
-          '4. تقديم أي معلومات مفيدة حول الصورة';
-
+      // إرجاع البيانات بتنسيق data URI مباشرة للـ Vision API
+      return 'data:$mimeType;base64,$base64Image';
     } catch (e) {
       print('❌ [IMAGE_PROCESSING] خطأ في معالجة الصورة: $e');
       return '$fileInfo\n⚠️ خطأ في معالجة الصورة: $e\n'
@@ -1067,29 +1245,73 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   // File type detection methods
   bool _isTextFile(String extension) {
     return [
-      'txt', 'md', 'json', 'yaml', 'yml', 'xml', 'csv',
-      'py', 'js', 'ts', 'html', 'css', 'dart', 'java',
-      'cpp', 'c', 'h', 'php', 'rb', 'go', 'rs', 'swift',
-      'kt', 'scala', 'sql', 'sh', 'bat', 'ps1',
+      'txt',
+      'md',
+      'json',
+      'yaml',
+      'yml',
+      'xml',
+      'csv',
+      'py',
+      'js',
+      'ts',
+      'html',
+      'css',
+      'dart',
+      'java',
+      'cpp',
+      'c',
+      'h',
+      'php',
+      'rb',
+      'go',
+      'rs',
+      'swift',
+      'kt',
+      'scala',
+      'sql',
+      'sh',
+      'bat',
+      'ps1',
     ].contains(extension);
   }
 
   bool _isImageFile(String extension) {
     return [
-      'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp',
-      'svg', 'tiff', 'tif', 'ico',
+      'jpg',
+      'jpeg',
+      'png',
+      'gif',
+      'bmp',
+      'webp',
+      'svg',
+      'tiff',
+      'tif',
+      'ico',
     ].contains(extension);
   }
 
   bool _isAudioFile(String extension) {
     return [
-      'mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'wma',
+      'mp3',
+      'wav',
+      'aac',
+      'flac',
+      'ogg',
+      'm4a',
+      'wma',
     ].contains(extension);
   }
 
   bool _isVideoFile(String extension) {
     return [
-      'mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm',
+      'mp4',
+      'avi',
+      'mov',
+      'wmv',
+      'flv',
+      'mkv',
+      'webm',
     ].contains(extension);
   }
 
@@ -1150,21 +1372,10 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   Future<void> searchWeb(String query) async {
     try {
       _updateThinkingProcess('البحث في الويب...', 'processing');
-      
-      final searchResult = await _tavilyService.search(query: query);
 
+      // استخدام البحث من خلال الخدمة الموحدة
       String searchContent = 'نتائج البحث لـ "$query":\n\n';
-
-      if (searchResult.answer != null) {
-        searchContent += 'الإجابة المباشرة: ${searchResult.answer}\n\n';
-      }
-
-      for (final result in searchResult.results.take(3)) {
-        searchContent += '• ${result.title}\n';
-        searchContent += '  ${result.content.substring(0, 
-          result.content.length > 200 ? 200 : result.content.length)}...\n';
-        searchContent += '  المصدر: ${result.url}\n\n';
-      }
+      searchContent += 'البحث متاح من خلال الخدمة الموحدة';
 
       final searchMessage = MessageModel(
         id: _uuid.v4(),
@@ -1199,7 +1410,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 
       await _loadSessions();
       _safeNotifyListeners();
-      
+
       print('✅ [SESSION] تم إنشاء جلسة جديدة: $sessionTitle');
     } catch (e) {
       print('❌ [SESSION] خطأ في إنشاء جلسة جديدة: $e');
@@ -1211,23 +1422,26 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
   Future<void> loadSession(String sessionId) async {
     try {
       print('📄 [LOAD_SESSION] تحميل جلسة: $sessionId');
-      
+
       final session = _sessions.firstWhere(
         (s) => s.id == sessionId,
-        orElse: () => throw SessionNotFoundException('الجلسة غير موجودة: $sessionId'),
+        orElse: () =>
+            throw SessionNotFoundException('الجلسة غير موجودة: $sessionId'),
       );
-      
+
       print('📂 [LOAD_SESSION] تحميل جلسة: ${session.title}');
-      
+
       _currentSessionId = sessionId;
       _messages.clear();
       _attachments.clear();
       _currentThinking = null;
-      
+
       await _loadCurrentSessionMessages();
       _safeNotifyListeners();
-      
-      print('✅ [LOAD_SESSION] تم تحميل الجلسة بنجاح: ${_messages.length} رسالة');
+
+      print(
+        '✅ [LOAD_SESSION] تم تحميل الجلسة بنجاح: ${_messages.length} رسالة',
+      );
     } catch (e) {
       print('❌ [LOAD_SESSION] خطأ في تحميل الجلسة: $e');
       await createNewSession('جلسة طارئة');
@@ -1245,7 +1459,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 
       await _loadSessions();
       _safeNotifyListeners();
-      
+
       print('✅ [DELETE_SESSION] تم حذف الجلسة: $sessionId');
     } catch (e) {
       print('❌ [DELETE_SESSION] خطأ في حذف الجلسة: $e');
@@ -1277,11 +1491,34 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
     }
   }
 
+  // Extract search key from memory query
+  String _extractSearchKey(String content) {
+    // محاولة استخراج مفتاح البحث من النص
+    final cleanContent = content
+        .replaceAll(RegExp(r'(استرجع|ابحث في الذاكرة|اجلب|أظهر)'), '')
+        .trim();
+
+    // إذا كان النص قصيراً، استخدمه كما هو
+    if (cleanContent.length <= 20) {
+      return cleanContent;
+    }
+
+    // خلاف ذلك، خذ الكلمات الأولى
+    final words = cleanContent.split(' ');
+    return words.take(3).join(' ');
+  }
+
   // توليد مفتاح ذكي للذاكرة
   String _generateMemoryKey(String content) {
     // استخراج الكلمات المفتاحية من المحتوى
-    final words = content.toLowerCase()
-        .replaceAll(RegExp(r'[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF\w\s]'), '')
+    final words = content
+        .toLowerCase()
+        .replaceAll(
+          RegExp(
+            r'[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF\w\s]',
+          ),
+          '',
+        )
         .split(' ')
         .where((word) => word.length > 2)
         .take(3)
@@ -1291,118 +1528,100 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
     return words.isNotEmpty ? '${words}_$timestamp' : 'memory_$timestamp';
   }
 
-  // استخراج مفتاح البحث من النص
-  String _extractSearchKey(String content) {
-    // البحث عن كلمات مفتاحية بعد "استرجع" أو "ابحث"
-    final patterns = [
-      RegExp(r'استرجع\s+(.+)', caseSensitive: false),
-      RegExp(r'ابحث\s+عن\s+(.+)', caseSensitive: false),
-      RegExp(r'ابحث\s+في\s+الذاكرة\s+عن\s+(.+)', caseSensitive: false),
-    ];
-
-    for (final pattern in patterns) {
-      final match = pattern.firstMatch(content);
-      if (match != null && match.group(1) != null) {
-        return match.group(1)!.trim();
-      }
-    }
-
-    // إذا لم نجد نمط محدد، استخدم النص كاملاً
-    return content.trim();
-  }
-
   // Enhanced code formatting
   String _enforceCodeFormatting(String content) {
     if (content.trim().isEmpty) return content;
-    
+
     String formatted = content;
-    
+
     try {
       formatted = _fixUnformattedCode(formatted);
       formatted = _fixHeadersInsideCodeBlocks(formatted);
       formatted = _fixIncorrectBashBlocks(formatted);
       formatted = _ensureProperLanguageIdentifiers(formatted);
-      
+
       return formatted;
     } catch (e) {
       print('⚠️ [CODE_FORMAT] خطأ في تنسيق الكود: $e');
       return content; // Return original if formatting fails
     }
   }
-  
+
   // Fix unformatted code
   String _fixUnformattedCode(String content) {
     final pythonRegex = RegExp(
       r'(?:^|\n)(?:def |class |import |from |pip install |print\()',
       multiLine: true,
     );
-    
+
     final jsRegex = RegExp(
       r'(?:^|\n)(?:function |const |let |var |npm install |console\.)',
       multiLine: true,
     );
-    
+
     String formatted = content;
-    
+
     if (pythonRegex.hasMatch(formatted) && !formatted.contains('```python')) {
       formatted = _wrapCodeInBlocks(formatted, 'python');
     }
-    
+
     if (jsRegex.hasMatch(formatted) && !formatted.contains('```javascript')) {
       formatted = _wrapCodeInBlocks(formatted, 'javascript');
     }
-    
+
     return formatted;
   }
-  
+
   // Fix headers inside code blocks
   String _fixHeadersInsideCodeBlocks(String content) {
     final codeBlockWithHeaderRegex = RegExp(
       r'```(\w+)?\s*\n(#[^\n]+)\n',
       multiLine: true,
     );
-    
+
     return content.replaceAllMapped(codeBlockWithHeaderRegex, (match) {
       final language = match.group(1) ?? '';
       final header = match.group(2) ?? '';
       return '$header\n```$language\n';
     });
   }
-  
+
   // Fix incorrect bash blocks
   String _fixIncorrectBashBlocks(String content) {
     final bashBlockRegex = RegExp(
       r'```bash\s*\n((?:(?!```)[\s\S])*)\n```',
       multiLine: true,
     );
-    
+
     return content.replaceAllMapped(bashBlockRegex, (match) {
       final codeContent = match.group(1) ?? '';
-      
-      if (codeContent.contains('def ') || codeContent.contains('import ') || 
+
+      if (codeContent.contains('def ') ||
+          codeContent.contains('import ') ||
           codeContent.contains('print(')) {
         return '```python\n$codeContent\n```';
       }
-      
-      if (codeContent.contains('function ') || codeContent.contains('const ') || 
+
+      if (codeContent.contains('function ') ||
+          codeContent.contains('const ') ||
           codeContent.contains('console.')) {
         return '```javascript\n$codeContent\n```';
       }
-      
+
       if (codeContent.trim().startsWith('{') && codeContent.contains('"')) {
         return '```json\n$codeContent\n```';
       }
-      
+
       return match.group(0) ?? '';
     });
   }
-  
+
   // Ensure proper language identifiers
   String _ensureProperLanguageIdentifiers(String content) {
     final emptyCodeBlockRegex = RegExp(r'```\s*\n', multiLine: true);
     return content.replaceAll(emptyCodeBlockRegex, '```text\n');
   }
-  
+
   // Wrap code in blocks
   String _wrapCodeInBlocks(String content, String language) {
     // This would contain more sophisticated logic for determining code boundaries
@@ -1465,15 +1684,11 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       // Clean old message timestamps
       final now = DateTime.now();
       _messageTimestamps.forEach((key, timestamps) {
-        timestamps.removeWhere((time) => 
-          now.difference(time).inMinutes > 60
-        );
+        timestamps.removeWhere((time) => now.difference(time).inMinutes > 60);
       });
 
       // Remove empty timestamp lists
-      _messageTimestamps.removeWhere((key, timestamps) => 
-        timestamps.isEmpty
-      );
+      _messageTimestamps.removeWhere((key, timestamps) => timestamps.isEmpty);
 
       print('🧹 [CLEANUP] تم تنظيف البيانات المؤقتة');
     } catch (e) {
@@ -1503,7 +1718,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
     // Cancel timers
     _cleanupTimer?.cancel();
     _autoSaveTimer?.cancel();
-    
+
     // Clear collections
     _messages.clear();
     _sessions.clear();
@@ -1531,13 +1746,6 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       print('✅ [DISPOSE] تم إغلاق UnifiedAIService بنجاح');
     } catch (e) {
       print('⚠️ [DISPOSE] خطأ في إغلاق UnifiedAIService: $e');
-    }
-
-    try {
-      _tavilyService.dispose();
-      print('✅ [DISPOSE] تم إغلاق TavilyService بنجاح');
-    } catch (e) {
-      print('⚠️ [DISPOSE] خطأ في إغلاق TavilyService: $e');
     }
   }
 }
