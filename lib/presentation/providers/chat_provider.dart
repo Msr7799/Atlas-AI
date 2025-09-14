@@ -1690,7 +1690,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
       // Remove empty timestamp lists
       _messageTimestamps.removeWhere((key, timestamps) => timestamps.isEmpty);
 
-      print('🧹 [CLEANUP] تم تنظيف البيانات المؤقتة');
+      // Cleanup completed silently
     } catch (e) {
       print('⚠️ [CLEANUP] خطأ في التنظيف: $e');
     }
@@ -1701,7 +1701,7 @@ When users ask "كيف أغير لون الواجهة؟" or about changing color
 
     try {
       // Auto-save pending operations can be added here
-      print('💾 [AUTO_SAVE] تم الحفظ التلقائي');
+      // Auto-save completed silently
     } catch (e) {
       print('⚠️ [AUTO_SAVE] خطأ في الحفظ التلقائي: $e');
     }

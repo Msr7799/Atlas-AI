@@ -161,7 +161,7 @@ class PerformanceManager {
   /// التنظيف الدوري
   static void _periodicCleanup() {
     try {
-      if (kDebugMode) print('🧹 Performing periodic cleanup...');
+      // Performing periodic cleanup silently
       
       // تنظيف الذاكرة المؤقتة
       _clearImageCache();
@@ -169,7 +169,7 @@ class PerformanceManager {
       // تنظيف الملفات المؤقتة
       _cleanupTempFiles();
       
-      if (kDebugMode) print('✅ Periodic cleanup completed');
+      // Periodic cleanup completed silently
     } catch (e) {
       if (kDebugMode) print('❌ Error in periodic cleanup: $e');
     }
@@ -192,7 +192,7 @@ class PerformanceManager {
         _imageCache.clear();
       }
       
-      if (kDebugMode) print('✅ Image cache cleared');
+      // Image cache cleared silently
     } catch (e) {
       if (kDebugMode) print('❌ Error clearing image cache: $e');
     }
@@ -216,7 +216,7 @@ class PerformanceManager {
         }
       }
       
-      if (kDebugMode) print('🗑️ Deleted $deletedCount temp files');
+      // Temp files cleanup completed silently
     } catch (e) {
       if (kDebugMode) print('❌ Error cleaning temp files: $e');
     }

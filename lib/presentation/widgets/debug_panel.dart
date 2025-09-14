@@ -83,7 +83,6 @@ class DebugPanel extends StatelessWidget {
                       ]),
                       const SizedBox(height: 16),
                       _buildSection(context, Localizations.localeOf(context).languageCode == 'ar' ? 'حالة مفاتيح API' : 'API Key Status', [
-                        'Groq API: ${AppConfig.groqApiKey.isNotEmpty ? (Localizations.localeOf(context).languageCode == 'ar' ? 'متوفر' : 'Available') : (Localizations.localeOf(context).languageCode == 'ar' ? 'غير متوفر' : 'Not Available')}',
                         'Tavily API: ${AppConfig.tavilyApiKey.isNotEmpty ? (Localizations.localeOf(context).languageCode == 'ar' ? 'متوفر' : 'Available') : (Localizations.localeOf(context).languageCode == 'ar' ? 'غير متوفر' : 'Not Available')}',
                       ]),
 

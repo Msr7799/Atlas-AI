@@ -221,8 +221,6 @@ class ModelSettingsSection extends StatelessWidget {
 
   Color _getServiceColor(String service) {
     switch (service.toUpperCase()) {
-      case 'GROQ':
-        return Colors.orange;
       case 'GPTGOD':
         return Colors.purple;
       case 'OPENROUTER':
@@ -231,8 +229,6 @@ class ModelSettingsSection extends StatelessWidget {
         return Colors.green;
       case 'CUSTOM':
         return Colors.teal;
-      case 'HUGGINGFACE':
-        return Colors.yellow.shade700;
       default:
         return Colors.grey;
     }
@@ -250,14 +246,6 @@ class ModelSettingsSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  Localizations.localeOf(context).languageCode == 'ar' ? '🚀 Groq (مجاني)' : '🚀 Groq (Free)',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
-                ),
-                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• نماذج سريعة جداً مع دعم مجاني' : '• Very fast models with free support'),
-                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Llama 3.1 بأحجام مختلفة' : '• Llama 3.1 in different sizes'),
-                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Mixtral و Gemma 2' : '• Mixtral and Gemma 2'),
-                const SizedBox(height: 16),
 
                 Text(
                   Localizations.localeOf(context).languageCode == 'ar' ? '🤖 GPTGod (مجاني)' : '🤖 GPTGod (Free)',
@@ -271,12 +259,18 @@ class ModelSettingsSection extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 Text(
-                  Localizations.localeOf(context).languageCode == 'ar' ? '🌐 OpenRouter (نماذج مجانية)' : '🌐 OpenRouter (Free Models)',
+                  Localizations.localeOf(context).languageCode == 'ar' ? '🌐 OpenRouter (نماذج مجانية محدثة)' : '🌐 OpenRouter (Updated Free Models)',
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
                 ),
-                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• مجموعة واسعة من النماذج المجانية' : '• Wide range of free models'),
-                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• GPT OSS, GLM 4.5, Qwen3 Coder' : '• GPT OSS, GLM 4.5, Qwen3 Coder'),
-                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Kimi K2, Venice Uncensored' : '• Kimi K2, Venice Uncensored'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Google Gemini 2.0 Flash Experimental - أسرع نموذج مع دعم متعدد الوسائط' : '• Google Gemini 2.0 Flash Experimental - Fastest model with multimodal support'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Meta Llama 3.3 70B & Llama 3.1 405B - نماذج رائدة بأحجام مختلفة' : '• Meta Llama 3.3 70B & Llama 3.1 405B - Leading models in different sizes'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Qwen2.5 72B & Qwen2.5 Coder 32B - متخصص في البرمجة والمعرفة' : '• Qwen2.5 72B & Qwen2.5 Coder 32B - Specialized in coding and knowledge'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Mistral Nemo & Mistral 7B - نماذج سريعة ومتوازنة' : '• Mistral Nemo & Mistral 7B - Fast and balanced models'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Google Gemma 2 9B - مفتوح المصدر بكفاءة عالية' : '• Google Gemma 2 9B - Open source with high efficiency'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• Sonoma Dusk/Sky Alpha - نماذج مجتمعية بسياق 2M رمز ودعم الصور' : '• Sonoma Dusk/Sky Alpha - Community models with 2M context and image support'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• DeepSeek V3.1 - نموذج استدلال هجين مع وضع التفكير' : '• DeepSeek V3.1 - Hybrid reasoning model with thinking mode'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• OpenAI GPT-OSS 120B/20B - نماذج مفتوحة الوزن عالية الأداء' : '• OpenAI GPT-OSS 120B/20B - High-performance open-weight models'),
+                Text(Localizations.localeOf(context).languageCode == 'ar' ? '• GLM 4.5 Air - نموذج خفيف بتقنية MoE مع وضع التفكير' : '• GLM 4.5 Air - Lightweight MoE model with thinking mode'),
                 const SizedBox(height: 16),
 
                 Text(

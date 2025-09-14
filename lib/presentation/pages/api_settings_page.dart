@@ -17,11 +17,9 @@ class ApiSettingsPage extends StatefulWidget {
 }
 
 class _ApiSettingsPageState extends State<ApiSettingsPage> {
-  final _groqController = TextEditingController();
   final _gptgodController = TextEditingController();
   final _tavilyController = TextEditingController();
-  final _huggingfaceController = TextEditingController();
-  final _hfTokenController = TextEditingController();
+  final _openRouterController = TextEditingController();
   final _openrouterController = TextEditingController();
 
   bool _isLoading = false;
@@ -35,42 +33,30 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
 
   // حالة صلاحية المفاتيح / API key validation status
   final Map<String, bool?> _keyValidationStatus = {
-    'groq': null,
     'gptgod': null,
     'openrouter': null,
     'tavily': null,
-    'huggingface': null,
-    'hf_token': null,
   };
 
   // حالة التحقق من المفاتيح / Validation in progress status
   final Map<String, bool> _isValidating = {
-    'groq': false,
     'gptgod': false,
     'openrouter': false,
     'tavily': false,
-    'huggingface': false,
-    'hf_token': false,
   };
 
   // حالة عرض الديباق / Debug display status
-  final Map<String, bool> _showDebug = {
-    'groq': false,
+  final Map<String, bool> _showDebugInfo = {
     'gptgod': false,
     'openrouter': false,
     'tavily': false,
-    'huggingface': false,
-    'hf_token': false,
   };
 
   // تفاصيل الديباق للاستدعاءات / Debug info for API calls
   final Map<String, Map<String, dynamic>> _debugInfo = {
-    'groq': {},
     'gptgod': {},
     'openrouter': {},
     'tavily': {},
-    'huggingface': {},
-    'hf_token': {},
   };
 
   @override
@@ -99,12 +85,8 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
   Future<void> _loadSavedKeys() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _groqController.text = prefs.getString('groq_api_key') ?? '';
       _gptgodController.text = prefs.getString('gptgod_api_key') ?? '';
       _tavilyController.text = prefs.getString('tavily_api_key') ?? '';
-      _huggingfaceController.text =
-          prefs.getString('huggingface_api_key') ?? '';
-      _hfTokenController.text = prefs.getString('hf_token_api_key') ?? '';
       _openrouterController.text = prefs.getString('openrouter_api_key') ?? '';
     });
 
@@ -117,26 +99,11 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
 
     try {
       // حفظ المفاتيح باستخدام ApiKeyManager / Save keys using ApiKeyManager
-      if (_groqController.text.trim().isNotEmpty) {
-        await ApiKeyManager.saveApiKey('groq', _groqController.text.trim());
-      }
       if (_gptgodController.text.trim().isNotEmpty) {
         await ApiKeyManager.saveApiKey('gptgod', _gptgodController.text.trim());
       }
       if (_tavilyController.text.trim().isNotEmpty) {
         await ApiKeyManager.saveApiKey('tavily', _tavilyController.text.trim());
-      }
-      if (_huggingfaceController.text.trim().isNotEmpty) {
-        await ApiKeyManager.saveApiKey(
-          'huggingface',
-          _huggingfaceController.text.trim(),
-        );
-      }
-      if (_hfTokenController.text.trim().isNotEmpty) {
-        await ApiKeyManager.saveApiKey(
-          'hf_token',
-          _hfTokenController.text.trim(),
-        );
       }
       if (_openrouterController.text.trim().isNotEmpty) {
         await ApiKeyManager.saveApiKey(
@@ -194,11 +161,6 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
       String message = '';
 
       switch (service) {
-        case 'groq':
-          final result = await _testGroqKey();
-          isValid = result['success'];
-          message = result['message'];
-          break;
         case 'gptgod':
           final result = await _testGptGodKey();
           isValid = result['success'];
@@ -211,11 +173,6 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
           break;
         case 'tavily':
           final result = await _testTavilyKey();
-          isValid = result['success'];
-          message = result['message'];
-          break;
-        case 'huggingface':
-          final result = await _testHuggingFaceKey();
           isValid = result['success'];
           message = result['message'];
           break;
@@ -257,101 +214,6 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
     }
   }
 
-  // اختبار مفتاح Groq مع llama-3.1-8b-instant
-  Future<Map<String, dynamic>> _testGroqKey() async {
-    try {
-      final apiKey = await ApiKeyManager.getApiKey('groq');
-      if (apiKey.isEmpty) {
-        _debugInfo['groq'] = {
-          'request': Localizations.localeOf(context).languageCode == 'ar' 
-              ? 'لا يوجد مفتاح API' 
-              : 'No API key found',
-          'response': Localizations.localeOf(context).languageCode == 'ar'
-              ? 'فشل - مفتاح غير موجود'
-              : 'Failed - Key not found',
-          'timestamp': DateTime.now().toString(),
-        };
-        return {
-          'success': false, 
-          'message': Localizations.localeOf(context).languageCode == 'ar'
-              ? 'مفتاح Groq غير موجود'
-              : 'Groq API key not found'
-        };
-      }
-
-      final requestBody = {
-        'model': 'llama-3.1-8b-instant',
-        'messages': [
-          {'role': 'user', 'content': 'Hello'}
-        ],
-        'max_tokens': 5,
-      };
-
-      final response = await http.post(
-        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(requestBody),
-      );
-
-      // حفظ تفاصيل الديباق
-      _debugInfo['groq'] = {
-        'request': {
-          'url': 'https://api.groq.com/openai/v1/chat/completions',
-          'method': 'POST',
-          'headers': {
-            'Authorization': 'Bearer ${apiKey.substring(0, 10)}...',
-            'Content-Type': 'application/json',
-          },
-          'body': requestBody,
-        },
-        'response': {
-          'status_code': response.statusCode,
-          'body': response.body,
-        },
-        'timestamp': DateTime.now().toString(),
-      };
-
-      if (response.statusCode == 200) {
-        return {
-          'success': true, 
-          'message': Localizations.localeOf(context).languageCode == 'ar'
-              ? 'مفتاح Groq صالح ويعمل بشكل صحيح'
-              : 'Groq API key is valid and working'
-        };
-      } else {
-        _debugInfo['groq'] = {
-          'request': 'POST https://api.groq.com/openai/v1/chat/completions\nHeaders: Authorization: Bearer ${apiKey.substring(0, 8)}...\nBody: ${jsonEncode(requestBody)}',
-          'response': 'Status: ${response.statusCode}\nBody: ${response.body}',
-          'timestamp': DateTime.now().toString(),
-        };
-        return {
-          'success': false, 
-          'message': Localizations.localeOf(context).languageCode == 'ar'
-              ? 'مفتاح Groq غير صالح - كود الخطأ: ${response.statusCode}'
-              : 'Invalid Groq API key - Error code: ${response.statusCode}'
-        };
-      }
-    } catch (e) {
-      _debugInfo['groq'] = {
-        'request': Localizations.localeOf(context).languageCode == 'ar'
-            ? 'خطأ في الاتصال'
-            : 'Connection error',
-        'response': Localizations.localeOf(context).languageCode == 'ar'
-            ? 'استثناء: $e'
-            : 'Exception: $e',
-        'timestamp': DateTime.now().toString(),
-      };
-      return {
-        'success': false, 
-        'message': Localizations.localeOf(context).languageCode == 'ar'
-            ? 'خطأ في اختبار Groq: $e'
-            : 'Error testing Groq: $e'
-      };
-    }
-  }
 
   // اختبار مفتاح GPTGod مع GPT-3.5-turbo
   Future<Map<String, dynamic>> _testGptGodKey() async {
@@ -630,84 +492,6 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
     }
   }
 
-  // اختبار مفتاح HuggingFace
-  Future<Map<String, dynamic>> _testHuggingFaceKey() async {
-    try {
-      final apiKey = await ApiKeyManager.getApiKey('huggingface');
-      if (apiKey.isEmpty) {
-        _debugInfo['huggingface'] = {
-          'request': Localizations.localeOf(context).languageCode == 'ar' 
-              ? 'لا يوجد مفتاح API' 
-              : 'No API key found',
-          'response': Localizations.localeOf(context).languageCode == 'ar'
-              ? 'فشل - مفتاح غير موجود'
-              : 'Failed - Key not found',
-          'timestamp': DateTime.now().toString(),
-        };
-        return {
-          'success': false, 
-          'message': Localizations.localeOf(context).languageCode == 'ar'
-              ? 'مفتاح HuggingFace غير موجود'
-              : 'HuggingFace API key not found'
-        };
-      }
-
-      final response = await http.get(
-        Uri.parse('https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium'),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-        },
-      );
-
-      // حفظ تفاصيل الديباق
-      _debugInfo['huggingface'] = {
-        'request': {
-          'url': 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
-          'method': 'GET',
-          'headers': {
-            'Authorization': 'Bearer ${apiKey.substring(0, 10)}...',
-          },
-        },
-        'response': {
-          'status_code': response.statusCode,
-          'body': response.body,
-        },
-        'timestamp': DateTime.now().toString(),
-      };
-
-      if (response.statusCode == 200) {
-        return {
-          'success': true, 
-          'message': Localizations.localeOf(context).languageCode == 'ar'
-              ? 'مفتاح HuggingFace يعمل بشكل صحيح ✅'
-              : 'HuggingFace API key is working correctly ✅'
-        };
-      } else {
-        return {
-          'success': false, 
-          'message': Localizations.localeOf(context).languageCode == 'ar'
-              ? 'مفتاح HuggingFace غير صالح - كود الخطأ: ${response.statusCode}'
-              : 'Invalid HuggingFace API key - Error code: ${response.statusCode}'
-        };
-      }
-    } catch (e) {
-      _debugInfo['huggingface'] = {
-        'request': Localizations.localeOf(context).languageCode == 'ar'
-            ? 'خطأ في الاتصال'
-            : 'Connection error',
-        'response': Localizations.localeOf(context).languageCode == 'ar'
-            ? 'استثناء: $e'
-            : 'Exception: $e',
-        'timestamp': DateTime.now().toString(),
-      };
-      return {
-        'success': false, 
-        'message': Localizations.localeOf(context).languageCode == 'ar'
-            ? 'خطأ في اختبار HuggingFace: $e'
-            : 'Error testing HuggingFace: $e'
-      };
-    }
-  }
 
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1560,10 +1344,8 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
 
       // مسح الحقول
       setState(() {
-        _groqController.clear();
         _gptgodController.clear();
         _tavilyController.clear();
-        _huggingfaceController.clear();
         _openrouterController.clear();
       });
 
@@ -1593,10 +1375,6 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
 
     // تحديد اسم المفتاح والـ controller المناسب
     switch (keyTitle) {
-      case 'Groq API Key':
-        keyName = 'groq';
-        controller = _groqController;
-        break;
       case 'GPTGod API Key':
         keyName = 'gptgod';
         controller = _gptgodController;
@@ -1604,10 +1382,6 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
       case 'Tavily API Key':
         keyName = 'tavily';
         controller = _tavilyController;
-        break;
-      case 'Hugging Face API Key':
-        keyName = 'huggingface';
-        controller = _huggingfaceController;
         break;
       case 'OpenRouter API Key':
         keyName = 'openrouter';
@@ -1738,15 +1512,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                       ),
                     ),
                     Text(
-                      keyName == 'groq'
-                          ? (Localizations.localeOf(context).languageCode == 'ar'
-                              ? '• مفتاح Groq مطلوب للعمل الأساسي\n'
-                                '• سيتم استخدام المفتاح الافتراضي المجاني\n'
-                                '• يمكنك إعادة إدخال مفتاحك الخاص لاحقاً'
-                              : '• Groq key is required for basic operation\n'
-                                '• Default free key will be used\n'
-                                '• You can re-enter your own key later')
-                          : (Localizations.localeOf(context).languageCode == 'ar'
+                      (Localizations.localeOf(context).languageCode == 'ar'
                               ? '• سيتم مسح المفتاح من التخزين\n'
                                 '• سيتم استخدام المفتاح الافتراضي المجاني\n'
                                 '• يمكنك إعادة إدخاله لاحقاً'
@@ -1964,16 +1730,14 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                                 ),
                                 Text(
                                   Localizations.localeOf(context).languageCode == 'ar'
-                                      ? '• مفتاح Groq مطلوب للعمل الأساسي\n'
-                                        '• مفاتيح أخرى اختيارية للمزيد من الميزات\n'
+                                      ? '• جميع المفاتيح اختيارية للمزيد من الميزات\n'
                                         '• يتم حفظ المفاتيح محلياً على جهازك\n'
                                         '• يمكنك الحصول على مفاتيح مجانية من المواقع الرسمية\n'
                                         '• إذا لم تدخل مفتاحاً، سيتم استخدام المفتاح الافتراضي المجاني'
-                                      : '• Groq key is required for basic operation\n'
-                                        '• Other keys are optional for additional features\n'
+                                      : '• All keys are optional for additional features\n'
                                         '• Keys are saved locally on your device\n'
                                         '• You can get free keys from official websites\n'
-                                        '• If no key is entered, default free key will be used',
+                                        '• If you don\'t enter a key, the default free key will be used',
                                   style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(
                                         fontSize:
@@ -1997,17 +1761,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                             tablet: 32,
                             desktop: 40,
                           ),
-                        ), // Groq API Key (مطلوب)
-                        _buildApiKeyField(
-                          controller: _groqController,
-                          title: 'Groq API Key',
-                          subtitle: 'مطلوب - للنماذج الأساسية',
-                          icon: Icons.smart_toy,
-                          isRequired: true,
-                          helpUrl: 'https://console.groq.com/keys',
                         ),
-
-                        const SizedBox(height: 16),
 
                         // GPTGod API Key (اختياري)
                         _buildApiKeyField(
@@ -2033,29 +1787,6 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
 
                         const SizedBox(height: 16),
 
-                        // Hugging Face API Key (اختياري)
-                        _buildApiKeyField(
-                          controller: _huggingfaceController,
-                          title: 'Hugging Face API Key',
-                          subtitle: 'اختياري - لنماذج Hugging Face',
-                          icon: Icons.psychology,
-                          isRequired: false,
-                          helpUrl: 'https://huggingface.co/settings/tokens',
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // HF Token for Image Generation (اختياري)
-                        _buildApiKeyField(
-                          controller: _hfTokenController,
-                          title: 'HF Token (FLUX.1-dev)',
-                          subtitle: 'اختياري - لتوليد الصور بنموذج FLUX.1-dev',
-                          icon: Icons.image,
-                          isRequired: false,
-                          helpUrl: 'https://huggingface.co/settings/tokens',
-                        ),
-
-                        const SizedBox(height: 16),
 
                         // OpenRouter API Key (اختياري)
                         _buildApiKeyField(
@@ -2188,14 +1919,10 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
   }) {
     // تحديد اسم الخدمة من العنوان
     String serviceName = '';
-    if (title.contains('Groq')) {
-      serviceName = 'groq';
-    } else if (title.contains('GPTGod')) {
+    if (title.contains('GPTGod')) {
       serviceName = 'gptgod';
     } else if (title.contains('Tavily')) {
       serviceName = 'tavily';
-    } else if (title.contains('Hugging Face')) {
-      serviceName = 'huggingface';
     } else if (title.contains('OpenRouter')) {
       serviceName = 'openrouter';
     }
@@ -2430,12 +2157,12 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
                     onPressed: _debugInfo[serviceName]?.isNotEmpty == true
                         ? () {
                             setState(() {
-                              _showDebug[serviceName] = !(_showDebug[serviceName] ?? false);
+                              _showDebugInfo[serviceName] = !(_showDebugInfo[serviceName] ?? false);
                             });
                           }
                         : null, // معطل إذا لم تكن هناك معلومات ديباق
                     icon: Icon(
-                      _showDebug[serviceName] == true 
+                      _showDebugInfo[serviceName] == true 
                           ? Icons.keyboard_arrow_up 
                           : Icons.bug_report,
                       color: _debugInfo[serviceName]?.isNotEmpty == true 
@@ -2457,7 +2184,7 @@ class _ApiSettingsPageState extends State<ApiSettingsPage> {
             ],
             
             // عرض تفاصيل الديباق
-            if (_showDebug[serviceName] == true && _debugInfo[serviceName]?.isNotEmpty == true) ...[
+            if (_showDebugInfo[serviceName] == true && _debugInfo[serviceName]?.isNotEmpty == true) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -2826,11 +2553,8 @@ $description
 
   @override
   void dispose() {
-    _groqController.dispose();
     _gptgodController.dispose();
     _tavilyController.dispose();
-    _huggingfaceController.dispose();
-    _hfTokenController.dispose();
     _openrouterController.dispose();
     super.dispose();
   }

@@ -220,9 +220,7 @@ class AppMonitor {
     try {
       // في Flutter، لا يمكن الوصول مباشرة لاستخدام الذاكرة
       // يمكن استخدام معلومات من النظام الأساسي
-      if (kDebugMode) {
-        print('💾 Memory monitoring active');
-      }
+      // Memory monitoring runs silently
     } catch (e) {
       if (kDebugMode) print('❌ Error updating memory usage: $e');
     }

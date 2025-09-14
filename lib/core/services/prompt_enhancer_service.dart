@@ -43,10 +43,12 @@ class PromptEnhancerService {
 
     _dio = Dio(
       BaseOptions(
-        baseUrl: AppConfig.gptGodBaseUrl,
+        baseUrl: AppConfig.openRouterBaseUrl,
         headers: {
-          'Authorization': 'Bearer ${AppConfig.gptGodApiKey}',
+          'Authorization': 'Bearer ${AppConfig.openRouterApiKey}',
           'Content-Type': 'application/json',
+          'HTTP-Referer': AppConfig.appName,
+          'X-Title': AppConfig.appName,
         },
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 60),
@@ -88,17 +90,17 @@ class PromptEnhancerService {
 
       final requestData = {
         'messages': enhancementRequest,
-        'model': 'gpt-3.5-turbo', // استخدام GPTGod بدلاً من Groq
+        'model': 'openai/gpt-oss-20b:free', // استخدام OpenAI GPT-OSS 20B المجاني
         'temperature': 0.3, // قيمة منخفضة للحصول على تحسينات دقيقة
         'max_tokens': 2048,
         'top_p': 0.9,
         'stream': false,
       };
 
-      if (kDebugMode) print('[PROMPT_ENHANCER] 🧠 استخدام GPT-3.5 لتحسين البرومبت');
+      if (kDebugMode) print('[PROMPT_ENHANCER] 🧠 استخدام OpenAI GPT-OSS 20B لتحسين البرومبت');
 
       final response = await _dio.post(
-        AppConfig.gptGodChatEndpoint,
+        AppConfig.openRouterChatEndpoint,
         data: requestData,
       );
 
@@ -108,7 +110,7 @@ class PromptEnhancerService {
 
         return _parseEnhancementResult(originalPrompt, content);
       } else {
-        throw Exception('فشل في الاتصال بخدمة GPTGod: ${response.statusCode}');
+        throw Exception('فشل في الاتصال بخدمة OpenRouter: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) print('[PROMPT_ENHANCER ERROR] $e');

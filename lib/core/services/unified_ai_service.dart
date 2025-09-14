@@ -19,22 +19,17 @@ class UnifiedAIService {
   
   // تتبع حالة الخدمات
   final Map<String, bool> _serviceHealth = {
-    'groq': true,
     'gptgod': true,
     'openrouter': true,
-    'huggingface': true,
   };
   
   // تتبع أخطاء الخدمات لتجنب التكرار
   final Map<String, DateTime> _serviceErrors = {};
 
   // مفاتيح API
-  String _groqApiKey = '';
-  String _groqApiKey2 = '';
   String _gptgodApiKey = '';
   String _gptgodApiKey2 = '';
   String _openRouterApiKey = '';
-  String _huggingfaceApiKey = '';
   String _hfToken = '';
   String _tavilyApiKey = '';
 
@@ -74,8 +69,6 @@ class UnifiedAIService {
   Future<void> _loadApiKeys() async {
     try {
       // تحميل من .env أولاً
-      _groqApiKey = dotenv.env['GROQ_API_KEY'] ?? '';
-      _groqApiKey2 = dotenv.env['GROQ_API_KEY2'] ?? '';
       _gptgodApiKey = dotenv.env['GPTGOD_API_KEY'] ?? '';
       _gptgodApiKey2 = dotenv.env['GPTGOD_API_KEY2'] ?? '';
       _openRouterApiKey = dotenv.env['OPEN_ROUTER_API'] ?? '';
@@ -83,23 +76,17 @@ class UnifiedAIService {
       _tavilyApiKey = dotenv.env['TAVILY_API_KEY'] ?? '';
 
       // إذا لم توجد في .env، جرب ApiKeyManager
-      if (_groqApiKey.isEmpty) {
-        _groqApiKey = await ApiKeyManager.getApiKey('groq');
-      }
       if (_gptgodApiKey.isEmpty) {
         _gptgodApiKey = await ApiKeyManager.getApiKey('gptgod');
       }
       if (_openRouterApiKey.isEmpty) {
         _openRouterApiKey = await ApiKeyManager.getApiKey('openrouter');
       }
-      if (_huggingfaceApiKey.isEmpty) {
-        _huggingfaceApiKey = await ApiKeyManager.getApiKey('huggingface');
-      }
-      if (_hfToken.isEmpty) {
-        _hfToken = await ApiKeyManager.getApiKey('hf_token');
-      }
       if (_tavilyApiKey.isEmpty) {
         _tavilyApiKey = await ApiKeyManager.getApiKey('tavily');
+      }
+      if (_hfToken.isEmpty) {
+        _hfToken = await ApiKeyManager.getApiKey('huggingface');
       }
 
       if (kDebugMode) {
@@ -115,10 +102,8 @@ class UnifiedAIService {
   void _logServiceStatus() {
     if (kDebugMode) {
       print('🔑 [UNIFIED_AI] Keys Status:');
-      print('  - Groq: ${_groqApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
       print('  - GPTGod: ${_gptgodApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
       print('  - OpenRouter: ${_openRouterApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
-      print('  - HuggingFace: ${_huggingfaceApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
       print('  - Tavily: ${_tavilyApiKey.isNotEmpty ? "✅ Available" : "❌ Missing"}');
     }
   }
@@ -160,15 +145,6 @@ class UnifiedAIService {
 
         String response;
         switch (service) {
-          case 'groq':
-            response = await _sendToGroq(
-              messages: messages,
-              model: model,
-              temperature: temperature,
-              maxTokens: maxTokens,
-              systemPrompt: systemPrompt,
-            );
-            break;
           case 'openrouter':
             response = await _sendToOpenRouter(
               messages: messages,
@@ -187,15 +163,6 @@ class UnifiedAIService {
               maxTokens: maxTokens ?? 1024,
               systemPrompt: systemPrompt,
               attachedFiles: attachedFiles?.cast<String>(),
-            );
-            break;
-          case 'huggingface':
-            response = await _sendToHuggingFace(
-              messages: messages,
-              model: model,
-              temperature: temperature,
-              maxTokens: maxTokens,
-              systemPrompt: systemPrompt,
             );
             break;
           case 'Custom':
@@ -271,7 +238,7 @@ class UnifiedAIService {
 
   // ترتيب الخدمات الافتراضي - قابل للتخصيص
   List<String> _getDefaultServiceOrder() {
-    return ['groq', 'gptgod', 'openrouter', 'huggingface'];
+    return ['gptgod', 'openrouter'];
   }
 
   // البحث عن النموذج في AppConfig
@@ -321,7 +288,7 @@ class UnifiedAIService {
 
   // الحصول على خدمات قادرة على معالجة الصور
   List<String> _getVisionCapableServices() {
-    return ['gptgod', 'openrouter', 'groq'];
+    return ['gptgod', 'openrouter'];
   }
 
   // الحصول على خدمات مناسبة للمزود
@@ -332,10 +299,7 @@ class UnifiedAIService {
       'gemini': ['openrouter', 'gptgod'],
       'anthropic': ['openrouter', 'gptgod'],
       'claude': ['openrouter', 'gptgod'],
-      'meta': ['groq', 'huggingface'],
-      'llama': ['groq', 'huggingface'],
-      'huggingface': ['huggingface', 'groq'],
-      'mistral': ['groq', 'openrouter'],
+      'mistral': ['openrouter'],
     };
     
     return providerServiceMap[provider] ?? [];
@@ -343,7 +307,7 @@ class UnifiedAIService {
 
   // الحصول على جميع الخدمات المتاحة - نظام مرن وقابل للتطوير
   List<String> _getAllAvailableServices() {
-    final standardServices = ['groq', 'gptgod', 'openrouter', 'huggingface'];
+    final standardServices = ['gptgod', 'openrouter'];
     
     // إضافة Custom إذا كان هناك نماذج مخصصة
     if (CustomModelsManager.instance.customModels.isNotEmpty) {
@@ -389,18 +353,10 @@ class UnifiedAIService {
   // فحص وجود مفتاح API صحيح
   bool _hasValidApiKey(String service) {
     switch (service) {
-      case 'groq':
-        return _groqApiKey.isNotEmpty || _groqApiKey2.isNotEmpty;
       case 'gptgod':
         return _gptgodApiKey.isNotEmpty || _gptgodApiKey2.isNotEmpty;
       case 'openrouter':
         return _openRouterApiKey.isNotEmpty;
-      case 'huggingface':
-        return _huggingfaceApiKey.isNotEmpty;
-      case 'Custom':
-        // للنماذج المخصصة، تحقق من وجود نماذج مخصصة مع مفاتيح API
-        final customModels = CustomModelsManager.instance.customModels;
-        return customModels.isNotEmpty;
       default:
         return false;
     }
@@ -590,107 +546,6 @@ class UnifiedAIService {
     }
   }
 
-  // إرسال إلى Groq مع معالجة محسنة للأخطاء
-  Future<String> _sendToGroq({
-    required List<MessageModel> messages,
-    required String model,
-    double? temperature,
-    int? maxTokens,
-    String? systemPrompt,
-  }) async {
-    final apiKey = _groqApiKey.isNotEmpty ? _groqApiKey : _groqApiKey2;
-    if (apiKey.isEmpty) throw Exception('مفتاح Groq غير متوفر');
-
-    final requestMessages = <Map<String, dynamic>>[];
-
-    // إضافة رسالة النظام إذا وجدت
-    if (systemPrompt != null && systemPrompt.isNotEmpty) {
-      requestMessages.add({
-        'role': 'system',
-        'content': systemPrompt,
-      });
-    }
-
-    // إضافة الرسائل
-    for (final message in messages) {
-      requestMessages.add({
-        'role': message.role.name,
-        'content': message.content,
-      });
-    }
-
-    final requestData = {
-      'model': model,
-      'messages': requestMessages,
-      'temperature': temperature ?? 0.7,
-      'max_completion_tokens': maxTokens ?? 2048,
-      'stream': false,
-    };
-
-    if (kDebugMode) {
-      print('🚀 [GROQ_SERVICE] إرسال طلب للنموذج: $model');
-      print('📊 [GROQ_SERVICE] عدد الرسائل: ${requestMessages.length}');
-    }
-
-    try {
-      final response = await _dio!.post(
-        'https://api.groq.com/openai/v1/chat/completions',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $apiKey',
-            'Content-Type': 'application/json',
-          },
-          validateStatus: (status) => status != null && status < 500,
-        ),
-        data: requestData,
-      );
-
-      if (response.statusCode == 200) {
-        final content = response.data['choices'][0]['message']['content'];
-        
-        if (kDebugMode) {
-          print('✅ [GROQ_SERVICE] تم استلام الرد بنجاح');
-        }
-        
-        return content ?? 'رد فارغ من Groq';
-      } else {
-        final errorMessage = response.data?['error']?['message'] ?? 
-                           'خطأ غير معروف من Groq';
-        throw Exception('خطأ Groq ${response.statusCode}: $errorMessage');
-      }
-    } on DioException catch (e) {
-      if (kDebugMode) {
-        print('❌ [GROQ_SERVICE] خطأ Dio: ${e.type}');
-        print('   الرسالة: ${e.message}');
-        print('   Status Code: ${e.response?.statusCode}');
-      }
-
-      switch (e.type) {
-        case DioExceptionType.connectionTimeout:
-          throw Exception('انتهت مهلة الاتصال مع Groq');
-        case DioExceptionType.receiveTimeout:
-          throw Exception('انتهت مهلة استقبال الرد من Groq');
-        case DioExceptionType.badResponse:
-          if (e.response?.statusCode == 401) {
-            throw Exception('مفتاح Groq غير صالح');
-          } else if (e.response?.statusCode == 429) {
-            throw Exception('تم تجاوز حد الطلبات لـ Groq');
-          } else if (e.response?.statusCode == 500) {
-            throw Exception('خطأ خادم Groq مؤقت');
-          }
-          throw Exception('رد خاطئ من Groq: ${e.response?.statusCode}');
-        case DioExceptionType.cancel:
-          throw Exception('تم إلغاء الطلب');
-        default:
-          throw Exception('خطأ في الشبكة مع Groq: ${e.message}');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ [GROQ_SERVICE] خطأ عام: $e');
-      }
-      rethrow;
-    }
-  }
 
   // إرسال إلى OpenRouter مع دعم Vision
   Future<String> _sendToOpenRouter({
@@ -866,7 +721,7 @@ class UnifiedAIService {
     int? maxTokens,
     String? systemPrompt,
   }) async {
-    if (_huggingfaceApiKey.isEmpty) {
+    if (_hfToken.isEmpty) {
       throw Exception('مفتاح HuggingFace غير متوفر');
     }
 
@@ -905,7 +760,7 @@ class UnifiedAIService {
         'https://api-inference.huggingface.co/models/$model',
         options: Options(
           headers: {
-            'Authorization': 'Bearer $_huggingfaceApiKey',
+            'Authorization': 'Bearer $_hfToken',
             'Content-Type': 'application/json',
           },
           validateStatus: (status) => status != null && status < 500,
@@ -1051,9 +906,6 @@ class UnifiedAIService {
   // تحديث مفتاح API
   Future<void> updateApiKey(String service, String apiKey) async {
     switch (service.toLowerCase()) {
-      case 'groq':
-        _groqApiKey = apiKey;
-        break;
       case 'gptgod':
         _gptgodApiKey = apiKey;
         break;
@@ -1061,7 +913,7 @@ class UnifiedAIService {
         _openRouterApiKey = apiKey;
         break;
       case 'huggingface':
-        _huggingfaceApiKey = apiKey;
+        _hfToken = apiKey;
         break;
       case 'tavily':
         _tavilyApiKey = apiKey;
@@ -1084,12 +936,9 @@ class UnifiedAIService {
       _dio?.close(force: true);
       _dio = null;
       
-      _groqApiKey = '';
-      _groqApiKey2 = '';
       _gptgodApiKey = '';
       _gptgodApiKey2 = '';
       _openRouterApiKey = '';
-      _huggingfaceApiKey = '';
       _hfToken = '';
       _tavilyApiKey = '';
       
